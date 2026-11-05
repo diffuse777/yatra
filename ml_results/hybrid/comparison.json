@@ -1,0 +1,69 @@
+{
+  "metrics": {
+    "lstm": {
+      "mae": 10.6462,
+      "rmse": 16.0695,
+      "mape": 29.4787,
+      "r2": 0.9385
+    },
+    "xgboost": {
+      "mae": 0.1714,
+      "rmse": 0.3404,
+      "mape": 0.5705,
+      "r2": 1.0
+    },
+    "hybrid": {
+      "mae": 0.1608,
+      "rmse": 0.3319,
+      "mape": 0.5104,
+      "r2": 1.0
+    }
+  },
+  "best": {
+    "best_model": "Hybrid",
+    "best_key": "hybrid",
+    "criterion": "Lowest test MAE (then RMSE, then highest R2)"
+  },
+  "improvement": {
+    "vs_lstm": {
+      "mae": 10.4854,
+      "rmse": 15.7376,
+      "mape": 28.9683,
+      "r2": 0.0615
+    },
+    "vs_xgboost": {
+      "mae": 0.0106,
+      "rmse": 0.0085,
+      "mape": 0.0601,
+      "r2": 0.0
+    },
+    "note": "For MAE/RMSE/MAPE, positive delta means hybrid error is lower (improved). For R\u00b2, positive delta means hybrid R\u00b2 is higher (improved)."
+  },
+  "chart_series": {
+    "labels": [
+      "LSTM",
+      "XGBoost",
+      "Hybrid"
+    ],
+    "mae": [
+      10.6462,
+      0.1714,
+      0.1608
+    ],
+    "rmse": [
+      16.0695,
+      0.3404,
+      0.3319
+    ],
+    "mape": [
+      29.4787,
+      0.5705,
+      0.5104
+    ],
+    "r2": [
+      0.9385,
+      1.0,
+      1.0
+    ]
+  }
+}

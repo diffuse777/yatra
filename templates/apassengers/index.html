@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatra Saarthi – India's Smart Travel Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit" async></script>
+    <style>
+        :root {
+            --font-sans: Verdana, Tahoma, Geneva, sans-serif;
+            --navy:   #0B1F3A;
+            --blue:   #1A3A5C;
+            --deep:   #061326;
+            --orange: #FF5722;
+            --amber:  #FFB300;
+            --gold:   #F9A825;
+            --green:  #2E7D32;
+            --light:  #F0F4F8;
+            --card-bg:#FFFFFF;
+            --text:   #1A1A2E;
+            --muted:  #6B7280;
+            --border: #E5E9F0;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: var(--font-sans);
+            background: var(--light);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h1,h2,h3,h4,h5,h6,.fw-bold,.fw-700,.fw-800 {
+            font-family: var(--font-sans);
+        }
+
+        /* ══════════════════════════════
+           ANNOUNCEMENT TICKER
+        ══════════════════════════════ */
+        .ticker-bar {
+            background: linear-gradient(90deg, #FF5722 0%, #E64A19 100%);
+            color: #fff;
+            font-size: 0.7rem;
+            font-family: var(--font-sans);
+            letter-spacing: 0.02em;
+            padding: 5px 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-inner { display: inline-block; animation: ticker 35s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+        /* ══════════════════════════════
+           NAVIGATION
+        ══════════════════════════════ */
+        .main-nav {
+            background: rgba(11, 31, 58, 0.97);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        .brand-logo {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(255,87,34,0.4);
+        }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-title { font-family: var(--font-sans); font-weight: 800; font-size: 1rem; color: #fff; letter-spacing: 0.01em; }
+        .brand-sub { font-size: 0.58rem; color: var(--amber); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+        .nav-links { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; }
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 0.35rem;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-links a.active {
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(255,87,34,0.35);
+        }
+        .nav-admin {
+            border-left: 1px solid rgba(255,255,255,0.12);
+            margin-left: 0.5rem;
+            padding-left: 0.75rem !important;
+        }
+        .lang-btns { display: flex; gap: 4px; margin-left: 0.75rem; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 0.75rem; }
+        .lang-btns button {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75); border-radius: 6px;
+            padding: 3px 9px; font-size: 0.68rem; cursor: pointer;
+            transition: all 0.2s; font-family: var(--font-sans);
+        }
+        .lang-btns button:hover, .lang-btns button.active {
+            background: var(--orange); border-color: var(--orange); color: #fff;
+        }
+
+        /* ══════════════════════════════
+           HERO SECTION
+        ══════════════════════════════ */
+        .hero {
+            background: linear-gradient(160deg, #061326 0%, #0B1F3A 40%, #0d2b4e 70%, #1a3a5c 100%);
+            color: #fff;
+            padding: 4.5rem 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Decorative blobs */
+        .hero-blob1 {
+            position: absolute; top: -80px; right: -80px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(255,87,34,0.12) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none;
+        }
+        .hero-blob2 {
+            position: absolute; bottom: 40px; left: -60px;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255,179,0,0.08) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none;
+        }
+        /* Dotted grid overlay */
+        .hero-grid {
+            position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+        .hero-content { position: relative; z-index: 2; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: rgba(255,87,34,0.15);
+            border: 1px solid rgba(255,87,34,0.4);
+            color: #FF8A65;
+            font-size: 0.7rem; font-weight: 600;
+            padding: 4px 14px; border-radius: 20px;
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.05em; text-transform: uppercase;
+            backdrop-filter: blur(4px);
+        }
+        .hero h1 {
+            font-family: var(--font-sans);
+            font-size: clamp(1.9rem, 4vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        .hero h1 .accent { color: var(--amber); }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-desc {
+            font-size: 0.92rem;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.7;
+            margin-bottom: 1.75rem;
+            max-width: 440px;
+        }
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff; text-decoration: none;
+            font-weight: 700; font-size: 0.9rem;
+            padding: 0.7rem 1.75rem; border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(255,87,34,0.4);
+            transition: all 0.25s; border: none;
+        }
+        .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,87,34,0.5); color: #fff; }
+        .hero-stats { display: flex; gap: 1.75rem; margin-top: 2rem; flex-wrap: wrap; }
+        .hero-stat { display: flex; flex-direction: column; }
+        .hero-stat .num { font-family: var(--font-sans); font-size: 1.5rem; font-weight: 800; color: var(--amber); }
+        .hero-stat .lbl { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; }
+
+        /* Search card */
+        .search-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 1.75rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .search-card-title {
+            font-family: var(--font-sans);
+            font-weight: 700; font-size: 0.85rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .search-card-title .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--orange);
+        }
+        .search-card label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .search-card .form-control {
+            background: rgba(255,255,255,0.94);
+            border: 1.5px solid rgba(255,255,255,0.2);
+            color: var(--navy);
+            font-size: 0.87rem;
+            font-family: var(--font-sans);
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.2s;
+        }
+        .search-card .form-control:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255,87,34,0.2);
+            background: #fff;
+        }
+        .btn-hero-search {
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff; border: none;
+            font-weight: 700; font-size: 0.9rem;
+            padding: 0.62rem 1.25rem;
+            border-radius: 10px;
+            width: 100%;
+            box-shadow: 0 4px 14px rgba(255,87,34,0.4);
+            transition: all 0.2s;
+            font-family: var(--font-sans);
+        }
+        .btn-hero-search:hover { background: linear-gradient(135deg, #E64A19, var(--orange)); transform: translateY(-1px); }
+
+        /* Travel mode tabs */
+        .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .mode-tab {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            font-size: 0.72rem; font-weight: 600;
+            padding: 5px 12px; border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            cursor: default; background: transparent;
+            transition: all 0.2s;
+        }
+        .mode-tab.on { background: rgba(255,87,34,0.2); border-color: rgba(255,87,34,0.5); color: #FF8A65; }
+
+        /* ══════════════════════════════
+           TRANSPORT ANIMATION SCENE
+        ══════════════════════════════ */
+
+        /* ── Sky layer (airplane) ── */
+        .anim-sky {
+            position: relative;
+            width: 100%;
+            height: 44px;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+        /* Airplane SVG */
+        .plane {
+            position: absolute;
+            top: 4px;
+            left: -120px;
+            width: 80px;
+            animation: flyPlane 14s linear infinite;
+            filter: drop-shadow(0 4px 8px rgba(255,179,0,0.4));
+        }
+        .plane2 {
+            position: absolute;
+            top: 18px;
+            left: -200px;
+            width: 50px;
+            opacity: 0.45;
+            animation: flyPlane 20s linear 6s infinite;
+        }
+        @keyframes flyPlane {
+            0%   { left: -120px; opacity: 0; }
+            5%   { opacity: 1; }
+            95%  { opacity: 1; }
+            100% { left: 110%; opacity: 0; }
+        }
+        /* Cloud drifts */
+        .cloud {
+            position: absolute;
+            top: 6px;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.08);
+            animation: driftCloud linear infinite;
+        }
+        .c1 { width:70px; height:18px; left:-80px; animation-duration:28s; animation-delay:0s; }
+        .c2 { width:50px; height:14px; left:-60px; top:20px; opacity:0.5; animation-duration:34s; animation-delay:8s; }
+        .c3 { width:90px; height:20px; left:-100px; top:10px; opacity:0.3; animation-duration:22s; animation-delay:14s; }
+        @keyframes driftCloud { 0%{left:-120px;} 100%{left:110%;} }
+
+        /* ── Rail layer (train) ── */
+        .anim-rail {
+            position: relative;
+            width: 100%;
+            height: 38px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.18);
+        }
+        /* Rail ties */
+        .rail-ties {
+            position: absolute;
+            top: 14px;
+            left: 0; right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent 0px,
+                transparent 20px,
+                rgba(255,255,255,0.12) 20px,
+                rgba(255,255,255,0.12) 28px
+            );
+            animation: railMove 0.6s linear infinite;
+        }
+        @keyframes railMove { 0%{background-position:0 0;} 100%{background-position:48px 0;} }
+        /* Rail lines */
+        .rail-line-top, .rail-line-bot {
+            position: absolute;
+            left: 0; right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.22);
+        }
+        .rail-line-top { top: 14px; }
+        .rail-line-bot { top: 22px; }
+
+        /* Train SVG container */
+        .train-wrap {
+            position: absolute;
+            bottom: 4px;
+            left: -260px;
+            animation: chooChoo 10s linear infinite;
+        }
+        .train-wrap2 {
+            position: absolute;
+            bottom: 4px;
+            left: -260px;
+            animation: chooChoo 10s linear 5s infinite;
+            opacity: 0.55;
+        }
+        @keyframes chooChoo {
+            0%   { left: -280px; }
+            100% { left: 110%; }
+        }
+        /* Steam puffs */
+        .steam {
+            position: absolute;
+            top: -10px;
+            left: 30px;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            animation: puff 1s ease-out infinite;
+        }
+        .steam2 { left: 44px; animation-delay: 0.33s; width: 7px; height: 7px; }
+        .steam3 { left: 56px; animation-delay: 0.66s; width: 5px; height: 5px; }
+        @keyframes puff {
+            0%   { transform: translateY(0) scale(1); opacity: 0.6; }
+            100% { transform: translateY(-18px) scale(2.5); opacity: 0; }
+        }
+
+        /* ── Road layer (buses + cars) ── */
+        .anim-road {
+            position: relative;
+            width: 100%;
+            height: 46px;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        /* Dashed centre line */
+        .road-dash {
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 2px;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.55) 0px 40px,
+                transparent 40px 80px
+            );
+            transform: translateY(-50%);
+            animation: dashMove 1.2s linear infinite;
+        }
+        @keyframes dashMove { 0%{background-position:0 0;} 100%{background-position:80px 0;} }
+        /* Road edge stripes */
+        .road-edge-top, .road-edge-bot {
+            position: absolute; left: 0; right: 0; height: 3px;
+        }
+        .road-edge-top { top: 0; background: #FFB300; }
+        .road-edge-bot { bottom: 0; background: #FFB300; }
+
+        /* Generic vehicle */
+        .vehicle {
+            position: absolute;
+            bottom: 5px;
+        }
+        /* Bus */
+        .bus-anim {
+            animation: vehicleRight linear infinite;
+            bottom: 6px;
+        }
+        .bus1 { left: -100px; animation-duration: 9s;  animation-delay: 0s; }
+        .bus2 { left: -100px; animation-duration: 12s; animation-delay: 4.5s; }
+        .bus3 { left: -100px; animation-duration: 7s;  animation-delay: 8s; }
+        @keyframes vehicleRight {
+            0%   { left: -120px; }
+            100% { left: 110%; }
+        }
+        /* Car (smaller, faster) */
+        .car-anim {
+            animation: carRight linear infinite;
+            bottom: 8px;
+        }
+        .car1 { left: -80px; animation-duration: 5s; animation-delay: 1s; }
+        .car2 { left: -80px; animation-duration: 4s; animation-delay: 6s; }
+        @keyframes carRight {
+            0%   { left: -100px; }
+            100% { left: 110%; }
+        }
+
+        /* Hero bottom wave */
+        .hero-wave { position: relative; height: 60px; }
+        .hero-wave svg { position: absolute; bottom: 0; left: 0; width: 100%; }
+
+        /* ══════════════════════════════
+           SERVICES SECTION
+        ══════════════════════════════ */
+        .services-section { padding: 3.5rem 0 2.5rem; }
+        .section-label {
+            font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--orange); margin-bottom: 0.4rem;
+        }
+        .section-title {
+            font-family: var(--font-sans);
+            font-size: 1.6rem; font-weight: 800;
+            color: var(--navy); line-height: 1.2;
+        }
+        .section-title span { color: var(--orange); }
+
+        .service-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.13);
+            border-color: transparent;
+            color: inherit;
+        }
+        .card-icon-wrap {
+            height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .card-icon-wrap i { font-size: 2.6rem; position: relative; z-index: 1; }
+        .card-icon-wrap::after {
+            content: '';
+            position: absolute; bottom: -20px; right: -20px;
+            width: 80px; height: 80px; border-radius: 50%;
+            opacity: 0.15;
+        }
+        .ci-orange { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
+        .ci-orange i { color: #E65100; }
+        .ci-orange::after { background: #FF5722; }
+        .ci-teal   { background: linear-gradient(135deg, #E0F7FA, #B2EBF2); }
+        .ci-teal i { color: #00838F; }
+        .ci-teal::after { background: #00BCD4; }
+        .ci-purple { background: linear-gradient(135deg, #EDE7F6, #D1C4E9); }
+        .ci-purple i { color: #6A1B9A; }
+        .ci-purple::after { background: #9C27B0; }
+        .ci-green  { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); }
+        .ci-green i { color: #2E7D32; }
+        .ci-green::after { background: #4CAF50; }
+        .ci-red    { background: linear-gradient(135deg, #FFEBEE, #FFCDD2); }
+        .ci-red i  { color: #C62828; }
+        .ci-red::after { background: #F44336; }
+        .ci-blue   { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); }
+        .ci-blue i { color: #0D47A1; }
+        .ci-blue::after { background: #2196F3; }
+
+        .svc-body { padding: 1rem 1.25rem 1.25rem; }
+        .svc-title { font-family: var(--font-sans); font-size: 0.92rem; font-weight: 700; color: var(--navy); margin-bottom: 0.3rem; }
+        .svc-desc  { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.5; }
+        .svc-action {
+            font-size: 0.73rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+        }
+
+        /* ══════════════════════════════
+           VILLAGES SECTION
+        ══════════════════════════════ */
+        .villages-section { padding: 2.5rem 0 3rem; background: #fff; }
+        .village-map-banner {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%);
+            border-radius: 20px;
+            padding: 2rem 2rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.75rem;
+        }
+        .village-map-banner::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .village-map-banner .vb-glow {
+            position: absolute; top: -60px; right: -60px;
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,179,0,0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .village-map-banner .vb-content { position: relative; z-index: 1; }
+        .village-district {
+            margin-bottom: 1.25rem;
+        }
+        .district-title {
+            font-family: var(--font-sans);
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--amber);
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+        .district-title::after {
+            content: '';
+            flex: 1; height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+        .village-pills { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+        .vpill {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.75);
+            font-size: 0.75rem; font-weight: 500;
+            padding: 4px 12px; border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .vpill:hover {
+            background: rgba(255,179,0,0.2);
+            border-color: rgba(255,179,0,0.5);
+            color: var(--amber);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,179,0,0.15);
+        }
+        .vpill .vdot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--orange); flex-shrink: 0;
+        }
+        .vpill.village-tag .vdot { background: #4ADE80; }
+        .vpill.town-tag .vdot { background: var(--amber); }
+
+        /* Village coverage counter chips */
+        .coverage-chips { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .cov-chip {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 0.5rem 1rem;
+        }
+        .cov-chip .cov-num {
+            font-family: var(--font-sans);
+            font-weight: 800; font-size: 1.1rem; color: var(--amber);
+        }
+        .cov-chip .cov-lbl { font-size: 0.68rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* ══════════════════════════════
+           DEPARTURE BOARD
+        ══════════════════════════════ */
+        .board-section { padding: 0 0 3rem; }
+        .panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .panel-tag {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: linear-gradient(135deg, var(--navy), var(--blue));
+            color: var(--amber); font-family: var(--font-sans);
+            font-weight: 700; font-size: 0.82rem;
+            padding: 6px 16px; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(11,31,58,0.2);
+        }
+        .panel-clock {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--orange);
+            background: rgba(255,87,34,0.08);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,87,34,0.2);
+        }
+        .live-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #4ADE80;
+            box-shadow: 0 0 0 3px rgba(74,222,128,0.2);
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 3px rgba(74,222,128,0.2);} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0.05);} }
+
+        .dep-board {
+            background: #0D1B2A;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .dep-board-head {
+            background: rgba(255,255,255,0.04);
+            display: grid;
+            grid-template-columns: 100px 1fr 80px 90px;
+            padding: 0.55rem 1.25rem;
+            font-size: 0.62rem; font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.1em; text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .dep-row {
+            display: grid;
+            grid-template-columns: 100px 1fr 80px 90px;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            align-items: center;
+            animation: rowIn 0.4s ease;
+            transition: background 0.2s;
+        }
+        .dep-row:hover { background: rgba(255,255,255,0.03); }
+        .dep-row:last-child { border-bottom: none; }
+        @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+        .dr-num { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.85rem; color: var(--amber); }
+        .dr-route { }
+        .dr-route .dr-cities { font-size: 0.8rem; font-weight: 600; color: #fff; }
+        .dr-route .dr-via { font-size: 0.65rem; color: rgba(255,255,255,0.35); display: block; margin-top: 1px; }
+        .dr-time { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.9rem; color: #4ADE80; }
+        .dr-status .badge { font-size: 0.62rem; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+        .dep-empty {
+            text-align: center; padding: 3rem 1rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .dep-empty i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; color: rgba(255,255,255,0.12); }
+        .dep-empty a { color: var(--amber); font-size: 0.8rem; }
+
+        /* ══════════════════════════════
+           QUICK ROUTES PANEL
+        ══════════════════════════════ */
+        .routes-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+        }
+        .routes-head {
+            background: linear-gradient(135deg, var(--navy), var(--blue));
+            padding: 0.85rem 1.25rem;
+            display: flex; align-items: center; gap: 0.6rem;
+            font-family: var(--font-sans); font-weight: 700; font-size: 0.85rem;
+            color: var(--amber);
+        }
+        .route-item {
+            display: flex; align-items: center;
+            padding: 0.7rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--navy);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .route-item:hover { background: #F8FAFF; color: var(--navy); }
+        .route-item:last-child { border-bottom: none; }
+        .route-item .from { font-weight: 700; min-width: 120px; }
+        .route-item .arrow { color: var(--orange); margin: 0 0.5rem; font-size: 0.75rem; }
+        .route-item .to { font-weight: 700; flex: 1; }
+        .route-item .go-icon { color: var(--muted); font-size: 0.65rem; margin-left: auto; }
+
+        /* Help card */
+        .help-card {
+            background: linear-gradient(135deg, var(--navy), #1a3a5c);
+            color: #fff; border-radius: 16px; padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(11,31,58,0.25);
+            margin-top: 1rem;
+        }
+        .help-card .help-title { font-family: var(--font-sans); font-weight: 700; font-size: 0.88rem; color: var(--amber); margin-bottom: 0.5rem; }
+        .help-card .help-text { font-size: 0.77rem; color: rgba(255,255,255,0.65); line-height: 1.6; }
+        .help-card .help-email { font-size: 0.75rem; color: rgba(255,200,0,0.8); margin-top: 0.75rem; }
+
+        /* ══════════════════════════════
+           STATS STRIP
+        ══════════════════════════════ */
+        .stats-strip {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%);
+            padding: 2.5rem 0;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+            font-family: var(--font-sans);
+            font-size: 2rem; font-weight: 800; color: var(--amber);
+            line-height: 1;
+        }
+        .stat-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-top: 0.35rem; text-transform: uppercase; letter-spacing: 0.06em; }
+        .stat-divider { width: 1px; background: rgba(255,255,255,0.1); margin: 0 auto; }
+
+        /* ══════════════════════════════
+           FOOTER
+        ══════════════════════════════ */
+        footer {
+            background: var(--deep);
+            color: rgba(255,255,255,0.4);
+            padding: 1.25rem 0;
+            margin-top: auto;
+        }
+        footer .foot-brand { color: var(--amber); font-weight: 700; font-family: var(--font-sans); }
+        footer small { font-size: 0.72rem; }
+        footer a { color: rgba(255,200,0,0.7); text-decoration: none; }
+        footer a:hover { color: var(--amber); }
+
+        /* ══════════════════════════════
+           AUTOCOMPLETE
+        ══════════════════════════════ */
+        .hac-wrap { position: relative; }
+        .hac-drop {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            z-index: 9999; background: #fff;
+            border: 1.5px solid var(--orange);
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            max-height: 220px; overflow-y: auto; display: none;
+        }
+        .hac-drop.show { display: block; }
+        .hac-item {
+            padding: 8px 14px; cursor: pointer;
+            font-size: 0.8rem; display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid #f5f5f5; font-family: var(--font-sans);
+        }
+        .hac-item:last-child { border-bottom: none; }
+        .hac-item:hover, .hac-item.hac-active { background: #FFF3E0; }
+        .hac-item .hac-n { font-weight: 600; color: #1a1a1a; }
+        .hac-item .hac-s { color: #999; font-size: 0.68rem; }
+
+        /* ══════════════════════════════
+           GOOGLE TRANSLATE HIDE
+        ══════════════════════════════ */
+        .goog-te-banner-frame, #goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+        .skiptranslate { display: none !important; }
+        #google_translate_element { display: none; }
+
+        /* ══════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════ */
+        @media (max-width: 768px) {
+            .main-nav { padding: 0 1rem; }
+            .nav-links a span { display: none; }
+            .hero { padding: 2.5rem 0 0; }
+            .hero h1 { font-size: 1.7rem; }
+            .search-card { padding: 1.25rem; }
+            .dep-board-head, .dep-row { grid-template-columns: 85px 1fr 70px 0; }
+            .dep-board-head > *:last-child, .dep-row > *:last-child { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Ticker -->
+<div class="ticker-bar">
+    <span class="ticker-inner">
+        &nbsp;&nbsp;✈️ Book flights &nbsp;|&nbsp; 🚂 Live train schedules via IRCTC &nbsp;|&nbsp;
+        🚌 TNSTC · SETC · Private bus routes covered &nbsp;|&nbsp;
+        🌤️ Weather updates for all major cities &nbsp;|&nbsp;
+        🗺️ Tourism destinations across Tamil Nadu &nbsp;|&nbsp;
+        🚀 Powered by Nextlinkers · KARE University – Design Build Operate
+        &nbsp;&nbsp;
+    </span>
+                </div>
+
+<!-- Navbar -->
+<nav class="main-nav">
+    <a class="nav-brand" href="{{ url_for('passengers_home') }}">
+        <div class="brand-logo"><i class="bi bi-compass-fill" style="color:#fff;"></i></div>
+        <div class="brand-text">
+            <span class="brand-title">Yatra Saarthi</span>
+            <span class="brand-sub">Smart Travel Portal</span>
+            </div>
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('passengers_home') }}" class="active">
+            <i class="bi bi-house-fill"></i> <span>Home</span>
+        </a>
+        <a href="{{ url_for('passenger_timetables') }}">
+            <i class="bi bi-map-fill"></i> <span>Plan Trip</span>
+        </a>
+        <a href="{{ url_for('train_map') }}">
+            <i class="bi bi-train-front-fill"></i> <span>Train Map</span>
+        </a>
+        <a href="{{ url_for('tourism_page') }}">
+            <i class="bi bi-camera-fill"></i> <span>Tourism</span>
+        </a>
+        <a href="{{ url_for('travel_guide') }}">
+            <i class="bi bi-journal-richtext"></i> <span>Guide</span>
+        </a>
+        <a href="{{ url_for('login') }}" class="nav-admin">
+            <i class="bi bi-shield-lock-fill"></i> <span>Admin</span>
+        </a>
+        <div class="lang-btns">
+            <button id="lang-en" onclick="switchLang('en')" class="active">EN</button>
+            <button id="lang-ta" onclick="switchLang('ta')">தமிழ்</button>
+            <button id="lang-te" onclick="switchLang('te')">తెలుగు</button>
+        </div>
+    </div>
+</nav>
+<div id="google_translate_element"></div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+    <div class="hero-blob1"></div>
+    <div class="hero-blob2"></div>
+    <div class="hero-grid"></div>
+    <div class="container hero-content">
+        <div class="row align-items-center g-5">
+            <!-- Left: headline -->
+            <div class="col-lg-5">
+                <div class="hero-badge">
+                    <i class="bi bi-compass-fill"></i>
+                    India's Smart Travel Portal
+        </div>
+                <h1>
+                    Travel <span class="highlight">Smarter,</span><br>
+                    Reach <span class="accent">Faster</span>
+                </h1>
+                <p class="hero-desc">
+                    Compare buses, trains, flights and road trips in one search.
+                    Real-time schedules, live weather and tourism tips — built for Tamil Nadu travellers.
+                </p>
+                <a href="{{ url_for('passenger_timetables') }}" class="hero-cta">
+                    <i class="bi bi-search"></i> Plan Your Journey
+                </a>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="num">500+</span>
+                        <span class="lbl">Bus Routes</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="num">80+</span>
+                        <span class="lbl">Villages Covered</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="num">Live</span>
+                        <span class="lbl">Train &amp; Flight</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: quick search -->
+            <div class="col-lg-7">
+                <div class="search-card">
+                    <div class="search-card-title">
+                        <span class="dot"></span>
+                        Quick Trip Search
+            </div>
+                    <div class="mode-tabs">
+                        <span class="mode-tab on"><i class="bi bi-bus-front-fill"></i> Bus</span>
+                        <span class="mode-tab on"><i class="bi bi-train-front-fill"></i> Train</span>
+                        <span class="mode-tab on"><i class="bi bi-airplane-fill"></i> Flight</span>
+                        <span class="mode-tab on"><i class="bi bi-car-front-fill"></i> Car</span>
+                        <span class="mode-tab on"><i class="bi bi-bicycle"></i> Bike</span>
+        </div>
+                    <form method="GET" action="{{ url_for('passenger_timetables') }}" class="row g-3" id="heroSearchForm" novalidate>
+                        <div class="col-sm-5">
+                            <label><i class="bi bi-geo-alt-fill" style="color:var(--orange);"></i> From</label>
+                            <div class="hac-wrap">
+                                <input type="text" class="form-control" id="heroOrigin" name="origin"
+                                       placeholder="City or village…" autocomplete="off">
+                                <div class="hac-drop" id="heroOriginDrop"></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-5">
+                            <label><i class="bi bi-geo-alt" style="color:#4ADE80;"></i> To</label>
+                            <div class="hac-wrap">
+                                <input type="text" class="form-control" id="heroDest" name="destination"
+                                       placeholder="City or village…" autocomplete="off">
+                                <div class="hac-drop" id="heroDestDrop"></div>
+                            </div>
+                        </div>
+                        <!-- Date picker -->
+                        <div class="col-sm-10">
+                            <label style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:4px;display:block;">
+                                <i class="bi bi-calendar3" style="color:var(--amber);"></i>
+                                Travel Date
+                                <span style="background:rgba(255,179,0,0.2);color:var(--amber);font-size:0.65rem;font-weight:700;padding:1px 8px;border-radius:20px;margin-left:6px;">Required</span>
+                            </label>
+                            <input type="date" id="heroDate" name="date"
+                                   min="{{ now().strftime('%Y-%m-%d') if now else '' }}"
+                                   style="width:100%;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:9px 14px;font-size:0.88rem;color:#fff;cursor:pointer;transition:border-color 0.2s;"
+                                   onfocus="this.style.borderColor='#FF5722'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                            <div id="heroDateHint" style="font-size:0.7rem;color:#FF8A65;margin-top:3px;display:none;">
+                                <i class="bi bi-exclamation-circle"></i> Please select a travel date to search.
+                            </div>
+                        </div>
+                        <div class="col-sm-2 d-flex align-items-end">
+                            <button type="submit" id="heroSearchBtn" class="btn-hero-search" title="Select a date first">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <script>
+                    (function(){
+                        var dateIn  = document.getElementById('heroDate');
+                        var hint    = document.getElementById('heroDateHint');
+                        var btn     = document.getElementById('heroSearchBtn');
+                        var form    = document.getElementById('heroSearchForm');
+
+                        // Set today as default
+                        var today = new Date();
+                        var yyyy  = today.getFullYear();
+                        var mm    = String(today.getMonth()+1).padStart(2,'0');
+                        var dd    = String(today.getDate()).padStart(2,'0');
+                        dateIn.min   = yyyy+'-'+mm+'-'+dd;
+                        dateIn.value = yyyy+'-'+mm+'-'+dd;   // default = today
+
+                        function updateBtn(){
+                            var ok = dateIn.value.trim() !== '';
+                            btn.style.opacity = ok ? '1' : '0.5';
+                            btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+                            hint.style.display = ok ? 'none' : '';
+                        }
+
+                        dateIn.addEventListener('change', updateBtn);
+                        dateIn.addEventListener('input',  updateBtn);
+
+                        form.addEventListener('submit', function(e){
+                            if(!dateIn.value.trim()){
+                                e.preventDefault();
+                                hint.style.display = 'block';
+                                dateIn.style.borderColor = '#e53935';
+                                setTimeout(function(){ dateIn.style.borderColor='rgba(255,255,255,0.15)'; }, 2000);
+                            }
+                        });
+
+                        updateBtn();
+                    })();
+                    </script>
+                    <div class="mt-3 d-flex gap-2 flex-wrap">
+                        {% set quick = [('Madurai','Chennai'),('Sivakasi','Coimbatore'),('Srivilliputhur','Madurai')] %}
+                        {% for f,t in quick %}
+                        <a href="{{ url_for('passenger_timetables', origin=f, destination=t, date=today_date) }}"
+                           style="font-size:0.7rem;color:rgba(255,255,255,0.5);text-decoration:none;background:rgba(255,255,255,0.07);padding:3px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);transition:all 0.2s;"
+                           onmouseover="this.style.background='rgba(255,87,34,0.2)';this.style.color='#FF8A65'"
+                           onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='rgba(255,255,255,0.5)'">
+                            {{ f }} → {{ t }}
+                        </a>
+                        {% endfor %}
+            </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <!-- ══ TRANSPORT ANIMATION SCENE ══ -->
+
+    <!-- SKY: airplane layer -->
+    <div class="anim-sky">
+        <!-- Clouds -->
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+
+        <!-- Airplane 1 (large) -->
+        <div class="plane">
+            <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+                <!-- Fuselage -->
+                <ellipse cx="50" cy="15" rx="42" ry="7" fill="#E8F4FD"/>
+                <ellipse cx="85" cy="15" rx="8" ry="4" fill="#B3D9F5"/>
+                <!-- Nose -->
+                <path d="M88,15 Q100,15 92,13 Z" fill="#B3D9F5"/>
+                <!-- Main wing -->
+                <path d="M45,15 L30,4 L20,6 L38,16 Z" fill="#FFB300"/>
+                <path d="M45,15 L30,26 L20,24 L38,14 Z" fill="#FFA000"/>
+                <!-- Tail fin -->
+                <path d="M12,15 L8,6 L15,8 Z" fill="#FFB300"/>
+                <path d="M12,15 L8,24 L15,22 Z" fill="#FFA000"/>
+                <!-- Window row -->
+                <rect x="42" y="11" width="30" height="5" rx="2.5" fill="rgba(135,206,250,0.6)"/>
+                <!-- Engine -->
+                <ellipse cx="35" cy="18" rx="5" ry="3" fill="#90CAF9"/>
+                <ellipse cx="35" cy="18" rx="2.5" ry="1.5" fill="#1565C0"/>
+                <!-- Contrail -->
+                <line x1="8" y1="14" x2="-20" y2="14" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="4 6"/>
+            </svg>
+            </div>
+
+        <!-- Airplane 2 (small, background) -->
+        <div class="plane2">
+            <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="50" cy="15" rx="40" ry="6" fill="rgba(255,255,255,0.3)"/>
+                <path d="M45,15 L30,5 L22,7 L40,16 Z" fill="rgba(255,255,255,0.4)"/>
+                <path d="M45,15 L30,25 L22,23 L40,14 Z" fill="rgba(255,255,255,0.3)"/>
+                <path d="M13,15 L9,7 L15,9 Z" fill="rgba(255,255,255,0.35)"/>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- RAIL: train layer -->
+    <div class="anim-rail">
+        <div class="rail-ties"></div>
+        <div class="rail-line-top"></div>
+        <div class="rail-line-bot"></div>
+
+        <!-- Train 1 -->
+        <div class="train-wrap">
+            <!-- Steam puffs -->
+            <div class="steam"></div>
+            <div class="steam steam2"></div>
+            <div class="steam steam3"></div>
+            <svg viewBox="0 0 240 28" xmlns="http://www.w3.org/2000/svg" width="240" height="28">
+                <!-- Locomotive -->
+                <rect x="180" y="4" width="56" height="18" rx="3" fill="#C62828"/>
+                <rect x="185" y="2" width="30" height="8" rx="2" fill="#B71C1C"/>
+                <rect x="225" y="8" width="14" height="6" rx="1" fill="#EF9A9A"/>
+                <circle cx="190" cy="23" r="4" fill="#212121"/><circle cx="190" cy="23" r="2" fill="#555"/>
+                <circle cx="206" cy="23" r="4" fill="#212121"/><circle cx="206" cy="23" r="2" fill="#555"/>
+                <circle cx="222" cy="23" r="4" fill="#212121"/><circle cx="222" cy="23" r="2" fill="#555"/>
+                <!-- Cab window -->
+                <rect x="198" y="6" width="12" height="8" rx="1.5" fill="rgba(135,206,250,0.7)"/>
+                <!-- Carriage 1 -->
+                <rect x="110" y="5" width="64" height="17" rx="3" fill="#1565C0"/>
+                <rect x="115" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.6)"/>
+                <rect x="130" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.6)"/>
+                <rect x="145" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.6)"/>
+                <rect x="160" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.6)"/>
+                <circle cx="120" cy="23" r="3.5" fill="#212121"/><circle cx="120" cy="23" r="1.8" fill="#555"/>
+                <circle cx="137" cy="23" r="3.5" fill="#212121"/><circle cx="137" cy="23" r="1.8" fill="#555"/>
+                <circle cx="160" cy="23" r="3.5" fill="#212121"/><circle cx="160" cy="23" r="1.8" fill="#555"/>
+                <!-- Carriage 2 -->
+                <rect x="42" y="5" width="62" height="17" rx="3" fill="#0D47A1"/>
+                <rect x="48" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.5)"/>
+                <rect x="63" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.5)"/>
+                <rect x="78" y="8" width="10" height="8" rx="1" fill="rgba(135,206,250,0.5)"/>
+                <rect x="93" y="8" width="8" height="8" rx="1" fill="rgba(135,206,250,0.5)"/>
+                <circle cx="52" cy="23" r="3.5" fill="#212121"/><circle cx="52" cy="23" r="1.8" fill="#555"/>
+                <circle cx="70" cy="23" r="3.5" fill="#212121"/><circle cx="70" cy="23" r="1.8" fill="#555"/>
+                <circle cx="92" cy="23" r="3.5" fill="#212121"/><circle cx="92" cy="23" r="1.8" fill="#555"/>
+                <!-- Connector bars -->
+                <rect x="104" y="12" width="8" height="3" fill="#555"/>
+                <rect x="174" y="12" width="8" height="3" fill="#555"/>
+                <!-- Carriage 3 (tail) -->
+                <rect x="0" y="6" width="36" height="16" rx="3" fill="#1976D2"/>
+                <rect x="5" y="9" width="8" height="7" rx="1" fill="rgba(135,206,250,0.45)"/>
+                <rect x="18" y="9" width="8" height="7" rx="1" fill="rgba(135,206,250,0.45)"/>
+                <circle cx="8" cy="23" r="3.5" fill="#212121"/><circle cx="8" cy="23" r="1.8" fill="#555"/>
+                <circle cx="28" cy="23" r="3.5" fill="#212121"/><circle cx="28" cy="23" r="1.8" fill="#555"/>
+                <rect x="36" y="12" width="8" height="3" fill="#555"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ROAD: bus + car layer -->
+    <div class="anim-road">
+        <div class="road-edge-top"></div>
+        <div class="road-dash"></div>
+        <div class="road-edge-bot"></div>
+
+        <!-- Bus 1 (yellow, big) -->
+        <div class="vehicle bus-anim bus1">
+            <svg viewBox="0 0 90 34" xmlns="http://www.w3.org/2000/svg" width="90" height="34">
+                <rect x="2" y="6" width="82" height="22" rx="5" fill="#FFD600"/>
+                <rect x="2" y="6" width="82" height="8" rx="5" fill="#F9A825"/>
+                <rect x="12" y="9" width="14" height="9" rx="2" fill="rgba(135,206,250,0.75)"/>
+                <rect x="32" y="9" width="14" height="9" rx="2" fill="rgba(135,206,250,0.75)"/>
+                <rect x="52" y="9" width="14" height="9" rx="2" fill="rgba(135,206,250,0.75)"/>
+                <rect x="68" y="9" width="10" height="9" rx="2" fill="rgba(135,206,250,0.6)"/>
+                <rect x="3"  y="22" width="6" height="4" rx="1" fill="#E65100"/>
+                <rect x="78" y="22" width="6" height="4" rx="1" fill="#E65100"/>
+                <circle cx="18" cy="30" r="4" fill="#1a1a1a"/><circle cx="18" cy="30" r="2" fill="#444"/>
+                <circle cx="70" cy="30" r="4" fill="#1a1a1a"/><circle cx="70" cy="30" r="2" fill="#444"/>
+                <!-- TNSTC label -->
+                <rect x="28" y="20" width="32" height="6" rx="1" fill="#E65100"/>
+                <text x="44" y="25" font-size="4" fill="#fff" text-anchor="middle" font-family="Arial">TNSTC</text>
+            </svg>
+        </div>
+
+        <!-- Bus 2 (blue, private) -->
+        <div class="vehicle bus-anim bus2">
+            <svg viewBox="0 0 85 34" xmlns="http://www.w3.org/2000/svg" width="85" height="34">
+                <rect x="2" y="6" width="78" height="22" rx="5" fill="#1565C0"/>
+                <rect x="2" y="6" width="78" height="8" rx="5" fill="#0D47A1"/>
+                <rect x="10" y="8" width="13" height="10" rx="2" fill="rgba(135,206,250,0.7)"/>
+                <rect x="28" y="8" width="13" height="10" rx="2" fill="rgba(135,206,250,0.7)"/>
+                <rect x="46" y="8" width="13" height="10" rx="2" fill="rgba(135,206,250,0.7)"/>
+                <rect x="62" y="8" width="10" height="10" rx="2" fill="rgba(135,206,250,0.5)"/>
+                <rect x="3"  y="22" width="5"  height="4" rx="1" fill="#fff"/>
+                <rect x="72" y="22" width="5"  height="4" rx="1" fill="#FFC107"/>
+                <circle cx="17" cy="30" r="4" fill="#1a1a1a"/><circle cx="17" cy="30" r="2" fill="#444"/>
+                <circle cx="65" cy="30" r="4" fill="#1a1a1a"/><circle cx="65" cy="30" r="2" fill="#444"/>
+                <rect x="26" y="20" width="28" height="6" rx="1" fill="#fff"/>
+                <text x="40" y="25" font-size="4" fill="#1565C0" text-anchor="middle" font-family="Arial">SETC</text>
+            </svg>
+        </div>
+
+        <!-- Bus 3 (red, express) -->
+        <div class="vehicle bus-anim bus3">
+            <svg viewBox="0 0 78 32" xmlns="http://www.w3.org/2000/svg" width="78" height="32">
+                <rect x="2" y="5" width="72" height="21" rx="5" fill="#C62828"/>
+                <rect x="2" y="5" width="72" height="7" rx="5" fill="#B71C1C"/>
+                <rect x="10" y="8" width="11" height="8" rx="2" fill="rgba(135,206,250,0.65)"/>
+                <rect x="26" y="8" width="11" height="8" rx="2" fill="rgba(135,206,250,0.65)"/>
+                <rect x="42" y="8" width="11" height="8" rx="2" fill="rgba(135,206,250,0.65)"/>
+                <rect x="56" y="8" width="9"  height="8" rx="2" fill="rgba(135,206,250,0.5)"/>
+                <rect x="3"  y="20" width="5" height="4" rx="1" fill="#fff"/>
+                <rect x="66" y="20" width="5" height="4" rx="1" fill="#FFD600"/>
+                <circle cx="15" cy="28" r="4" fill="#1a1a1a"/><circle cx="15" cy="28" r="2" fill="#444"/>
+                <circle cx="60" cy="28" r="4" fill="#1a1a1a"/><circle cx="60" cy="28" r="2" fill="#444"/>
+            </svg>
+        </div>
+
+        <!-- Car 1 (small, fast) -->
+        <div class="vehicle car-anim car1">
+            <svg viewBox="0 0 56 24" xmlns="http://www.w3.org/2000/svg" width="56" height="24">
+                <rect x="2" y="10" width="50" height="10" rx="3" fill="#4CAF50"/>
+                <path d="M12,10 Q18,3 36,3 Q44,3 48,10 Z" fill="#388E3C"/>
+                <rect x="14" y="5" width="10" height="7" rx="1.5" fill="rgba(135,206,250,0.8)"/>
+                <rect x="28" y="5" width="12" height="7" rx="1.5" fill="rgba(135,206,250,0.8)"/>
+                <rect x="3"  y="16" width="5" height="2" rx="1" fill="#fff"/>
+                <rect x="46" y="16" width="5" height="2" rx="1" fill="#FFD600"/>
+                <circle cx="12" cy="21" r="3" fill="#1a1a1a"/><circle cx="12" cy="21" r="1.5" fill="#444"/>
+                <circle cx="42" cy="21" r="3" fill="#1a1a1a"/><circle cx="42" cy="21" r="1.5" fill="#444"/>
+            </svg>
+        </div>
+
+        <!-- Car 2 (silver) -->
+        <div class="vehicle car-anim car2">
+            <svg viewBox="0 0 54 24" xmlns="http://www.w3.org/2000/svg" width="54" height="24">
+                <rect x="2" y="10" width="48" height="10" rx="3" fill="#9E9E9E"/>
+                <path d="M12,10 Q18,3 34,3 Q42,3 46,10 Z" fill="#757575"/>
+                <rect x="14" y="5" width="10" height="6" rx="1.5" fill="rgba(135,206,250,0.7)"/>
+                <rect x="27" y="5" width="11" height="6" rx="1.5" fill="rgba(135,206,250,0.7)"/>
+                <rect x="3"  y="16" width="5" height="2" rx="1" fill="#fff"/>
+                <rect x="44" y="16" width="5" height="2" rx="1" fill="#FFD600"/>
+                <circle cx="12" cy="21" r="3" fill="#1a1a1a"/><circle cx="12" cy="21" r="1.5" fill="#444"/>
+                <circle cx="40" cy="21" r="3" fill="#1a1a1a"/><circle cx="40" cy="21" r="1.5" fill="#444"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Wave bottom -->
+    <div class="hero-wave">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#F0F4F8"/>
+        </svg>
+    </div>
+</section>
+
+<!-- ══ SERVICES ══ -->
+<section class="services-section">
+        <div class="container">
+        <div class="row align-items-end mb-4">
+            <div class="col">
+                <div class="section-label">What We Offer</div>
+                <h2 class="section-title">All Your Travel Needs, <span>One Place</span></h2>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted" style="font-size:0.78rem;">Tap any service to explore</span>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('passenger_timetables') }}" class="service-card">
+                    <div class="card-icon-wrap ci-orange">
+                        <i class="bi bi-signpost-split-fill"></i>
+                    </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Plan Your Trip</div>
+                        <div class="svc-desc">Bus · Train · Flight · Car · Bike</div>
+                        <div class="svc-action" style="color:#E65100;"><i class="bi bi-arrow-right-circle-fill"></i> Plan now</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('passenger_timetables') }}" class="service-card">
+                    <div class="card-icon-wrap ci-teal">
+                        <i class="bi bi-cloud-sun-fill"></i>
+                    </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Weather + Trip</div>
+                        <div class="svc-desc">Weather shown with search results</div>
+                        <div class="svc-action" style="color:#00838F;"><i class="bi bi-arrow-right-circle-fill"></i> Search</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('train_map') }}" class="service-card">
+                    <div class="card-icon-wrap ci-purple">
+                        <i class="bi bi-train-front-fill"></i>
+        </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Train Map</div>
+                        <div class="svc-desc">Railway network &amp; stations</div>
+                        <div class="svc-action" style="color:#6A1B9A;"><i class="bi bi-arrow-right-circle-fill"></i> Explore</div>
+        </div>
+                </a>
+    </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('tourism_page') }}" class="service-card">
+                    <div class="card-icon-wrap ci-green">
+                        <i class="bi bi-camera-fill"></i>
+                    </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Tourism</div>
+                        <div class="svc-desc">Discover places near you</div>
+                        <div class="svc-action" style="color:#2E7D32;"><i class="bi bi-arrow-right-circle-fill"></i> Discover</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('travel_guide') }}" class="service-card">
+                    <div class="card-icon-wrap ci-red">
+                        <i class="bi bi-map-fill"></i>
+                    </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Travel Guide</div>
+                        <div class="svc-desc">Routes, tips &amp; landmarks</div>
+                        <div class="svc-action" style="color:#C62828;"><i class="bi bi-arrow-right-circle-fill"></i> Guide</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{{ url_for('travel_planner') }}" class="service-card">
+                    <div class="card-icon-wrap ci-blue">
+                        <i class="bi bi-calendar2-week-fill"></i>
+                    </div>
+                    <div class="svc-body">
+                        <div class="svc-title">Trip Planner</div>
+                        <div class="svc-desc">Itinerary &amp; travel schedule</div>
+                        <div class="svc-action" style="color:#0D47A1;"><i class="bi bi-arrow-right-circle-fill"></i> Plan</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ VILLAGES WE COVER ══ -->
+<section class="villages-section" style="display:none;">
+    <div class="container">
+        <div class="row align-items-end mb-4">
+            <div class="col">
+                <div class="section-label">Rural Connectivity</div>
+                <h2 class="section-title">Villages &amp; Small Towns <span>We Cover</span></h2>
+                <p class="text-muted mt-1" style="font-size:0.82rem;">
+                    From remote villages to district towns — tap any place to instantly search travel options from there.
+                </p>
+            </div>
+            <div class="col-auto d-none d-md-block">
+                <span style="font-size:0.75rem;color:var(--muted);">
+                    <i class="bi bi-geo-alt-fill" style="color:var(--orange);"></i>
+                    Tamil Nadu &amp; surrounding states
+                </span>
+                        </div>
+                    </div>
+
+        <div class="village-map-banner">
+            <div class="vb-glow"></div>
+            <div class="vb-content">
+
+                <!-- Virudhunagar District -->
+                <div class="village-district">
+                    <div class="district-title">
+                        <i class="bi bi-pin-map-fill"></i> Virudhunagar District
+                </div>
+                    <div class="village-pills">
+                        {% set viru = [
+                            ('Srivilliputhur','village'),('Krishnankovil','village'),
+                            ('Watrap','village'),('Sivakasi','town'),
+                            ('Sankarankovil','town'),('Rajapalayam','town'),
+                            ('Tiruchuli','village'),('Aruppukkottai','town'),
+                            ('Kariapatti','village'),('Sattur','town'),
+                            ('Srivilliputtur Taluk','village'),('Vembakottai','village'),
+                            ('Pushpavanam','village'),('Ilanji','village'),
+                            ('Tiruttangal','village'),('Narikudi','village')
+                        ] %}
+                        {% for name, kind in viru %}
+                        <a href="{{ url_for('passenger_timetables', origin=name) }}"
+                           class="vpill {{ 'village-tag' if kind=='village' else 'town-tag' }}">
+                            <span class="vdot"></span>{{ name }}
+                        </a>
+                        {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- Madurai District -->
+                <div class="village-district">
+                    <div class="district-title">
+                        <i class="bi bi-pin-map-fill"></i> Madurai District
+                </div>
+                    <div class="village-pills">
+                        {% set madurai = [
+                            ('Madurai','town'),('Melur','town'),('Tirumangalam','town'),
+                            ('Usilampatti','town'),('Andipatti','town'),('Sholavandan','village'),
+                            ('Vadipatti','village'),('Nilakottai','village'),('Kalligudi','village'),
+                            ('Peraiyur','village'),('T.Kallupatti','village'),('Kottampatti','village'),
+                            ('Alanganallur','village'),('Thiruvadanai','village'),('Kondangi','village')
+                        ] %}
+                        {% for name, kind in madurai %}
+                        <a href="{{ url_for('passenger_timetables', origin=name) }}"
+                           class="vpill {{ 'village-tag' if kind=='village' else 'town-tag' }}">
+                            <span class="vdot"></span>{{ name }}
+                        </a>
+                        {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- Tirunelveli / Tenkasi -->
+                <div class="village-district">
+                    <div class="district-title">
+                        <i class="bi bi-pin-map-fill"></i> Tirunelveli &amp; Tenkasi
+                </div>
+                    <div class="village-pills">
+                        {% set tirun = [
+                            ('Tirunelveli','town'),('Tenkasi','town'),('Courtallam','village'),
+                            ('Ambasamudram','town'),('Valliyur','town'),('Nanguneri','town'),
+                            ('Tiruchendur','town'),('Kayalpatnam','village'),('Eral','village'),
+                            ('Ottapidaram','village'),('Kadayanallur','town'),('Surandai','town'),
+                            ('Alangulam','town'),('Vikramasingapuram','village'),('Cheranmahadevi','village'),
+                            ('Kalakkad','village'),('Mulapozhi','village')
+                        ] %}
+                        {% for name, kind in tirun %}
+                        <a href="{{ url_for('passenger_timetables', origin=name) }}"
+                           class="vpill {{ 'village-tag' if kind=='village' else 'town-tag' }}">
+                            <span class="vdot"></span>{{ name }}
+                        </a>
+                        {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- Theni / Dindigul -->
+                <div class="village-district">
+                    <div class="district-title">
+                        <i class="bi bi-pin-map-fill"></i> Theni &amp; Dindigul
+                    </div>
+                    <div class="village-pills">
+                        {% set theni = [
+                            ('Theni','town'),('Cumbum','town'),('Periyakulam','town'),
+                            ('Uthamapalayam','town'),('Bodinayakanur','town'),('Gudalur','village'),
+                            ('Dindigul','town'),('Palani','town'),('Batlagundu','town'),
+                            ('Natham','town'),('Oddanchatram','town'),('Vedasandur','town'),
+                            ('Shanarpatti','village'),('Gandhipuram','village'),('Ayyampettai','village'),
+                            ('Sedapatti','village'),('Kambam','town')
+                        ] %}
+                        {% for name, kind in theni %}
+                        <a href="{{ url_for('passenger_timetables', origin=name) }}"
+                           class="vpill {{ 'village-tag' if kind=='village' else 'town-tag' }}">
+                            <span class="vdot"></span>{{ name }}
+                        </a>
+                        {% endfor %}
+            </div>
+        </div>
+            
+                <!-- Trichy / Salem / Coimbatore -->
+                <div class="village-district">
+                    <div class="district-title">
+                        <i class="bi bi-pin-map-fill"></i> Trichy · Salem · Coimbatore Region
+                    </div>
+                    <div class="village-pills">
+                        {% set other = [
+                            ('Trichy','town'),('Salem','town'),('Coimbatore','town'),
+                            ('Erode','town'),('Namakkal','town'),('Karur','town'),
+                            ('Musiri','village'),('Lalgudi','village'),('Kulithalai','village'),
+                            ('Paramathi','village'),('Rasipuram','town'),('Tiruchengode','town'),
+                            ('Mettur','town'),('Omalur','village'),('Attur','town'),
+                            ('Pollachi','town'),('Udumalaipettai','town'),('Valparai','village'),
+                            ('Anaimalai','village'),('Kinathukadavu','village')
+                        ] %}
+                        {% for name, kind in other %}
+                        <a href="{{ url_for('passenger_timetables', origin=name) }}"
+                           class="vpill {{ 'village-tag' if kind=='village' else 'town-tag' }}">
+                            <span class="vdot"></span>{{ name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+        </div>
+
+                <!-- Coverage summary chips -->
+                <div class="coverage-chips mt-3">
+                    <div class="cov-chip">
+                        <div>
+                            <div class="cov-num">80+</div>
+                            <div class="cov-lbl">Villages</div>
+            </div>
+        </div>
+                    <div class="cov-chip">
+                        <div>
+                            <div class="cov-num">5</div>
+                            <div class="cov-lbl">Districts</div>
+                        </div>
+                    </div>
+                    <div class="cov-chip">
+                        <div>
+                            <div class="cov-num">All</div>
+                            <div class="cov-lbl">Travel Modes</div>
+                        </div>
+                    </div>
+                    <div class="cov-chip">
+                        <div>
+                            <div class="cov-num" style="font-size:0.85rem;">🟢 Green · 🟡 Town</div>
+                            <div class="cov-lbl">Village · Town legend</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ DEPARTURE BOARD + ROUTES ══ -->
+<section class="board-section">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Board -->
+            <div class="col-lg-7">
+                <div class="panel-header">
+                    <div class="panel-tag">
+                        <div class="live-dot"></div>
+                        Live Departure Board
+                    </div>
+                    <div class="panel-clock" id="boardClock"></div>
+                </div>
+                <div class="dep-board">
+                    <div class="dep-board-head">
+                        <div>Service No.</div>
+                        <div>Route</div>
+                        <div>Departs</div>
+                        <div>Status</div>
+                    </div>
+                        {% if active_services %}
+                        {% for svc in active_services[:8] %}
+                        <div class="dep-row">
+                            <div class="dr-num">{{ svc.service_number or svc.bus_number or '—' }}</div>
+                            <div class="dr-route">
+                                <div class="dr-cities">{{ svc.origin or '—' }} → {{ svc.destination or '—' }}</div>
+                                {% if svc.via_routes %}
+                                <span class="dr-via">via {{ svc.via_routes|join(', ') if svc.via_routes is iterable and svc.via_routes is not string }}</span>
+                        {% endif %}
+                    </div>
+                            <div class="dr-time">{{ svc.departure_time.strftime('%H:%M') if svc.departure_time else '--:--' }}</div>
+                            <div class="dr-status">
+                                <span class="badge bg-{{ 'success' if svc.status == 'active' else 'warning text-dark' }}">
+                                    {{ svc.status|title if svc.status else 'Active' }}
+                                </span>
+                        </div>
+                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                        <div class="dep-empty">
+                            <i class="bi bi-display"></i>
+                            No live services right now.<br>
+                            <a href="{{ url_for('passenger_timetables') }}">View full timetable →</a>
+                        </div>
+                                    {% endif %}
+                </div>
+                <div class="text-end mt-2">
+                    <a href="{{ url_for('passenger_timetables') }}"
+                       style="color:var(--orange);font-size:0.78rem;font-weight:700;text-decoration:none;">
+                        View all services <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right panel -->
+            <div class="col-lg-5">
+                <div class="panel-header">
+                    <div class="panel-tag"><i class="bi bi-signpost-2-fill"></i> Popular Routes</div>
+                </div>
+                <div class="routes-card">
+                    <div class="routes-head">
+                        <i class="bi bi-signpost-2-fill"></i> Quick Route Access
+                    </div>
+                    {% set routes = [
+                        ('Srivilliputhur','Madurai'),
+                        ('Krishnankovil','Chennai'),
+                        ('Madurai','Bengaluru'),
+                        ('Sivakasi','Coimbatore'),
+                        ('Madurai','Chennai'),
+                        ('Trichy','Coimbatore')
+                    ] %}
+                    {% for from_, to_ in routes %}
+                    <a href="{{ url_for('passenger_timetables', origin=from_, destination=to_) }}" class="route-item">
+                        <span class="from">{{ from_ }}</span>
+                        <i class="bi bi-arrow-right arrow"></i>
+                        <span class="to">{{ to_ }}</span>
+                        <i class="bi bi-chevron-right go-icon"></i>
+                    </a>
+                                        {% endfor %}
+        </div>
+
+                <div class="help-card">
+                    <div class="help-title"><i class="bi bi-headset me-2"></i>Need Help?</div>
+                    <div class="help-text">Contact our support team for route queries, timetable info or booking assistance.</div>
+                    <div class="help-email"><i class="bi bi-envelope me-1"></i> 99230041300@klu.ac.in</div>
+                        </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ STATS STRIP ══ -->
+<div class="stats-strip">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-num">500+</div>
+                    <div class="stat-lbl">Bus Routes</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-num">80+</div>
+                    <div class="stat-lbl">Villages &amp; Towns</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-num">TNSTC · SETC</div>
+                    <div class="stat-lbl">Operators</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-num">KARE</div>
+                    <div class="stat-lbl">Design Build Operate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+    <div class="container text-center">
+        <small>
+            <span class="foot-brand">Yatra Saarthi</span> &nbsp;·&nbsp;
+            Designed &amp; developed by <a href="#">Nextlinkers</a>
+            under Design Build Operate at
+            <a href="#">KARE – Kalasalingam Academy of Research &amp; Education</a>
+        </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+/* Live clock */
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    const el = document.getElementById('boardClock');
+    if (el) el.textContent = h + ':' + m + ':' + s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* Language switcher */
+function googleTranslateInit() {
+    new google.translate.TranslateElement({ pageLanguage:'en', includedLanguages:'ta,te,hi,kn,ml,en', autoDisplay:false }, 'google_translate_element');
+}
+function switchLang(lang) {
+    document.querySelectorAll('.lang-btns button').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('lang-'+lang);
+    if (btn) btn.classList.add('active');
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        document.cookie = 'googtrans=/en/'+lang+'; path=/';
+        if (lang !== 'en') location.reload();
+    }
+    localStorage.setItem('preferredLang', lang);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('preferredLang');
+    if (saved && saved !== 'en') setTimeout(() => switchLang(saved), 800);
+});
+
+/* ═══════════════════════════════════════
+   CITY AUTOCOMPLETE — Local priority + Nominatim
+═══════════════════════════════════════ */
+(function(){
+    /* type: C=city, T=town/village */
+    var LOCAL = [
+        {n:'Krishnankovil',     s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Srivilliputhur',    s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Virudhunagar',      s:'TN', d:'Virudhunagar',       t:'C'},
+        {n:'Madurai',           s:'TN', d:'Madurai',            t:'C'},
+        {n:'Chennai',           s:'TN', d:'Chennai',            t:'C'},
+        {n:'Coimbatore',        s:'TN', d:'Coimbatore',         t:'C'},
+        {n:'Trichy',            s:'TN', d:'Tiruchirappalli',    t:'C'},
+        {n:'Tirunelveli',       s:'TN', d:'Tirunelveli',        t:'C'},
+        {n:'Tenkasi',           s:'TN', d:'Tenkasi',            t:'T'},
+        {n:'Rajapalayam',       s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Sivakasi',          s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Aruppukottai',      s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Watrap',            s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Sattur',            s:'TN', d:'Virudhunagar',       t:'T'},
+        {n:'Tirumangalam',      s:'TN', d:'Madurai',            t:'T'},
+        {n:'Dindigul',          s:'TN', d:'Dindigul',           t:'C'},
+        {n:'Salem',             s:'TN', d:'Salem',              t:'C'},
+        {n:'Nagercoil',         s:'TN', d:'Kanyakumari',        t:'C'},
+        {n:'Thoothukudi',       s:'TN', d:'Thoothukudi',        t:'C'},
+        {n:'Erode',             s:'TN', d:'Erode',              t:'C'},
+        {n:'Vellore',           s:'TN', d:'Vellore',            t:'C'},
+        {n:'Thanjavur',         s:'TN', d:'Thanjavur',          t:'C'},
+        {n:'Bengaluru',         s:'KA', d:'Bengaluru Urban',    t:'C'},
+        {n:'Hyderabad',         s:'TS', d:'Hyderabad',          t:'C'},
+        {n:'Thiruvananthapuram',s:'KL', d:'Thiruvananthapuram', t:'C'},
+        {n:'Mumbai',            s:'MH', d:'Mumbai',             t:'C'},
+        {n:'Delhi',             s:'DL', d:'Delhi',              t:'C'},
+        {n:'Kolkata',           s:'WB', d:'Kolkata',            t:'C'},
+        {n:'Vijayawada',        s:'AP', d:'Krishna',            t:'C'},
+        {n:'Tirupati',          s:'AP', d:'Tirupati',           t:'C'},
+    ];
+
+    var ALIASES = {
+        'krishnankoil':'krishnankovil','krishnan koil':'krishnankovil',
+        'srivilliputtur':'srivilliputhur','srivilliputur':'srivilliputhur',
+        'srvilliputhur':'srivilliputhur','sriviliputhur':'srivilliputhur',
+        'bangalore':'bengaluru','bengalore':'bengaluru',
+        'trivandrum':'thiruvananthapuram','tvm':'thiruvananthapuram',
+        'madras':'chennai','bombay':'mumbai','calcutta':'kolkata',
+    };
+
+    function localMatch(q){
+        var ql  = q.toLowerCase().trim();
+        var qnr = ql.replace(/\s+/g,'');
+        var norm = ALIASES[ql] || ALIASES[qnr] || qnr;
+        return LOCAL.filter(function(p){
+            var nl  = p.n.toLowerCase();
+            var nr  = nl.replace(/\s+/g,'');
+            return nr.startsWith(norm) || nr.startsWith(qnr) || nl.startsWith(ql) || nl.indexOf(ql) >= 0;
+        });
+    }
+
+    function localHTML(matches){
+        return matches.map(function(p){
+            var ic = p.t === 'C' ? '&#127961;' : '&#127960;';
+            return '<div class="hac-item hac-local" data-val="'+p.n+'">'
+                + '<span>'+ic+'</span>'
+                + '<div><div class="hac-n">'+p.n+'</div><div class="hac-s">'+p.d+', '+p.s+'</div></div>'
+                + '<span style="font-size:0.58rem;background:rgba(255,87,34,0.15);color:#FF5722;padding:1px 6px;border-radius:10px;margin-left:auto;flex-shrink:0;">Local</span>'
+                + '</div>';
+        }).join('');
+    }
+
+    var timers={}, cache={}, active={};
+
+    function setup(inpId, dropId){
+        var inp = document.getElementById(inpId);
+        var drop = document.getElementById(dropId);
+        if(!inp || !drop) return;
+        active[inpId] = -1;
+        inp.addEventListener('input', function(){
+            var v = this.value.trim();
+            clearTimeout(timers[inpId]);
+            if(v.length < 2){ drop.classList.remove('show'); drop.innerHTML=''; return; }
+            timers[inpId] = setTimeout(function(){ fetchAC(v, inp, drop, inpId); }, 300);
+        });
+        inp.addEventListener('keydown', function(e){
+            var items = drop.querySelectorAll('.hac-item');
+            if(!items.length) return;
+            if(e.key==='ArrowDown'){ e.preventDefault(); active[inpId]=Math.min(active[inpId]+1,items.length-1); hl(items,active[inpId]); }
+            else if(e.key==='ArrowUp'){ e.preventDefault(); active[inpId]=Math.max(active[inpId]-1,-1); hl(items,active[inpId]); }
+            else if(e.key==='Enter' && active[inpId]>=0){ e.preventDefault(); items[active[inpId]].click(); }
+            else if(e.key==='Escape'){ close_(drop); }
+        });
+        document.addEventListener('click', function(e){
+            if(!inp.contains(e.target) && !drop.contains(e.target)) close_(drop);
+        });
+    }
+    function hl(items,idx){ items.forEach(function(el,i){ el.classList.toggle('hac-active',i===idx); }); if(idx>=0) items[idx].scrollIntoView({block:'nearest'}); }
+    function close_(drop){ drop.classList.remove('show'); drop.innerHTML=''; }
+
+    function fetchAC(q, inp, drop, inpId){
+        var lm = localMatch(q);
+        var lh = localHTML(lm);
+
+        if(cache[q]){
+            var ah = apiHTML(cache[q]);
+            drop.innerHTML = lh + (ah ? '<div class="hac-item" style="color:#aaa;font-size:0.68rem;pointer-events:none;">── Other places ──</div>'+ah : '');
+            drop.classList.add('show');
+            attachClicks(drop, inp);
+            return;
+        }
+
+        // Show local matches instantly
+        drop.innerHTML = lh + '<div class="hac-item" style="color:#aaa;font-style:italic;font-size:0.78rem;">Searching more…</div>';
+        drop.classList.add('show');
+        attachClicks(drop, inp);
+
+        fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&countrycodes=in&limit=8&format=json&addressdetails=1', {headers:{'Accept-Language':'en'}})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+            cache[q] = res;
+            var ah = apiHTML(res);
+            drop.innerHTML = lh + (ah ? '<div class="hac-item" style="color:#aaa;font-size:0.68rem;pointer-events:none;">── Other places ──</div>'+ah : '');
+            drop.classList.add('show');
+            attachClicks(drop, inp);
+        })
+        .catch(function(){
+            if(!lm.length) drop.innerHTML='<div class="hac-item" style="color:#c00;">⚠️ Connection error</div>';
+        });
+    }
+
+    function apiHTML(results){
+        if(!results||!results.length) return '';
+        var seen=new Set(), html='';
+        results.forEach(function(r){
+            var name = r.address.city||r.address.town||r.address.village||r.address.hamlet||r.display_name.split(',')[0];
+            var key = name.toLowerCase();
+            if(seen.has(key)) return; seen.add(key);
+            var state = r.address.state||'';
+            var icon = r.type==='city'||r.type==='town'?'🏙️':r.type==='village'||r.type==='hamlet'?'🏘️':'📍';
+            html += '<div class="hac-item" data-val="'+name+'"><span>'+icon+'</span><div><div class="hac-n">'+name+'</div><div class="hac-s">'+state+'</div></div></div>';
+        });
+        return html;
+    }
+
+    function attachClicks(drop, inp){
+        drop.querySelectorAll('.hac-item[data-val]').forEach(function(item){
+            item.addEventListener('mouseenter', function(){
+                drop.querySelectorAll('.hac-item').forEach(function(el){ el.classList.remove('hac-active'); });
+                this.classList.add('hac-active');
+            });
+            item.addEventListener('click', function(){ inp.value=this.dataset.val; close_(drop); inp.focus(); });
+        });
+    }
+
+    setup('heroOrigin', 'heroOriginDrop');
+    setup('heroDest',   'heroDestDrop');
+})();
+    </script>
+</body>
+</html>

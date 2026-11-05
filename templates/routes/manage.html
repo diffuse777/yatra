@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Bus Services - Bus Optimization System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Manage Bus Services</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('add_bus_service') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Service
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if routes %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Route #</th>
+                            <th>Name</th>
+                            <th>Start Point</th>
+                            <th>End Point</th>
+                            <th>Stops</th>
+                            <th>Buses</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for route in routes %}
+                        <tr>
+                            <td>{{ route.route_number }}</td>
+                            <td>{{ route.name }}</td>
+                            <td>{{ route.start_point }}</td>
+                            <td>{{ route.end_point }}</td>
+                            <td>
+                                {% if route.stops %}
+                                    {{ (route.stops|fromjson)|length }} stops
+                                {% else %}
+                                    No stops
+                                {% endif %}
+                            </td>
+                            <td>{{ route.buses|length }} buses</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('edit_route', route_id=route.id) }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="deleteRoute({{ route.id }}, '{{ route.route_number }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-signpost-split display-1 text-muted"></i>
+                <h3 class="mt-3">No Routes Found</h3>
+                <p class="text-muted">Get started by adding your first bus route.</p>
+                <a href="{{ url_for('add_route') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Route
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteRoute(routeId, routeNumber) {
+    if (confirm(`Are you sure you want to delete route ${routeNumber}? This action cannot be undone.`)) {
+        fetch(`/admin/routes/delete/${routeId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Route deleted successfully', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.message || 'Error deleting route', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'danger');
+        });
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0 show`;
+    toast.role = 'alert';
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}

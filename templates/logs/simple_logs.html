@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}System Logs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <div>
+        <h1 class="h2">System Logs</h1>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="logsTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="passenger-tab" data-bs-toggle="tab" data-bs-target="#passenger-logs" type="button" role="tab" aria-controls="passenger-logs" aria-selected="true">
+            <i class="bi bi-people-fill me-2"></i>Passenger Logs
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-logs" type="button" role="tab" aria-controls="admin-logs" aria-selected="false">
+            <i class="bi bi-shield-lock me-2"></i>Admin Logs
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="logsTabContent">
+    <div class="tab-pane fade show active" id="passenger-logs" role="tabpanel" aria-labelledby="passenger-tab">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div>
+                        <h4 class="alert-heading">Passenger Portal Under Development</h4>
+                        <p class="mb-0">The passenger portal is currently under active development. This section will display comprehensive logs of all passenger activities once the passenger portal is launched.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="admin-logs" role="tabpanel" aria-labelledby="admin-tab">
+        {% if admin_logs %}
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Admin Activities</h5>
+                <small class="text-muted">Showing last 50 entries</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for log in admin_logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    {% if log.action_type == 'Login' %}
+                                    <i class="bi bi-box-arrow-in-right text-primary"></i>
+                                    {% elif log.action_type == 'Logout' %}
+                                    <i class="bi bi-box-arrow-right text-secondary"></i>
+                                    {% elif log.action_type == 'Create' %}
+                                    <i class="bi bi-plus-circle-fill text-success"></i>
+                                    {% elif log.action_type == 'Update' %}
+                                    <i class="bi bi-pencil-fill text-warning"></i>
+                                    {% elif log.action_type == 'Delete' %}
+                                    <i class="bi bi-trash-fill text-danger"></i>
+                                    {% elif log.action_type == 'Error' %}
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                    {% else %}
+                                    <i class="bi bi-activity text-info"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="mb-1">{{ log.description }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                        {% if log.user %}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-person me-1"></i>{{ log.user.username }}
+                                        {% endif %}
+                                        {% if log.ip_address %}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-pc-display me-1"></i>{{ log.ip_address }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark">{{ log.action_type }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            No admin activity logs found.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

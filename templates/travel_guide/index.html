@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Travel Guide - KARE Students Exam Center Route Planner{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-lg border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-2"><i class="bi bi-signpost-split"></i> Official Travel Guide System</h2>
+                    <h4 class="mb-0">For Kalasalingam University (KARE) Students</h4>
+                    <p class="mb-0 mt-2">Complete step-by-step directions to reach exam centers and educational institutions</p>
+                </div>
+                <div class="card-body">
+                    <!-- Official Notice -->
+                    <div class="alert alert-info border-start border-4 border-primary mb-4">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle-fill"></i> Official Notice</h5>
+                        <p class="mb-2"><strong>This Travel Guide System is specifically designed for Kalasalingam University (KARE) students</strong> to help you find the best route to reach your exam centers and other educational institutions in the region.</p>
+                        <hr>
+                        <p class="mb-0"><strong>Use Cases:</strong></p>
+                        <ul class="mb-0">
+                            <li><strong>Exam Centers:</strong> Find routes from KARE to MEPCO, PSR, and other exam centers</li>
+                            <li><strong>NPTEL Local Centers:</strong> Get directions to MEPCO Schlenk Engineering College, PSR Engineering College</li>
+                            <li><strong>Inter-College Visits:</strong> Plan your journey to other educational institutions</li>
+                            <li><strong>Step-by-Step Guidance:</strong> Detailed instructions with bus numbers, timings, and landmarks</li>
+                        </ul>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Service Region Coverage</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-3"><strong>Coverage Area:</strong> Madurai, Sivakasi, Virudhunagar Region, Tamil Nadu</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary">🏛️ Your University</h6>
+                                            <ul>
+                                                <li><strong>Kalasalingam University (KARE)</strong><br>
+                                                    <small class="text-muted">📍 Krishnankovil, Srivilliputhur</small></li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-success">🎓 Exam Centers & NPTEL Centers</h6>
+                                            <ul>
+                                                <li><strong>MEPCO Schlenk Engineering College</strong><br>
+                                                    <small class="text-muted">📍 Sivakasi (NPTEL Local Center)</small></li>
+                                                <li><strong>PSR Engineering College</strong><br>
+                                                    <small class="text-muted">📍 Sivakasi (NPTEL Local Center)</small></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h5 class="mb-3">🚀 Get Started</h5>
+                                    <p class="mb-3">Plan your route from Kalasalingam University to your exam center or destination</p>
+                                    <a href="{{ url_for('travel_guide_plan') }}" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-route"></i> Plan Your Route Now
+                                    </a>
+                                    <p class="mt-3 mb-0">
+                                        <small class="text-muted">
+                                            <i class="bi bi-lightbulb"></i> 
+                                            <strong>Tip:</strong> Enter "Kalasalingam University" or "KARE" as origin and your exam center as destination
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access Routes -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="mb-3"><i class="bi bi-bookmark-star"></i> Quick Access - Popular Routes for KARE Students</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card border-warning h-100">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h6 class="mb-0"><i class="bi bi-mortarboard"></i> To MEPCO Exam Center</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><strong>Route:</strong> Kalasalingam University → MEPCO Schlenk Engineering College</p>
+                                            <p class="mb-2"><small><i class="bi bi-clock"></i> Estimated Time: ~55 minutes</small></p>
+                                            <p class="mb-2"><small><i class="bi bi-route"></i> Distance: ~27 km</small></p>
+                                            <a href="{{ url_for('travel_guide_plan') }}?origin=Kalasalingam University, Krishnankovil&destination=MEPCO Schlenk Engineering College, Sivakasi" 
+                                               class="btn btn-sm btn-warning">
+                                                Get Directions
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-info h-100">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0"><i class="bi bi-mortarboard"></i> To PSR Exam Center</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><strong>Route:</strong> Kalasalingam University → PSR Engineering College</p>
+                                            <p class="mb-2"><small><i class="bi bi-clock"></i> Estimated Time: ~53 minutes</small></p>
+                                            <p class="mb-2"><small><i class="bi bi-route"></i> Distance: ~26.5 km</small></p>
+                                            <a href="{{ url_for('travel_guide_plan') }}?origin=Kalasalingam University, Krishnankovil&destination=PSR Engineering College, Sivakasi" 
+                                               class="btn btn-sm btn-info">
+                                                Get Directions
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if institutions %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>🏫 Educational Institutions</h5>
+                            <div class="row">
+                                {% for inst in institutions %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>{{ inst.name }}</h6>
+                                            <p class="mb-1"><small>{{ inst.institution_type }}</small></p>
+                                            <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ inst.location }}</p>
+                                            {% if inst.nearest_bus_stop %}
+                                            <p class="mb-0"><small><i class="bi bi-bus-front"></i> {{ inst.nearest_bus_stop }} ({{ inst.distance_to_bus_stop_km }} km)</small></p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if popular_routes %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>🔍 Popular Routes</h5>
+                            <div class="list-group">
+                                {% for route in popular_routes %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ route.route_name }}</h6>
+                                            <p class="mb-1">
+                                                <i class="bi bi-arrow-right"></i> {{ route.origin }} → {{ route.destination }}
+                                            </p>
+                                            <small>
+                                                <i class="bi bi-route"></i> {{ route.total_distance_km }} km | 
+                                                <i class="bi bi-clock"></i> ~{{ route.estimated_time_minutes }} minutes
+                                            </small>
+                                        </div>
+                                        <a href="{{ url_for('travel_guide_results', route_id=route.id) }}" class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Features Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="mb-3"><i class="bi bi-star-fill"></i> Key Features</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <div class="fs-1 mb-2">🗺️</div>
+                                            <h6>Step-by-Step Directions</h6>
+                                            <p class="small text-muted mb-0">Detailed instructions with bus numbers, timings, and distances</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <div class="fs-1 mb-2">🌦️</div>
+                                            <h6>Weather Alerts</h6>
+                                            <p class="small text-muted mb-0">Real-time weather updates with actionable recommendations</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <div class="fs-1 mb-2">📍</div>
+                                            <h6>Landmarks & Rest Points</h6>
+                                            <p class="small text-muted mb-0">Find tea stalls, ATMs, and petrol bunks along your route</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_admin %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <hr>
+                            <h5><i class="bi bi-tools"></i> Admin Tools</h5>
+                            <form method="POST" action="{{ url_for('init_educational_institutions') }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    Initialize Educational Institutions
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('init_landmarks') }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    Initialize Landmarks
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

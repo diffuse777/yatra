@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}{% if route %}Edit{% else %}Add New{% endif %} Route - Bus Optimization System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .stops-textarea {
+        min-height: 150px;
+    }
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% if route %}Edit Route: {{ route.route_number }}{% else %}Add New Route{% endif %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('manage_routes') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Routes
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" class="form-container">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="route_number" class="form-label">Route Number *</label>
+                    <input type="text" class="form-control" id="route_number" name="route_number" 
+                           value="{{ route.route_number if route else '' }}" required>
+                    <div class="help-text">Unique identifier for the route (e.g., 22A, 15C, 42X)</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Route Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ route.name if route else '' }}" required>
+                    <div class="help-text">Descriptive name for the route</div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="start_point" class="form-label">Start Point *</label>
+                    <input type="text" class="form-control" id="start_point" name="start_point" 
+                           value="{{ route.start_point if route else '' }}" required>
+                    <div class="help-text">Starting location of the route</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="end_point" class="form-label">End Point *</label>
+                    <input type="text" class="form-control" id="end_point" name="end_point" 
+                           value="{{ route.end_point if route else '' }}" required>
+                    <div class="help-text">Terminal location of the route</div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="stops" class="form-label">Stops</label>
+                <textarea class="form-control stops-textarea" id="stops" name="stops" 
+                          placeholder="Enter one stop per line">{% if route %}{{ route.stops if route.stops else '' }}{% endif %}</textarea>
+                <div class="help-text">List all stops in order, one per line</div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{{ url_for('manage_routes') }}" class="btn btn-outline-secondary me-md-2">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> {% if route %}Update{% else %}Create{% endif %} Route
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Show error message
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-danger border-0 show';
+                toast.role = 'alert';
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Please fill in all required fields.
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                const toastContainer = document.getElementById('toastContainer') || document.body;
+                toastContainer.appendChild(toast);
+                
+                // Scroll to first error
+                const firstError = form.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 5000);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

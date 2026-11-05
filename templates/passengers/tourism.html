@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Recommendations – Yatra Saarthi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tourism-cards.css') }}?v=2">
+    <!-- Google Translate -->
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit" async></script>
+    <style>
+        :root { --font-sans: Verdana, Tahoma, Geneva, sans-serif; --navy: #0B1F3A; }
+        body, * { font-family: var(--font-sans); }
+        h1,h2,h3,h4,h5,.fw-bold { font-family: var(--font-sans); }
+        #translate-fab { position:fixed; bottom:80px; right:20px; z-index:9999; }
+        #translate-fab .fab-btn { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#4285f4,#34a853); color:white; border:none; box-shadow:0 4px 16px rgba(0,0,0,0.4); font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
+        #translate-fab .fab-btn:hover { transform:scale(1.1); }
+        #translate-panel { display:none; background:rgba(20,20,35,0.97); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:1rem; margin-bottom:0.6rem; min-width:200px; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+        #translate-panel .lang-opt { display:block; width:100%; text-align:left; padding:0.4rem 0.8rem; margin-bottom:0.3rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; cursor:pointer; font-size:0.9rem; transition:background 0.15s; }
+        #translate-panel .lang-opt:hover, #translate-panel .lang-opt.active { background:rgba(66,133,244,0.4); }
+        .goog-te-banner-frame, #goog-te-banner-frame { display:none !important; }
+        body { top:0 !important; }
+        .skiptranslate { display:none !important; }
+        body {
+            background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 50%, #162032 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+        }
+        /* Popular destination tiles (bottom section) */
+        .dest-pop-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 1.4rem;
+            height: 100%;
+            transition: all 0.3s;
+        }
+        .dest-pop-card:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .city-pill {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            padding: 0.35rem 1rem;
+            margin: 0.2rem;
+            text-decoration: none;
+            color: #ccc;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        .city-pill:hover, .city-pill.active { background: rgba(255,165,0,0.3); color: #fff; border-color: #ffa500; }
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(255,165,0,0.25), rgba(255,100,0,0.15));
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        footer { background: rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+{% macro tourism_spot_kind(t) -%}
+{%- set s = (t or '')|lower -%}
+{%- if 'religious' in s or 'temple' in s or 'mosque' in s or 'church' in s or 'shrine' in s or 'divya' in s %}religious
+{%- elif 'hill' in s %}hill
+{%- elif 'nature' in s or 'waterfall' in s or 'lake' in s or 'dam' in s %}nature
+{%- elif 'beach' in s %}beach
+{%- elif 'heritage' in s or 'unesco' in s or 'fort' in s or 'palace' in s %}heritage
+{%- elif 'museum' in s %}museum
+{%- elif 'city' in s %}city
+{%- elif 'local' in s %}local
+{%- elif 'industrial' in s %}industrial
+{%- else %}general
+{%- endif -%}
+{%- endmacro %}
+<style>
+.ys-nav{background:rgba(11,31,58,0.97);backdrop-filter:blur(12px);padding:0 2rem;height:64px;display:flex;align-items:center;position:sticky;top:0;z-index:1000;border-bottom:1px solid rgba(255,255,255,0.08);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.ys-brand{display:flex;align-items:center;gap:0.5rem;text-decoration:none;flex-shrink:0;}
+.ys-logo{width:38px;height:38px;background:linear-gradient(135deg,#FF5722,#FF8A65);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(255,87,34,0.4);}
+.ys-bt{display:flex;flex-direction:column;line-height:1.1;}
+.ys-bt .t1{font-family:var(--font-sans);font-weight:800;font-size:1rem;color:#fff;}
+.ys-bt .t2{font-size:0.58rem;color:#FFB300;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
+.ys-links{display:flex;align-items:center;gap:0.15rem;margin-left:auto;flex-wrap:wrap;}
+.ys-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.78rem;font-weight:500;padding:6px 12px;border-radius:8px;transition:all 0.2s;display:flex;align-items:center;gap:0.35rem;white-space:nowrap;}
+.ys-links a:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.ys-links a.ys-active{background:linear-gradient(135deg,#FF5722,#FF8A65);color:#fff;box-shadow:0 2px 8px rgba(255,87,34,0.35);}
+.ys-langs{display:flex;gap:4px;margin-left:0.75rem;border-left:1px solid rgba(255,255,255,0.15);padding-left:0.75rem;}
+.ys-langs button{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.75);border-radius:6px;padding:3px 9px;font-size:0.68rem;cursor:pointer;transition:all 0.2s;}
+.ys-langs button:hover,.ys-langs button.active{background:#FF5722;border-color:#FF5722;color:#fff;}
+</style>
+<nav class="ys-nav">
+    <a class="ys-brand" href="{{ url_for('passengers_home') }}">
+        <div class="ys-logo"><i class="bi bi-compass-fill" style="color:#fff;"></i></div>
+        <div class="ys-bt"><span class="t1">Yatra Saarthi</span><span class="t2">Smart Travel Portal</span></div>
+    </a>
+    <div class="ys-links">
+        <a href="{{ url_for('passengers_home') }}"><i class="bi bi-house-fill"></i> Home</a>
+        <a href="{{ url_for('passenger_timetables') }}"><i class="bi bi-map-fill"></i> Plan Trip</a>
+        <a href="{{ url_for('weather_page') }}"><i class="bi bi-cloud-sun-fill"></i> Weather</a>
+        <a href="{{ url_for('train_map') }}"><i class="bi bi-train-front-fill"></i> Train Map</a>
+        <a href="{{ url_for('tourism_page') }}" class="ys-active"><i class="bi bi-camera-fill"></i> Tourism</a>
+        <a href="{{ url_for('travel_guide') }}"><i class="bi bi-journal-richtext"></i> Guide</a>
+        <div class="ys-langs">
+            <button id="lang-en" onclick="switchLang('en')" class="active">EN</button>
+            <button id="lang-ta" onclick="switchLang('ta')">தமிழ்</button>
+            <button id="lang-te" onclick="switchLang('te')">తెలుగు</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <!-- Hero -->
+    <div class="hero-banner">
+        <div style="font-size:3rem;">🗺️</div>
+        <h1 class="mt-2">Tourism Recommendations</h1>
+        <p class="lead opacity-75">Discover must-visit places near your destination</p>
+    </div>
+
+    <!-- City Selector -->
+    <div class="glass-card p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end mb-3">
+            <div class="col-md-6">
+                <label class="form-label text-white-50">Choose Destination City</label>
+                <select name="destination" class="form-select" style="background:rgba(255,255,255,0.07);color:#fff;border:1px solid rgba(255,255,255,0.2);">
+                    <option value="" style="background:#1a1a2e;">-- Select a city --</option>
+                    {% for p in places %}
+                    <option value="{{ p }}" {% if p == destination %}selected{% endif %} style="background:#1a1a2e;color:#fff;">{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-warning w-100 text-dark fw-bold">
+                    <i class="bi bi-search"></i> Find Spots
+                </button>
+            </div>
+        </form>
+        <div>
+            {% for p in places %}
+            <a href="{{ url_for('tourism_page', destination=p) }}" 
+               class="city-pill {% if p == destination %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if destination and spots %}
+    <!-- Spots Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+            <i class="bi bi-geo-alt-fill text-warning"></i> 
+            {{ destination }}
+            <small class="text-muted fs-6">{{ spots|length }} places to visit</small>
+        </h3>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('weather_page', city=destination) }}" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cloud-sun"></i> Weather in {{ destination }}
+            </a>
+            <a href="{{ url_for('passenger_timetables') }}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-bus-front"></i> Get Here
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter by type -->
+    {% set types = spots | map(attribute='type') | list | unique | list %}
+    <div class="mb-3">
+        <button class="btn btn-sm btn-outline-light me-1 mb-1 filter-btn active" data-type="all">All</button>
+        {% for t in types %}
+        <button class="btn btn-sm btn-outline-light me-1 mb-1 filter-btn" data-type="{{ t }}">{{ t }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- Spots Grid (same card system as Plan Trip / timetables) -->
+    <div class="row g-4" id="spotsGrid">
+        {% for spot in spots %}
+        <div class="col-md-6 col-lg-4 spot-item" data-type="{{ spot.type }}">
+            <article class="ts-spot ts-spot--dest ts-spot--on-dark ts-kind-{{ tourism_spot_kind(spot.type) }} h-100">
+                <div class="ts-spot__top">
+                    <span class="ts-spot__emoji" aria-hidden="true">{{ spot.emoji }}</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <h4 class="ts-spot__title">{{ spot.name }}</h4>
+                        {% if spot.type %}<span class="ts-spot__type">{{ spot.type }}</span>{% endif %}
+                    </div>
+                </div>
+                <p class="ts-spot__desc">{{ spot.description }}</p>
+                <div class="ts-spot__meta">
+                    {% if spot.distance %}<span class="ts-chip"><i class="bi bi-signpost-split"></i>{{ spot.distance }}</span>{% endif %}
+                    {% if spot.timings %}<span class="ts-chip"><i class="bi bi-clock"></i>{{ spot.timings }}</span>{% endif %}
+                    {% if spot.rating is defined and spot.rating not in (none, '') %}
+                    <span class="ts-chip ts-chip--rating" title="Rating"><i class="bi bi-star-fill"></i><strong>{{ spot.rating }}</strong></span>
+                    {% endif %}
+                    {% if spot.entry %}<span class="ts-chip"><i class="bi bi-ticket-perforated"></i>{{ spot.entry }}</span>{% endif %}
+                </div>
+            </article>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="glass-card p-4 mt-4">
+        <h5 class="mb-3"><i class="bi bi-link-45deg text-info"></i> Plan Your Visit</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{{ url_for('passenger_timetables') }}" class="btn btn-success w-100">
+                    <i class="bi bi-bus-front"></i> Find Buses to {{ destination }}
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('passenger_timetables', destination=destination) }}" class="btn btn-primary w-100">
+                    <i class="bi bi-clock-history"></i> Bus Timetable
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('weather_page', city=destination) }}" class="btn btn-info w-100">
+                    <i class="bi bi-cloud-sun"></i> Weather Forecast
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('train_map', destination=destination) }}" class="btn btn-outline-light w-100">
+                    <i class="bi bi-train-front"></i> Train Routes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% elif destination and not spots %}
+    <div class="glass-card p-5 text-center">
+        <div style="font-size:4rem;">🏗️</div>
+        <h4 class="mt-3">No recommendations yet for {{ destination }}</h4>
+        <p class="opacity-60">We're working on adding tourism spots for this city. Try nearby cities!</p>
+        <div class="mt-3">
+            {% for p in ['Madurai', 'Chennai', 'Bengaluru', 'Tenkasi'] %}
+            <a href="{{ url_for('tourism_page', destination=p) }}" class="btn btn-outline-warning btn-sm m-1">{{ p }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Default: Show all cities -->
+    <h4 class="mb-4"><i class="bi bi-map text-warning"></i> Popular Destinations</h4>
+    <div class="row g-4">
+        {% set dest_highlights = {
+            'Madurai': {'emoji': '🛕', 'highlight': 'Meenakshi Temple', 'tagline': 'Temple City of the South'},
+            'Chennai': {'emoji': '🏖️', 'highlight': 'Marina Beach', 'tagline': 'Capital City & Cultural Hub'},
+            'Bengaluru': {'emoji': '🌿', 'highlight': 'Lalbagh Gardens', 'tagline': 'Garden City & Tech Hub'},
+            'Tenkasi': {'emoji': '💦', 'highlight': 'Courtallam Waterfalls', 'tagline': 'Spa of South India'},
+            'Dindigul': {'emoji': '🏰', 'highlight': 'Rock Fort', 'tagline': 'Fort & Hill Station Gateway'},
+            'Salem': {'emoji': '⛰️', 'highlight': 'Yercaud Hills', 'tagline': 'Steel City & Hill Station'},
+            'Srivilliputhur': {'emoji': '🛕', 'highlight': 'Andal Temple', 'tagline': 'Divya Desam & Wildlife'},
+            'Krishnankovil': {'emoji': '🛕', 'highlight': 'Vishnu Temple', 'tagline': 'Sacred Pilgrimage Site'},
+        } %}
+        {% for city, info in dest_highlights.items() %}
+        <div class="col-md-3 col-sm-6">
+            <a href="{{ url_for('tourism_page', destination=city) }}" style="text-decoration:none;">
+                <div class="dest-pop-card text-center">
+                    <div style="font-size:3rem;">{{ info.emoji }}</div>
+                    <h5 class="mt-2 mb-1">{{ city }}</h5>
+                    <div class="badge bg-warning text-dark mb-2">{{ info.highlight }}</div>
+                    <p class="text-muted small mb-0">{{ info.tagline }}</p>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<footer class="py-3 mt-5">
+    <div class="container text-center text-white-50 small">
+        Designed and developed by Nextlinkers | Design Build Operate | KARE
+    </div>
+</footer>
+
+<!-- Floating Translate Button -->
+<div id="translate-fab">
+    <div id="translate-panel">
+        <div style="font-size:0.75rem;color:#aaa;margin-bottom:0.5rem;">🌐 Select Language</div>
+        <button class="lang-opt active" onclick="doTranslate('en')">🇬🇧 English</button>
+        <button class="lang-opt" onclick="doTranslate('ta')">🇮🇳 தமிழ் (Tamil)</button>
+        <button class="lang-opt" onclick="doTranslate('te')">🇮🇳 తెలుగు (Telugu)</button>
+        <button class="lang-opt" onclick="doTranslate('hi')">🇮🇳 हिन्दी (Hindi)</button>
+        <button class="lang-opt" onclick="doTranslate('kn')">🇮🇳 ಕನ್ನಡ (Kannada)</button>
+        <button class="lang-opt" onclick="doTranslate('ml')">🇮🇳 മലയാളം (Malayalam)</button>
+        <div id="google_translate_element" style="display:none;"></div>
+    </div>
+    <button class="fab-btn" onclick="toggleTranslatePanel()" title="Translate page">
+        <i class="bi bi-translate"></i>
+    </button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function googleTranslateInit() {
+    new google.translate.TranslateElement({ pageLanguage:'en', includedLanguages:'ta,te,hi,kn,ml,en', autoDisplay:false }, 'google_translate_element');
+}
+function switchLang(lang) {
+    ['en','ta','te'].forEach(l => {
+        const btn = document.getElementById('lang-' + l);
+        if (!btn) return;
+        if (l === lang) { btn.classList.remove('btn-outline-warning'); btn.classList.add('btn-warning','active'); }
+        else { btn.classList.remove('btn-warning','active'); btn.classList.add('btn-outline-warning'); }
+    });
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        const d = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${d}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        if (lang !== 'en') window.location.reload();
+    }
+    localStorage.setItem('preferredLang', lang);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('preferredLang');
+    if (saved && saved !== 'en') setTimeout(() => switchLang(saved), 800);
+});
+function toggleTranslatePanel() {
+    const p = document.getElementById('translate-panel');
+    p.style.display = p.style.display === 'block' ? 'none' : 'block';
+}
+function doTranslate(lang) {
+    document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        const d = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${d}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        window.location.reload();
+    }
+    if (lang !== 'en') document.getElementById('translate-panel').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+    const fab = document.getElementById('translate-fab');
+    if (fab && !fab.contains(e.target)) document.getElementById('translate-panel').style.display = 'none';
+});
+
+// Type filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const type = btn.dataset.type;
+        document.querySelectorAll('.spot-item').forEach(item => {
+            if (type === 'all' || item.dataset.type === type) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

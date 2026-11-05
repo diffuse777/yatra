@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}{% if service %}Edit{% else %}Add New{% endif %} Bus Service - Yatra Saarthi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% if service %}Edit{% else %}Add New{% endif %} Bus Service</h1>
+        <a href="{{ url_for('manage_bus_services') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Services
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="service_number" class="form-label">Service Number</label>
+                            <input type="text" class="form-control" id="service_number" name="service_number" 
+                                   value="{{ service.service_number if service else '' }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="bus_number" class="form-label">Bus Number</label>
+                            <input type="text" class="form-control" id="bus_number" name="bus_number" 
+                                   value="{{ service.bus_number if service else '' }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <!-- Origin Details -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">Origin Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="origin" class="form-label">Origin</label>
+                                    <input type="text" class="form-control" id="origin" name="origin" 
+                                           value="{{ service.origin if service else '' }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="origin_departure_time" class="form-label">Origin Departure Time</label>
+                                    <input type="time" class="form-control" id="origin_departure_time" 
+                                           name="origin_departure_time" 
+                                           value="{{ service.origin_departure_time.strftime('%H:%M') if service and service.origin_departure_time else '' }}" 
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination Details -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">Destination Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="destination" class="form-label">Destination</label>
+                                    <input type="text" class="form-control" id="destination" name="destination" 
+                                           value="{{ service.destination if service else '' }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="destination_arrival_time" class="form-label">Destination Arrival Time</label>
+                                    <input type="time" class="form-control" id="destination_arrival_time" 
+                                           name="destination_arrival_time" 
+                                           value="{{ service.destination_arrival_time.strftime('%H:%M') if service and service.destination_arrival_time else '' }}" 
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="departure_time" class="form-label">First Departure Time</label>
+                            <small class="text-muted d-block">Time when the bus departs from origin</small>
+                            <input type="time" class="form-control" id="departure_time" name="departure_time" 
+                                   value="{{ service.departure_time.strftime('%H:%M') if service and service.departure_time else '' }}" 
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="arrival_time" class="form-label">Final Arrival Time</label>
+                            <small class="text-muted d-block">Time when the bus arrives at final destination</small>
+                            <input type="time" class="form-control" id="arrival_time" name="arrival_time" 
+                                   value="{{ service.arrival_time.strftime('%H:%M') if service and service.arrival_time else '' }}" 
+                                   required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="route_description" class="form-label">Route Description</label>
+                    <textarea class="form-control" id="route_description" name="route_description" 
+                              rows="3">{{ service.route_description if service else '' }}</textarea>
+                    <small class="form-text text-muted">List major stops or route details</small>
+                </div>
+
+                <div class="form-group form-check mb-4">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                           {{ 'checked' if not service or service.is_active else '' }}>
+                    <label class="form-check-label" for="is_active">Active Service</label>
+                </div>
+
+                <!-- Via Routes Section -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Via Routes</h6>
+                        <button type="button" class="btn btn-sm btn-success" id="add-via-route">
+                            <i class="fas fa-plus"></i> Add Route
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="via-routes-container">
+                            <!-- Via routes will be added here dynamically -->
+                            {% if service and service.via_routes %}
+                                {% for route in service.via_routes %}
+                                    <div class="via-route-form mb-3 p-3 border rounded">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Route Name</label>
+                                                    <input type="text" name="via_routes-{{ loop.index0 }}-name" 
+                                                           class="form-control" value="{{ route.name }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="form-label">Time</label>
+                                                    <input type="time" name="via_routes-{{ loop.index0 }}-time" 
+                                                           class="form-control" value="{{ route.time }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm remove-via-route w-100">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stops Section -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Bus Stops</h6>
+                        <button type="button" class="btn btn-sm btn-success" id="add-stop">
+                            <i class="fas fa-plus"></i> Add Stop
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="stops-container">
+                            <!-- Stops will be added here dynamically -->
+                            {% if service and service.stops %}
+                                {% for stop in service.stops %}
+                                    <div class="stop-form mb-3 p-3 border rounded">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="form-label">Stop Name</label>
+                                                    <input type="text" name="stops-{{ loop.index0 }}-name" 
+                                                           class="form-control" value="{{ stop.name }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Arrival Time</label>
+                                                    <input type="time" name="stops-{{ loop.index0 }}-arrival" 
+                                                           class="form-control" value="{{ stop.arrival }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Departure Time</label>
+                                                    <input type="time" name="stops-{{ loop.index0 }}-departure" 
+                                                           class="form-control" value="{{ stop.departure }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm remove-stop w-100">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {% if service %}Update{% else %}Create{% endif %} Service
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize time pickers using HTML5 time inputs
+        
+        // Handle adding new via routes
+        const addViaRouteBtn = document.getElementById('add-via-route');
+        const viaRoutesContainer = document.getElementById('via-routes-container');
+        let viaRouteCount = {{ service.via_routes|length if service and service.via_routes else 0 }};
+        
+        if (addViaRouteBtn) {
+            addViaRouteBtn.addEventListener('click', function() {
+                const newIndex = viaRouteCount++;
+                const newRouteHtml = `
+                    <div class="via-route-form mb-3 p-3 border rounded">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Route Name</label>
+                                    <input type="text" name="via_routes-${newIndex}-name" 
+                                           class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Time</label>
+                                    <input type="time" name="via_routes-${newIndex}-time" 
+                                           class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm remove-via-route w-100">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const temp = document.createElement('div');
+                temp.innerHTML = newRouteHtml.trim();
+                viaRoutesContainer.appendChild(temp.firstChild);
+                
+                // Scroll to the new route
+                viaRoutesContainer.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        // Handle removing via routes
+        if (viaRoutesContainer) {
+            viaRoutesContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-via-route')) {
+                    e.target.closest('.via-route-form').remove();
+                    // Re-index remaining routes
+                    const routes = viaRoutesContainer.querySelectorAll('.via-route-form');
+                    routes.forEach((route, index) => {
+                        route.querySelector('input[name$="-name"]').name = `via_routes-${index}-name`;
+                        route.querySelector('input[name$="-time"]').name = `via_routes-${index}-time`;
+                    });
+                    viaRouteCount = routes.length;
+                }
+            });
+        }
+        
+        // Handle adding new stops
+        const addStopBtn = document.getElementById('add-stop');
+        const stopsContainer = document.getElementById('stops-container');
+        let stopCount = {{ service.stops|length if service and service.stops else 0 }};
+        
+        if (addStopBtn) {
+            addStopBtn.addEventListener('click', function() {
+                const newIndex = stopCount++;
+                const newStopHtml = `
+                    <div class="stop-form mb-3 p-3 border rounded">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Stop Name</label>
+                                    <input type="text" name="stops-${newIndex}-name" 
+                                           class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Arrival Time</label>
+                                    <input type="time" name="stops-${newIndex}-arrival" 
+                                           class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Departure Time</label>
+                                    <input type="time" name="stops-${newIndex}-departure" 
+                                           class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm remove-stop w-100">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const temp = document.createElement('div');
+                temp.innerHTML = newStopHtml.trim();
+                stopsContainer.appendChild(temp.firstChild);
+                
+                // Scroll to the new stop
+                stopsContainer.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        // Handle removing stops
+        if (stopsContainer) {
+            stopsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-stop')) {
+                    e.target.closest('.stop-form').remove();
+                    // Re-index remaining stops
+                    const stops = stopsContainer.querySelectorAll('.stop-form');
+                    stops.forEach((stop, index) => {
+                        stop.querySelector('input[name$="-name"]').name = `stops-${index}-name`;
+                        stop.querySelector('input[name$="-arrival"]').name = `stops-${index}-arrival`;
+                        stop.querySelector('input[name$="-departure"]').name = `stops-${index}-departure`;
+                    });
+                    stopCount = stops.length;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

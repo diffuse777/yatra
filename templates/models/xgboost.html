@@ -1,0 +1,271 @@
+{% extends "models/model_detail.html" %}
+
+{% block model_extra_css %}
+<style>
+    .train-bar {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border-left: 4px solid var(--transport-orange);
+    }
+    .train-bar .status-note { font-size: 0.84rem; color: #445; max-width: 640px; }
+    .metric-tile {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border-left: 4px solid var(--transport-navy);
+        height: 100%;
+    }
+    .metric-tile .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6c757d; font-weight: 700; }
+    .metric-tile .value { font-size: 1.55rem; font-weight: 800; color: var(--transport-navy); }
+    .chart-wrap { position: relative; height: 300px; }
+    .btn-train {
+        background: var(--transport-orange);
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        border-radius: 4px;
+        padding: 0.5rem 1.1rem;
+    }
+    .btn-train:hover { background: #bf360c; color: #fff; }
+    .btn-train:disabled { opacity: 0.65; }
+</style>
+{% endblock %}
+
+{% block model_actions %}
+<div class="train-bar">
+    <div class="status-note">
+        {% if results and results.trained %}
+            Last trained:
+            <strong>{{ results.metadata.trained_at if results.metadata else '—' }}</strong>
+            · Test samples:
+            <strong>{{ results.metadata.test_samples if results.metadata else '—' }}</strong>
+            · Split:
+            <strong>{{ results.metadata.split_method if results.metadata else 'chronological' }}</strong>
+        {% else %}
+            Train XGBoost on structured operational bus-trip demand features. Training runs only when you click the button — this page never auto-retrains.
+        {% endif %}
+    </div>
+    <form method="post" action="{{ url_for('admin_models_xgboost_train') }}" id="xgb-train-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-train" id="xgb-train-btn">
+            <i class="bi bi-play-fill"></i> Train XGBoost Model
+        </button>
+    </form>
+    {% if results and results.trained %}
+    <a href="{{ url_for('admin_models_xgboost_dataset_csv') }}" class="btn btn-outline-dark btn-sm">
+        <i class="bi bi-download"></i> Download Dataset (CSV)
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block data_dataset %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.dataset_name }}
+    {% if results.metadata.data.is_synthetic %}
+        <span class="badge" style="background:var(--transport-amber);color:#222;">SYNTHETIC DEMO DATA</span>
+    {% else %}
+        <span class="badge bg-success">REAL / OPERATIONAL DATA</span>
+    {% endif %}
+{% else %}
+    {{ model.data.dataset_name }}
+{% endif %}
+{% endblock %}
+
+{% block data_size %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.dataset_size }} rows
+    (train {{ results.metadata.train_samples }}, test {{ results.metadata.test_samples }})
+{% else %}
+    {{ model.data.dataset_size }}
+{% endif %}
+{% endblock %}
+
+{% block data_features %}
+{% if results and results.trained and results.metadata %}
+    {{ results.metadata.feature_columns | join(', ') }}
+{% else %}
+    {{ model.data.features }}
+{% endif %}
+{% endblock %}
+
+{% block data_target %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.target }}
+    {% if results.metadata.data.target_description %}
+        <div class="text-muted" style="font-size:0.78rem;">{{ results.metadata.data.target_description }}</div>
+    {% endif %}
+{% else %}
+    {{ model.data.target }}
+{% endif %}
+{% endblock %}
+
+{% block data_range %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.data_range_start }} → {{ results.metadata.data.data_range_end }}
+{% else %}
+    {{ model.data.data_range }}
+{% endif %}
+{% endblock %}
+
+{% block data_prep %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    <ul class="mb-0 ps-3">
+        {% for step in results.metadata.data.feature_engineering %}
+        <li>{{ step }}</li>
+        {% endfor %}
+        {% for step in results.metadata.data.preprocessing %}
+        <li>{{ step }}</li>
+        {% endfor %}
+        <li>{{ results.metadata.split_method }}</li>
+    </ul>
+{% else %}
+    {{ model.data.preprocessing }}
+{% endif %}
+{% endblock %}
+
+{% block impl_arch %}
+{% if results and results.trained and results.metadata %}
+    {{ results.metadata.framework }} {{ results.metadata.model_type }} ({{ results.metadata.objective }})
+{% else %}
+    {{ model.implementation.architecture }}
+{% endif %}
+{% endblock %}
+
+{% block impl_params %}
+{% if results and results.trained and results.metadata and results.metadata.config %}
+    n_estimators={{ results.metadata.config.n_estimators }},
+    max_depth={{ results.metadata.config.max_depth }},
+    learning_rate={{ results.metadata.config.learning_rate }},
+    subsample={{ results.metadata.config.subsample }},
+    colsample_bytree={{ results.metadata.config.colsample_bytree }},
+    min_child_weight={{ results.metadata.config.min_child_weight }},
+    reg_alpha={{ results.metadata.config.reg_alpha }},
+    reg_lambda={{ results.metadata.config.reg_lambda }}
+{% else %}
+    {{ model.implementation.parameters }}
+{% endif %}
+{% endblock %}
+
+{% block impl_config %}
+{% if results and results.trained and results.metadata and results.metadata.config %}
+    early_stopping_rounds={{ results.metadata.config.early_stopping_rounds }},
+    tree_method=hist,
+    chronological validation slice from end of training set
+{% else %}
+    {{ model.implementation.config }}
+{% endif %}
+{% endblock %}
+
+{% block model_results %}
+{% if results and results.trained %}
+    <h6 class="fw-bold mb-3" style="color:var(--transport-navy);">Performance</h6>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="metric-tile">
+                <div class="label">MAE</div>
+                <div class="value">{{ results.metrics.mae }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile">
+                <div class="label">RMSE</div>
+                <div class="value">{{ results.metrics.rmse }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile">
+                <div class="label">MAPE (%)</div>
+                <div class="value">{{ results.metrics.mape }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile">
+                <div class="label">R²</div>
+                <div class="value">{{ results.metrics.r2 }}</div>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted" style="font-size:0.78rem;">MAPE ignores near-zero actual demand rows to avoid division-by-zero distortion.</p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Actual vs Predicted Demand</h6>
+            <div class="chart-wrap"><canvas id="xgbPredChart"></canvas></div>
+        </div>
+        <div class="col-lg-6">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Feature Importance (Gain)</h6>
+            <div class="chart-wrap"><canvas id="xgbImportanceChart"></canvas></div>
+        </div>
+    </div>
+
+    <h6 class="fw-bold mb-2" style="color:var(--transport-navy);">
+        Real-time Prediction Table
+        <small class="text-muted fw-normal" id="xgb-live-stamp"></small>
+    </h6>
+    <p class="text-muted" style="font-size:0.82rem;">
+        Last 24 hours (IST): <strong>Actual</strong> vs model <strong>Predicted</strong> for scheduled trips — refreshed live from the trained XGBoost model.
+    </p>
+    <div class="table-responsive mb-4" style="max-height: 340px; overflow-y: auto;">
+        <table class="table table-sm table-striped mb-0" id="xgb-prediction-table">
+            <thead>
+                <tr>
+                    <th>Timestamp (IST)</th>
+                    <th>Route</th>
+                    <th>Actual Demand</th>
+                    <th>Predicted Demand</th>
+                    <th>Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5" class="text-muted">Loading real-time predictions…</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h6 class="fw-bold mb-2" style="color:var(--transport-navy);">Real-time Future Forecast (next 24 hours IST)</h6>
+    <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+        <table class="table table-sm table-striped mb-0" id="xgb-forecast-table">
+            <thead>
+                <tr>
+                    <th>Timestamp (IST)</th>
+                    <th>Route</th>
+                    <th>Forecasted Demand</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="3" class="text-muted">Loading real-time forecast…</td></tr>
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block model_insights %}
+{% if results and results.trained and results.metadata and results.metadata.insights %}
+<ul class="mb-0" style="font-size:0.88rem;">
+    {% for tip in results.metadata.insights %}
+    <li class="mb-1">{{ tip }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<ul class="mb-0" style="font-size:0.88rem;">
+    {% for tip in model.insights %}
+    <li class="mb-1">{{ tip }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
+
+{% block model_extra_scripts %}
+<script src="{{ url_for('static', filename='js/xgboost_charts.js') }}?v=2"></script>
+{% endblock %}

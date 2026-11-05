@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-Modal Coordination{% endblock %}
+
+{% block extra_css %}
+<style>
+    .coordination-card {
+        border-left: 4px solid #007bff;
+        margin-bottom: 1rem;
+    }
+    .train-card { border-left-color: #28a745; }
+    .flight-card { border-left-color: #17a2b8; }
+    .bus-card {
+        transition: transform 0.2s;
+        border-left: 4px solid #007bff;
+    }
+    .bus-card:hover {
+        transform: translateY(-3px);
+    }
+    .status-badge {
+        animation: pulse 2s infinite;
+    }
+    .realtime-badge {
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .delay-badge { background-color: #dc3545; }
+    .on-time-badge { background-color: #28a745; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-diagram-3"></i> Multi-Modal Coordination</h1>
+            <p class="text-muted">Real-time bus tracking and synchronization with train/flight schedules</p>
+        </div>
+        <div>
+            <form method="POST" action="{{ url_for('update_db_schema') }}" class="d-inline me-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-warning btn-sm">
+                    <i class="bi bi-database"></i> Update DB Schema
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('init_bus_services') }}" class="d-inline me-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-bus-front"></i> Initialize Bus Services
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('init_transport_schedules') }}" class="d-inline me-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Initialize Schedules
+                </button>
+            </form>
+            <button onclick="refreshRealtime()" class="btn btn-info">
+                <i class="bi bi-arrow-clockwise"></i> Refresh Real-Time
+            </button>
+        </div>
+    </div>
+
+    <!-- Coordination Recommendations -->
+    {% if coordination_recommendations %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Coordination Recommendations</h5>
+        </div>
+        <div class="card-body">
+            {% for rec in coordination_recommendations %}
+            <div class="card coordination-card {{ 'train-card' if rec.type == 'bus_train' else 'flight-card' }} mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>
+                                <i class="bi bi-{{ 'train-front' if rec.type == 'bus_train' else 'airplane' }}"></i>
+                                {{ rec.type|replace('_', ' ')|title }} Connection
+                            </h6>
+                            <p class="mb-1">
+                                <strong>Bus {{ rec.bus }}</strong> arrives at <strong>{{ rec.bus_arrival }}</strong>
+                                <i class="bi bi-arrow-right"></i>
+                                <strong>{{ rec.type.split('_')[1]|title }} {{ rec.train if rec.type == 'bus_train' else rec.flight }}</strong> departs at <strong>{{ rec.train_departure if rec.type == 'bus_train' else rec.flight_departure }}</strong>
+                            </p>
+                            <p class="mb-1">
+                                <span class="badge bg-info">Connection Time: {{ rec.connection_time }}</span>
+                                <span class="badge bg-{{ 'danger' if rec.crowd_prediction > 80 else 'warning' if rec.crowd_prediction > 40 else 'success' }}">
+                                    Expected Crowd: {{ rec.crowd_prediction }} passengers
+                                </span>
+                            </p>
+                            <p class="mb-0 text-muted"><small>{{ rec.recommendation }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Focus Cities Bus Services -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-bus-front"></i> Local Buses (Focus Cities)</h5>
+                    <small>{{ focus_local_buses|length }} active buses</small>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% if focus_local_buses %}
+                        {% for bus in focus_local_buses %}
+                        <div class="card bus-card mb-2">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {{ bus.bus_number }} - {{ bus.operator }}
+                                            <span class="badge bg-secondary">{{ bus.bus_type }}</span>
+                                        </h6>
+                                        <p class="mb-1">
+                                            <strong>{{ bus.origin }}</strong> 
+                                            <i class="bi bi-arrow-right"></i> 
+                                            <strong>{{ bus.destination }}</strong>
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="bi bi-clock"></i> {{ bus.departure_time.strftime('%H:%M') }} - {{ bus.arrival_time.strftime('%H:%M') }}
+                                            | <i class="bi bi-currency-rupee"></i> ₹{{ bus.fare }}
+                                        </p>
+                                        {% if bus.via_stops %}
+                                        <p class="mb-1">
+                                            <small><i class="bi bi-signpost"></i> Via: {{ bus.via_stops|join(', ') }}</small>
+                                        </p>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <span class="badge bg-{{ 'success' if bus.status == 'on_time' else 'warning' if bus.status == 'delayed' else 'secondary' }}">
+                                                {{ bus.status|replace('_', ' ')|title }}
+                                            </span>
+                                            {% if bus.delay_minutes > 0 %}
+                                            <span class="badge delay-badge">Delay: {{ bus.delay_minutes }} min</span>
+                                            {% endif %}
+                                            <span class="badge bg-info">Seats: {{ bus.seat_availability }}/{{ bus.total_seats }}</span>
+                                            <span class="badge bg-{{ 'danger' if bus.occupancy_percentage > 80 else 'warning' if bus.occupancy_percentage > 50 else 'success' }}">
+                                                {{ bus.occupancy_percentage }}% Full
+                                            </span>
+                                        </div>
+                                        {% set status_key = 'local_' + bus.id|string %}
+                                        {% if status_key in realtime_statuses %}
+                                        {% set rt_status = realtime_statuses[status_key] %}
+                                        <div class="mt-2">
+                                            <span class="realtime-badge">
+                                                <i class="bi bi-geo-alt"></i> {{ rt_status.current_location }}
+                                            </span>
+                                            {% if rt_status.speed %}
+                                            <span class="badge bg-secondary">{{ rt_status.speed }} km/h</span>
+                                            {% endif %}
+                                            {% if rt_status.next_stop %}
+                                            <span class="badge bg-primary">Next: {{ rt_status.next_stop }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No local buses available. Click "Initialize Bus Services" to add buses.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-bus-front-fill"></i> Private Operators (RedBus-like)</h5>
+                    <small>{{ focus_private_buses|length }} active buses</small>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% if focus_private_buses %}
+                        {% for bus in focus_private_buses %}
+                        <div class="card bus-card mb-2">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {{ bus.operator_name }}
+                                            <span class="badge bg-warning text-dark">{{ bus.bus_type }}</span>
+                                            {% if bus.rating %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-star-fill"></i> {{ bus.rating }}
+                                            </span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-1">
+                                            <strong>{{ bus.origin }}</strong> 
+                                            <i class="bi bi-arrow-right"></i> 
+                                            <strong>{{ bus.destination }}</strong>
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="bi bi-clock"></i> {{ bus.departure_time.strftime('%H:%M') }} - {{ bus.arrival_time.strftime('%H:%M') }}
+                                            {% if bus.duration %}
+                                            <span class="badge bg-secondary ms-2">{{ bus.duration }}</span>
+                                            {% endif %}
+                                            | <i class="bi bi-currency-rupee"></i> ₹{{ bus.fare }}
+                                        </p>
+                                        {% if bus.via_stops %}
+                                        <p class="mb-1">
+                                            <small><i class="bi bi-signpost"></i> Via: {{ bus.via_stops|join(', ') }}</small>
+                                        </p>
+                                        {% endif %}
+                                        {% if bus.amenities %}
+                                        <p class="mb-1">
+                                            <small>
+                                                <i class="bi bi-wifi"></i> 
+                                                {% for amenity in bus.amenities %}
+                                                {{ amenity }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </small>
+                                        </p>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <span class="badge bg-{{ 'success' if bus.status == 'running' else 'warning' if bus.status == 'delayed' else 'primary' }}">
+                                                {{ bus.status|title }}
+                                            </span>
+                                            {% if bus.delay_minutes > 0 %}
+                                            <span class="badge delay-badge">Delay: {{ bus.delay_minutes }} min</span>
+                                            {% endif %}
+                                            <span class="badge bg-info">Seats: {{ bus.seat_availability }}/{{ bus.total_seats }}</span>
+                                            <span class="badge bg-{{ 'danger' if bus.occupancy_percentage > 80 else 'warning' if bus.occupancy_percentage > 50 else 'success' }}">
+                                                {{ bus.occupancy_percentage }}% Full
+                                            </span>
+                                            {% if bus.live_tracking %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-geo-alt-fill"></i> Live Tracking
+                                            </span>
+                                            {% endif %}
+                                            {% if bus.platform_source %}
+                                            <span class="badge bg-primary">{{ bus.platform_source|title }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% set status_key = 'private_' + bus.id|string %}
+                                        {% if status_key in realtime_statuses %}
+                                        {% set rt_status = realtime_statuses[status_key] %}
+                                        <div class="mt-2">
+                                            <span class="realtime-badge">
+                                                <i class="bi bi-geo-alt"></i> {{ rt_status.current_location }}
+                                            </span>
+                                            {% if rt_status.speed %}
+                                            <span class="badge bg-secondary">{{ rt_status.speed }} km/h</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        {% if bus.booking_url %}
+                                        <div class="mt-2">
+                                            <a href="{{ bus.booking_url }}" target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-box-arrow-up-right"></i> Book on {{ bus.platform_source|title }}
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No private buses available. Click "Initialize Bus Services" to add buses.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Train and Flight Schedules -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-train-front"></i> Train Schedules</h5>
+                </div>
+                <div class="card-body">
+                    {% if trains %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Train</th>
+                                    <th>Route</th>
+                                    <th>Departure</th>
+                                    <th>Arrival</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for train in trains %}
+                                <tr>
+                                    <td><strong>{{ train.train_number }}</strong><br><small>{{ train.train_name }}</small></td>
+                                    <td>{{ train.origin_station }} → {{ train.destination_station }}</td>
+                                    <td>{{ train.departure_time.strftime('%H:%M') }}</td>
+                                    <td>{{ train.arrival_time.strftime('%H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No train schedules available. Click "Initialize Schedules" to add sample data.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-airplane"></i> Flight Schedules</h5>
+                </div>
+                <div class="card-body">
+                    {% if flights %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Flight</th>
+                                    <th>Route</th>
+                                    <th>Departure</th>
+                                    <th>Arrival</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for flight in flights %}
+                                <tr>
+                                    <td><strong>{{ flight.flight_number }}</strong><br><small>{{ flight.airline }}</small></td>
+                                    <td>{{ flight.origin_airport }} → {{ flight.destination_airport }}</td>
+                                    <td>{{ flight.departure_time.strftime('%H:%M') }}</td>
+                                    <td>{{ flight.arrival_time.strftime('%H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No flight schedules available. Click "Initialize Schedules" to add sample data.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshRealtime() {
+    fetch('/api/refresh-realtime', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error refreshing real-time status');
+    });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    refreshRealtime();
+}, 30000);
+</script>
+{% endblock %}

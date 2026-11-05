@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}AI Crowd Management Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+<style>
+    .heatmap-container {
+        height: 500px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .prediction-card {
+        transition: transform 0.2s;
+        border-left: 4px solid #007bff;
+    }
+    .prediction-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .crowd-high { border-left-color: #dc3545; }
+    .crowd-medium { border-left-color: #ffc107; }
+    .crowd-low { border-left-color: #28a745; }
+    .alert-badge {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .confidence-bar {
+        height: 8px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-brain"></i> AI-Driven Crowd Management</h1>
+            <p class="text-muted">Intelligent passenger prediction and optimization system</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="generateAlerts()">
+                <i class="bi bi-bell"></i> Generate Alerts
+            </button>
+            <a href="{{ url_for('crowd_management') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-event"></i> Manage Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Alerts -->
+    {% if active_alerts %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <h5><i class="bi bi-exclamation-triangle"></i> Active Alerts ({{ active_alerts|length }})</h5>
+        <div class="row">
+            {% for alert in active_alerts[:3] %}
+            <div class="col-md-4 mb-2">
+                <strong>{{ alert.stop_name }}:</strong> {{ alert.message }}
+                <span class="badge bg-{{ 'danger' if alert.severity == 'high' else 'warning' }} alert-badge">
+                    {{ alert.severity }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Crowd Heatmap -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-map"></i> Crowd Density Heatmap - Today</h5>
+                </div>
+                <div class="card-body">
+                    <div id="heatmap" class="heatmap-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predictions Overview -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Today's Predictions</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% for pred in predictions_today %}
+                    <div class="card prediction-card mb-2 crowd-{{ 'high' if pred.predicted_passengers > 80 else 'medium' if pred.predicted_passengers > 40 else 'low' }}">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ pred.stop }} <small class="text-muted">({{ pred.hour }}:00)</small></h6>
+                                    <div class="mb-2">
+                                        <strong>{{ pred.predicted_passengers }}</strong> passengers expected
+                                        {% if pred.event_impact > 0 %}
+                                        <span class="badge bg-warning text-dark">+{{ pred.event_impact|int }} from events</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="progress confidence-bar mb-2" style="width: 100px;">
+                                        <div class="progress-bar bg-{{ 'success' if pred.confidence > 0.7 else 'warning' if pred.confidence > 0.5 else 'danger' }}" 
+                                             style="width: {{ pred.confidence * 100 }}%"></div>
+                                    </div>
+                                    <small class="text-muted">Confidence: {{ (pred.confidence * 100)|int }}%</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if pred.impact_zone %}
+                                    <span class="badge bg-secondary">{{ pred.impact_zone }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if pred.recommendation %}
+                            <div class="mt-2">
+                                <small class="text-muted"><i class="bi bi-lightbulb"></i> {{ pred.recommendation }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Tomorrow's Predictions</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% for pred in predictions_tomorrow %}
+                    <div class="card prediction-card mb-2 crowd-{{ 'high' if pred.predicted_passengers > 80 else 'medium' if pred.predicted_passengers > 40 else 'low' }}">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ pred.stop }} <small class="text-muted">({{ pred.hour }}:00)</small></h6>
+                                    <div class="mb-2">
+                                        <strong>{{ pred.predicted_passengers }}</strong> passengers expected
+                                        {% if pred.event_impact > 0 %}
+                                        <span class="badge bg-warning text-dark">+{{ pred.event_impact|int }} from events</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="progress confidence-bar mb-2" style="width: 100px;">
+                                        <div class="progress-bar bg-{{ 'success' if pred.confidence > 0.7 else 'warning' if pred.confidence > 0.5 else 'danger' }}" 
+                                             style="width: {{ pred.confidence * 100 }}%"></div>
+                                    </div>
+                                    <small class="text-muted">Confidence: {{ (pred.confidence * 100)|int }}%</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if pred.impact_zone %}
+                                    <span class="badge bg-secondary">{{ pred.impact_zone }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if pred.recommendation %}
+                            <div class="mt-2">
+                                <small class="text-muted"><i class="bi bi-lightbulb"></i> {{ pred.recommendation }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events Impact -->
+    {% if upcoming_events %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Upcoming Events & Impact</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th>Expected Demand</th>
+                                    <th>Impact on Routes</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in upcoming_events %}
+                                <tr>
+                                    <td><strong>{{ event.event_name }}</strong></td>
+                                    <td>{{ event.location }}</td>
+                                    <td>{{ event.event_date.strftime('%B %d, %Y') }}</td>
+                                    <td><span class="badge bg-info">{{ event.expected_demand }} passengers</span></td>
+                                    <td>{{ event.route_origin }} → {{ event.route_destination }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if event.status == 'active' else 'secondary' }}">
+                                            {{ event.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stop Details Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Stops & Impact Zones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Stop Name</th>
+                                    <th>Location</th>
+                                    <th>Impact Zone</th>
+                                    <th>Type</th>
+                                    <th>Coordinates</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stop in stops %}
+                                <tr>
+                                    <td><strong>{{ stop.name }}</strong></td>
+                                    <td>{{ stop.location }}</td>
+                                    <td>
+                                        {% if stop.impact_zone %}
+                                        <span class="badge bg-primary">{{ stop.impact_zone }}</span>
+                                        {% else %}
+                                        <span class="text-muted">None</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stop.is_major_stop %}
+                                        <span class="badge bg-success">Major Stop</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Regular</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stop.latitude and stop.longitude %}
+                                        {{ "%.4f"|format(stop.latitude) }}, {{ "%.4f"|format(stop.longitude) }}
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Initialize heatmap
+var map = L.map('heatmap').setView([9.8, 77.9], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Add stop markers with crowd density
+var predictions = {{ predictions_today|tojson|safe }};
+var stops = {{ stops|tojson|safe }};
+
+// Create heatmap data
+var heatData = [];
+var maxPassengers = Math.max(...predictions.map(p => p.predicted_passengers || 0));
+
+stops.forEach(stop => {
+    if (stop.latitude && stop.longitude) {
+        var stopPreds = predictions.filter(p => p.stop === stop.name);
+        var avgPassengers = stopPreds.length > 0 
+            ? stopPreds.reduce((sum, p) => sum + (p.predicted_passengers || 0), 0) / stopPreds.length
+            : 0;
+        
+        var intensity = Math.min(1, avgPassengers / 100); // Normalize to 0-1
+        var color = intensity > 0.7 ? 'red' : intensity > 0.4 ? 'orange' : 'green';
+        
+        var marker = L.circleMarker([stop.latitude, stop.longitude], {
+            radius: 10 + (intensity * 15),
+            fillColor: color,
+            color: '#000',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.6
+        }).addTo(map);
+        
+        marker.bindPopup(`
+            <strong>${stop.name}</strong><br>
+            Expected: ${Math.round(avgPassengers)} passengers<br>
+            Impact Zone: ${stop.impact_zone || 'None'}
+        `);
+        
+        heatData.push([stop.latitude, stop.longitude, intensity]);
+    }
+});
+
+function generateAlerts() {
+    fetch('/api/generate-alerts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.alerts_generated > 0) {
+            alert(`Generated ${data.alerts_generated} new alerts!`);
+            location.reload();
+        } else {
+            alert('No new alerts to generate.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating alerts');
+    });
+}
+</script>
+{% endblock %}
+

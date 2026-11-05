@@ -1,0 +1,1300 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Custom styles for this page -->
+<link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
+<style>
+    body {
+        font-family: Verdana, Tahoma, Geneva, sans-serif;
+    }
+    * {
+        font-family: Verdana, Tahoma, Geneva, sans-serif !important;
+    }
+    .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+    }
+    .chart-area {
+        position: relative;
+        height: 20rem;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .chart-area {
+            height: 25rem;
+        }
+    }
+    .chart-pie {
+        position: relative;
+        height: 20rem;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .chart-pie {
+            height: 22rem;
+        }
+    }
+    .chart-bar {
+        position: relative;
+        height: 20rem;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .chart-bar {
+            height: 25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Monthly Bookings Card -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Bookings Overview</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">View Options:</div>
+                            <a class="dropdown-item" href="#" id="yearlyView">Yearly</a>
+                            <a class="dropdown-item" href="#" id="monthlyView">Monthly</a>
+                            <a class="dropdown-item" href="#" id="weeklyView">Weekly</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Export Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="bookingTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Peak Hours -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Peak Booking Hours</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">View Options:</div>
+                            <a class="dropdown-item view-option active" href="#" data-view="day">By Day</a>
+                            <a class="dropdown-item view-option" href="#" data-view="hour">By Hour</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" id="exportPeakData">Export Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="peakHoursChart"></canvas>
+                    </div>
+                    <div class="text-center small text-muted mb-3">
+                        <i class="fas fa-info-circle"></i> Based on passenger count data from the last 30 days
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> 6AM-10AM
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> 10AM-2PM
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> 2PM-6PM
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> 6PM-10PM
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-left-primary h-100">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    Peak Booking Day</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    {{ peak_hours.peak_day }}
+                                                    {% if peak_hours.peak_day_passengers > 0 %}
+                                                    <span class="text-xs text-muted">
+                                                        ({{ peak_hours.peak_day_passengers }} passengers)
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-left-success h-100">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    Peak Booking Hour</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    {{ peak_hours.peak_hour }}
+                                                    {% if peak_hours.peak_hour_passengers > 0 %}
+                                                    <span class="text-xs text-muted">
+                                                        ({{ peak_hours.peak_hour_passengers }} passengers)
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-left-info h-100">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                    Total Bookings (30 days)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    {{ peak_hours.total_bookings|number_format }}
+                                                </div>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-left-warning h-100">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Avg. Passengers per Booking</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    {{ peak_hours.avg_passengers }}
+                                                </div>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <i class="fas fa-user-friends fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Popularity -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Route Popularity</h6>
+                    <div>
+                        <span class="badge badge-primary mr-2">Total Bookings: {{ route_popularity.total_bookings }}</span>
+                        <span class="badge badge-info">{{ route_popularity.routes|length }} Active Routes</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if route_popularity.routes %}
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="chart-pie pt-4 pb-2">
+                                    <canvas id="routePopularityChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                    Top Performing Route</div>
+                                                {% set top_route = route_popularity.routes[0] %}
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    {{ top_route.origin }} → {{ top_route.destination }}
+                                                </div>
+                                                <div class="mt-2 text-xs">
+                                                    <span class="text-success mr-2">
+                                                        <i class="fas fa-users"></i> {{ top_route.passenger_count }} Passengers
+                                                    </span>
+                                                    <span class="text-primary">
+                                                        <i class="fas fa-bus"></i> {{ top_route.bus_count }} Buses
+                                                    </span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <div class="small text-gray-500">
+                                                        Via: {{ top_route.via_routes|join(', ') if top_route.via_routes else 'Direct' }}
+                                                    </div>
+                                                    <div class="small text-gray-500">
+                                                        Occupancy: {{ top_route.occupancy_rate }}%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-route fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Route</th>
+                                        <th>Passengers</th>
+                                        <th>Buses</th>
+                                        <th>Services</th>
+                                        <th>Capacity</th>
+                                        <th>Occupancy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for route in route_popularity.routes %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="mr-2">
+                                                    <i class="fas fa-route text-{{ 'primary' if loop.index <= 3 else 'secondary' }}" 
+                                                       title="{{ route.origin }} to {{ route.destination }}"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-weight-bold">{{ route.origin }} → {{ route.destination }}</div>
+                                                    {% if route.via_routes %}
+                                                    <div class="text-xs text-muted">
+                                                        Via: {{ route.via_routes|join(', ') }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="font-weight-bold">{{ route.passenger_count }}</td>
+                                        <td>{{ route.bus_count }}</td>
+                                        <td>{{ route.service_count }}</td>
+                                        <td>{{ route.capacity }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress mr-2" style="height: 20px; width: 100px;">
+                                                    {% set occupancy = route.occupancy_rate|int %}
+                                                    <div class="progress-bar bg-{{ 'success' if occupancy < 60 else 'warning' if occupancy < 80 else 'danger' }}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ occupancy }}%" 
+                                                         aria-valuenow="{{ occupancy }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <span class="text-{{ 'success' if occupancy < 60 else 'warning' if occupancy < 80 else 'danger' }} font-weight-bold">
+                                                    {{ occupancy }}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-route fa-4x text-gray-300 mb-3"></i>
+                            <h5 class="text-gray-500">No Route Data Available</h5>
+                            <p class="text-muted small">Route popularity data will appear when you have active bus services with passengers</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Analytics Cards -->
+    <div class="row">
+        <!-- Route Comparison Bar Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Routes Comparison</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">View Options:</div>
+                            <a class="dropdown-item" href="#" id="showPassengers">By Passengers</a>
+                            <a class="dropdown-item" href="#" id="showServices">By Services</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" id="exportRouteData">Export Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="routeComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Status -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Booking Status Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="bookingStatusChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Confirmed
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Pending
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Cancelled
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Planning & Recommendation System Analytics -->
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <div class="card shadow border-left-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Travel Planning & Recommendation System Analytics</h5>
+                    <small>Metrics for our planning/recommendation platform (not a booking system)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Travel Plans Overview -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Travel Plans Created</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_travel_plans|default(0) }}
+                            </div>
+                            <div class="text-xs text-muted mt-1">Last 30 days</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-journals fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Travel Guide Usage -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Travel Guide Routes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ travel_guide_routes|default(0) }}
+                            </div>
+                            <div class="text-xs text-muted mt-1">Step-by-step guides created</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-signpost-split fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Queries -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Weather Queries</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ weather_queries|default(0) }}
+                            </div>
+                            <div class="text-xs text-muted mt-1">Real-time weather checks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-cloud-rain fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crowd Predictions -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Crowd Predictions</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ crowd_predictions_count|default(0) }}
+                            </div>
+                            <div class="text-xs text-muted mt-1">AI predictions generated</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Search Routes & Transport Mode Preferences -->
+    <div class="row">
+        <!-- Popular Search Routes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-search"></i> Popular Search Routes (Last 30 Days)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if popular_search_routes %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Route</th>
+                                    <th>Searches</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for route in popular_search_routes[:10] %}
+                                <tr>
+                                    <td>
+                                        {% if loop.index == 1 %}
+                                        <span class="badge bg-warning">🏆 #{{ loop.index }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">#{{ loop.index }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ route[0] }}</strong> 
+                                        <i class="bi bi-arrow-right"></i> 
+                                        <strong>{{ route[1] }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ route[2] }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No search data available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Transport Mode Preferences -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-diagram-3"></i> Transport Mode Preferences
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if mode_preferences %}
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="modePreferenceChart"></canvas>
+                    </div>
+                    <div class="mt-3 text-center small">
+                        {% for mode, count in mode_preferences %}
+                        <span class="mr-2">
+                            <i class="bi bi-circle-fill text-{{ 'primary' if mode == 'bus' else 'success' if mode == 'train' else 'info' if mode == 'flight' else 'warning' }}"></i>
+                            {{ mode|title }}: {{ count }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No mode preference data available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Page level plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+<script>
+// Set new default font family and font color to use Verdana  
+if (typeof Chart !== 'undefined') {
+    Chart.defaults.global.defaultFontFamily = 'Verdana, Geneva, Tahoma, sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
+}
+
+// Booking Trend Chart
+var ctx = document.getElementById("bookingTrendChart");
+if (ctx) {
+    var bookingData = {
+        labels: {{ booking_data.labels|tojson|safe }},
+        datasets: {{ booking_data.datasets|tojson|safe }}
+    };
+
+    var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: bookingData,
+    options: {
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 0
+            }
+        },
+        scales: {
+            xAxes: [{
+                gridLines: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    maxTicksLimit: 12
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    maxTicksLimit: 5,
+                    padding: 10,
+                    beginAtZero: true,
+                    callback: function(value, index, values) {
+                        return value;
+                    }
+                },
+                gridLines: {
+                    color: "rgb(234, 236, 244)",
+                    zeroLineColor: "rgb(234, 236, 244)",
+                    drawBorder: false,
+                    borderDash: [2],
+                    zeroLineBorderDash: [2]
+                }
+            }],
+        },
+        legend: {
+            display: false
+        },
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            titleMarginBottom: 10,
+            titleFontColor: '#6e707e',
+            titleFontSize: 14,
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            intersect: false,
+            mode: 'index',
+            caretPadding: 10,
+            callbacks: {
+                label: function(tooltipItem, chart) {
+                    var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                    return datasetLabel + ': ' + tooltipItem.yLabel + ' bookings';
+                }
+            }
+        },
+        legend: {
+            display: false
+        }
+    }
+    });
+}
+
+// Route Popularity Chart
+{% if route_popularity and route_popularity.routes %}
+// Prepare data for the chart
+var routeData = {
+    labels: {{ route_popularity.routes|map(attribute='name')|list|tojson|safe }},
+    data: {{ route_popularity.routes|map(attribute='passenger_count')|list|tojson|safe }},
+    routes: {{ route_popularity.routes|tojson|safe if route_popularity.routes else '[]' }}
+};
+
+// Initialize the chart when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('routePopularityChart');
+    if (!ctx) return;
+    
+    // Ensure we have valid data
+    if (!routeData || !routeData.labels || !routeData.data) {
+        console.error('Invalid route data:', routeData);
+        return;
+    }
+    
+    var chartCtx = ctx.getContext('2d');
+    if (!chartCtx) return;
+    
+    // Generate colors based on the number of routes
+    function generateColors(count) {
+        var baseColors = [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+            '#6f42c1', '#fd7e14', '#20c9a6', '#e83e8c', '#6c757d'
+        ];
+        var colors = [];
+        for (var i = 0; i < count; i++) {
+            colors.push(baseColors[i % baseColors.length]);
+        }
+        return colors;
+    }
+    
+    // Generate hover colors (darker versions of base colors)
+    function generateHoverColors(count) {
+        var baseHoverColors = [
+            '#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2617',
+            '#5a3d8a', '#d66a12', '#1aa384', '#c13584', '#5a6268'
+        ];
+        var hoverColors = [];
+        for (var i = 0; i < count; i++) {
+            hoverColors.push(baseHoverColors[i % baseHoverColors.length]);
+        }
+        return hoverColors;
+    }
+    
+// Initialize the chart
+var myPieChart = new Chart(chartCtx, {
+    type: 'doughnut',
+    data: {
+        labels: routeData.labels,
+        datasets: [{
+            data: routeData.data,
+            backgroundColor: generateColors(routeData.labels.length),
+            hoverBackgroundColor: generateHoverColors(routeData.labels.length),
+            hoverBorderColor: 'rgba(234, 236, 244, 1)',
+            borderWidth: 1,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: 'rgb(255,255,255)',
+            bodyFontColor: '#858796',
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: true,
+            caretPadding: 10,
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var dataset = data.datasets[tooltipItem.datasetIndex];
+                    var total = dataset.data.reduce(function(previousValue, currentValue) {
+                        return previousValue + currentValue;
+                    }, 0);
+                    var currentValue = dataset.data[tooltipItem.index];
+                    var percentage = Math.round((currentValue / (total || 1)) * 100);
+                    var route = routeData.routes[tooltipItem.index];
+                    
+                    return [
+                        route.origin + ' → ' + route.destination,
+                        'Passengers: ' + currentValue,
+                        'Buses: ' + route.bus_count,
+                        'Services: ' + route.service_count,
+                        percentage + '% of total passengers'
+                    ];
+                }
+            }
+        },
+        legend: {
+            display: false
+        },
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: {
+                        size: 11
+                    }
+                }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10
+            }
+        },
+        animation: {
+            animateScale: true,
+            animateRotate: true
+        }
+    }
+});
+
+// Add event listener for chart click to show route details
+if (chartCtx && chartCtx.canvas) {
+    chartCtx.canvas.onclick = function(evt) {
+        var activePoints = myPieChart.getElementsAtEvent(evt);
+        if (activePoints && activePoints.length > 0) {
+            var clickedIndex = activePoints[0]._index;
+            var tableRow = document.querySelector('tr[data-route-id="' + clickedIndex + '"]');
+            if (tableRow) {
+                tableRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                tableRow.classList.add('table-primary');
+                setTimeout(function() {
+                    tableRow.classList.remove('table-primary');
+                }, 2000);
+            }
+        }
+    };
+}
+});
+{% endif %}
+
+// Peak Hours Chart
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById("peakHoursChart");
+    if (!ctx) return;
+    
+    // Initialize with day view by default
+    var currentView = 'day';
+    
+    // Get the peak hours data from the template
+    var peakHoursData = JSON.parse('{{ peak_hours|tojson|safe }}');
+    
+    // Format data for the chart
+    function getChartData(viewType) {
+        if (viewType === 'day') {
+            return {
+                labels: peakHoursData.weekdays,
+                datasets: [
+                    {
+                        label: "6AM-10AM",
+                        backgroundColor: "#4e73df",
+                        hoverBackgroundColor: "#2e59d9",
+                        borderColor: "#4e73df",
+                        borderWidth: 1,
+                        data: peakHoursData.data['6AM-10AM'],
+                        stack: 'stack0'
+                    },
+                    {
+                        label: "10AM-2PM",
+                        backgroundColor: "#1cc88a",
+                        hoverBackgroundColor: "#17a673",
+                        borderColor: "#1cc88a",
+                        borderWidth: 1,
+                        data: peakHoursData.data['10AM-2PM'],
+                        stack: 'stack0'
+                    },
+                    {
+                        label: "2PM-6PM",
+                        backgroundColor: "#36b9cc",
+                        hoverBackgroundColor: "#2c9faf",
+                        borderColor: "#36b9cc",
+                        borderWidth: 1,
+                        data: peakHoursData.data['2PM-6PM'],
+                        stack: 'stack0'
+                    },
+                    {
+                        label: "6PM-10PM",
+                        backgroundColor: "#f6c23e",
+                        hoverBackgroundColor: "#dda20a",
+                        borderColor: "#f6c23e",
+                        borderWidth: 1,
+                        data: peakHoursData.data['6PM-10PM'],
+                        stack: 'stack0'
+                    }
+                ]
+            };
+        } else {
+            // For hour view, show average per time slot
+            var timeSlots = Object.keys(peakHoursData.data);
+            var averages = timeSlots.map(function(slot) {
+                var sum = peakHoursData.data[slot].reduce(function(a, b) { return a + b; }, 0);
+                return Math.round(sum / peakHoursData.data[slot].length);
+            });
+            
+            return {
+                labels: timeSlots,
+                datasets: [{
+                    label: 'Average Bookings',
+                    data: averages,
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'
+                    ],
+                    borderColor: [
+                        '#2e59d9', '#17a673', '#2c9faf', '#dda20a'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+        }
+    }
+    
+    // Initialize the chart
+    var peakHoursChart = new Chart(ctx, {
+        type: 'bar',
+        data: getChartData(currentView),
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 25,
+                    top: 25,
+                    bottom: 0
+                }
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 7
+                    },
+                    barPercentage: currentView === 'day' ? 0.8 : 0.6
+                }],
+                yAxes: [{
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5,
+                        padding: 10,
+                        callback: function(value) {
+                            return value;
+                        }
+                    },
+                    gridLines: {
+                        color: "rgb(234, 236, 244)",
+                        zeroLineColor: "rgb(234, 236, 244)",
+                        drawBorder: false,
+                        borderDash: [2],
+                        zeroLineBorderDash: [2]
+                    }
+                }]
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    titleMarginBottom: 10,
+                    titleColor: '#6e707e',
+                    titleFont: { size: 14 },
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: currentView !== 'day',
+                    caretPadding: 10,
+                        callbacks: {
+                        label: function(context) {
+                            var label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y + ' bookings';
+                            }
+                            return label;
+                        },
+                        afterLabel: function(context) {
+                            if (currentView === 'day') {
+                                return 'Click to view details';
+                            }
+                            return null;
+                        }
+                    }
+                }
+            },
+            onClick: function(evt, elements) {
+                if (elements.length > 0) {
+                    var element = elements[0];
+                    var dataset = this.data.datasets[element.datasetIndex];
+                    var label = this.data.labels[element.index];
+                    var value = dataset.data[element.index];
+                    
+                    console.log('Clicked on:', dataset.label, label, value);
+                    // You can add more interactive features here
+                }
+            }
+        }
+    });
+    
+    // Toggle between day and hour views
+    document.querySelectorAll('.view-option').forEach(function(option) {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active state
+            document.querySelectorAll('.view-option').forEach(function(opt) {
+                opt.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Update chart
+            currentView = this.getAttribute('data-view');
+            peakHoursChart.destroy();
+            peakHoursChart = new Chart(ctx, {
+                type: 'bar',
+                data: getChartData(currentView),
+                options: peakHoursChart.options
+            });
+        });
+    });
+    
+    // Export data
+    var exportBtn = document.getElementById('exportPeakData');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Convert data to CSV
+            var csv = 'Time Slot,' + peakHoursData.weekdays.join(',') + '\n';
+        
+        Object.keys(peakHoursData.data).forEach(function(timeSlot) {
+            csv += timeSlot + ',' + peakHoursData.data[timeSlot].join(',') + '\n';
+        });
+        
+        // Create download link
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'peak_booking_hours.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+});
+
+// Booking Status Chart
+var ctx = document.getElementById("bookingStatusChart");
+if (ctx) {
+    var bookingStatusData = {{ booking_status_data|tojson|safe }};
+    var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ["Confirmed", "Pending", "Cancelled"],
+            datasets: [{
+                data: [
+                    bookingStatusData.confirmed || 0,
+                    bookingStatusData.pending || 0,
+                    bookingStatusData.cancelled || 0
+                ],
+                backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#dda20a', '#be2617'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                borderWidth: 2,
+                borderColor: '#fff'
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: true,
+                caretPadding: 10,
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var dataset = data.datasets[tooltipItem.datasetIndex];
+                        var total = dataset.data.reduce(function(previousValue, currentValue) {
+                            return previousValue + currentValue;
+                        }, 0);
+                        var currentValue = dataset.data[tooltipItem.index];
+                        var percentage = Math.round((currentValue / (total || 1)) * 100);
+                        return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                    }
+                }
+            },
+            legend: {
+                display: false
+            },
+            cutoutPercentage: 0,
+        },
+    });
+}
+
+// Route Comparison Bar Chart
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById("routeComparisonChart");
+    if (!ctx) return;
+    
+    var routeComparisonData = {{ route_comparison_data|tojson|safe }};
+    var currentView = 'passengers';
+    
+    function getRouteChartData(viewType) {
+        if (viewType === 'passengers') {
+            return {
+                labels: routeComparisonData.labels || [],
+                datasets: [{
+                    label: 'Passengers',
+                    data: routeComparisonData.passenger_counts || [],
+                    backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                    hoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 1
+                }]
+            };
+        } else {
+            return {
+                labels: routeComparisonData.labels || [],
+                datasets: [{
+                    label: 'Services',
+                    data: routeComparisonData.service_counts || [],
+                    backgroundColor: 'rgba(28, 200, 138, 0.8)',
+                    hoverBackgroundColor: 'rgba(28, 200, 138, 1)',
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    borderWidth: 1
+                }]
+            };
+        }
+    }
+    
+    var routeComparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: getRouteChartData(currentView),
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 25,
+                    top: 25,
+                    bottom: 0
+                }
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 10,
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    barPercentage: 0.6
+                }],
+                yAxes: [{
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5,
+                        padding: 10
+                    },
+                    gridLines: {
+                        color: "rgb(234, 236, 244)",
+                        zeroLineColor: "rgb(234, 236, 244)",
+                        drawBorder: false,
+                        borderDash: [2],
+                        zeroLineBorderDash: [2]
+                    }
+                }]
+            },
+            legend: {
+                display: false
+            },
+            tooltips: {
+                titleMarginBottom: 10,
+                titleColor: '#6e707e',
+                titleFontSize: 14,
+                backgroundColor: "rgb(255,255,255)",
+                bodyColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += tooltipItem.yLabel;
+                        return label;
+                    }
+                }
+            }
+        }
+    });
+    
+    // Toggle between passengers and services view
+    var showPassengersBtn = document.getElementById('showPassengers');
+    var showServicesBtn = document.getElementById('showServices');
+    
+    if (showPassengersBtn) {
+        showPassengersBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentView = 'passengers';
+            routeComparisonChart.data = getRouteChartData(currentView);
+            routeComparisonChart.update();
+        });
+    }
+    
+    if (showServicesBtn) {
+        showServicesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentView = 'services';
+            routeComparisonChart.data = getRouteChartData(currentView);
+            routeComparisonChart.update();
+        });
+    }
+    
+    // Export route data
+    var exportBtn = document.getElementById('exportRouteData');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var csv = 'Route,Passengers,Services\n';
+            for (var i = 0; i < routeComparisonData.labels.length; i++) {
+                csv += '"' + routeComparisonData.labels[i] + '",' + 
+                       routeComparisonData.passenger_counts[i] + ',' + 
+                       routeComparisonData.service_counts[i] + '\n';
+            }
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'route_comparison.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+});
+
+// Transport Mode Preference Chart
+var modePreferenceCtx = document.getElementById("modePreferenceChart");
+if (modePreferenceCtx) {
+    var modeData = {{ mode_preferences|tojson|safe if mode_preferences else '[]' }};
+    if (modeData && modeData.length > 0) {
+        var modeLabels = modeData.map(function(item) { 
+            return item[0].charAt(0).toUpperCase() + item[0].slice(1).replace('_', ' '); 
+        });
+        var modeCounts = modeData.map(function(item) { return item[1]; });
+    
+    var modeColors = {
+        'Bus': ['#4e73df', '#2e59d9'],
+        'Train': ['#1cc88a', '#17a673'],
+        'Flight': ['#36b9cc', '#2c9faf'],
+        'Multi modal': ['#f6c23e', '#dda20a']
+    };
+    
+    var backgroundColors = modeLabels.map(function(label) {
+        return modeColors[label] ? modeColors[label][0] : '#858796';
+    });
+    
+    var borderColors = modeLabels.map(function(label) {
+        return modeColors[label] ? modeColors[label][1] : '#5a5c69';
+    });
+    
+    var myModeChart = new Chart(modePreferenceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: modeLabels,
+            datasets: [{
+                data: modeCounts,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: borderColors,
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+            },
+            legend: {
+                display: false
+            },
+            cutoutPercentage: 80,
+        },
+    });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Travel Options{% endblock %}
+
+{% block extra_css %}
+<style>
+    .option-card {
+        border-left: 4px solid #007bff;
+        transition: transform 0.2s;
+        margin-bottom: 1rem;
+    }
+    .option-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .weather-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        margin: 0.5rem 0;
+    }
+    .crowd-high { border-left-color: #dc3545; }
+    .crowd-medium { border-left-color: #ffc107; }
+    .crowd-low { border-left-color: #28a745; }
+    .multi-modal-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-map"></i> Travel Options</h2>
+            <p class="text-muted">{{ travel_plan.origin }} → {{ travel_plan.destination }} on {{ travel_plan.travel_date.strftime('%B %d, %Y') }}</p>
+        </div>
+        <a href="{{ url_for('travel_planner') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> New Search
+        </a>
+    </div>
+
+    <!-- Weather Alerts -->
+    {% if weather_origin.advisory or weather_destination.advisory %}
+    <div class="alert alert-info">
+        <h5><i class="bi bi-cloud-rain"></i> Weather Advisory</h5>
+        {% if weather_origin.advisory %}
+        <p><strong>{{ travel_plan.origin }}:</strong> {{ weather_origin.advisory }}</p>
+        {% endif %}
+        {% if weather_destination.advisory %}
+        <p><strong>{{ travel_plan.destination }}:</strong> {{ weather_destination.advisory }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Personalized Recommendations -->
+    {% if personalized_recs %}
+    <div class="alert alert-success">
+        <h5><i class="bi bi-lightbulb"></i> Personalized Recommendations</h5>
+        {% for rec in personalized_recs %}
+        <p>{{ rec.message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- All Options Sorted by Duration (Fastest First) -->
+    {% if options.all_options %}
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-speedometer2"></i> All Travel Options (Sorted by Duration - Fastest First)
+            </h5>
+            <small>Compare all available transport modes and choose the fastest option</small>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Mode</th>
+                            <th>Service</th>
+                            <th>Route</th>
+                            <th>Departure</th>
+                            <th>Arrival</th>
+                            <th>Duration</th>
+                            <th>Fare</th>
+                            <th>Weather Tips</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for option in options.all_options[:10] %}
+                        <tr class="{% if loop.index == 1 %}table-success{% elif loop.index <= 3 %}table-info{% endif %}">
+                            <td>
+                                {% if loop.index == 1 %}
+                                <span class="badge bg-success">🏆 Fastest</span>
+                                {% else %}
+                                <span class="badge bg-secondary">#{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if option.mode == 'bus' %}
+                                    {% if option.type == 'local' %}
+                                    <span class="badge bg-success">🚌 Local Bus</span>
+                                    {% elif option.type == 'private' %}
+                                    <span class="badge bg-warning">🚌 Private Bus</span>
+                                    {% else %}
+                                    <span class="badge bg-primary">🚌 Bus</span>
+                                    {% endif %}
+                                {% elif option.mode == 'train' %}
+                                <span class="badge bg-danger">🚂 Train</span>
+                                {% elif option.mode == 'flight' %}
+                                <span class="badge bg-info">✈️ Flight</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ option.service_number or option.train_number or option.flight_number }}</strong>
+                                {% if option.operator %}
+                                <br><small class="text-muted">{{ option.operator }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ option.origin }}</strong> 
+                                <i class="bi bi-arrow-right"></i> 
+                                <strong>{{ option.destination }}</strong>
+                            </td>
+                            <td><span class="badge bg-primary">{{ option.departure_time or 'N/A' }}</span></td>
+                            <td><span class="badge bg-info">{{ option.arrival_time or 'N/A' }}</span></td>
+                            <td>
+                                <strong class="text-primary">{{ option.duration_display }}</strong>
+                                {% if option.duration_minutes %}
+                                <br><small class="text-muted">({{ option.duration_minutes }} min)</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if option.fare %}
+                                <strong>₹{{ option.fare }}</strong>
+                                {% else %}
+                                <small class="text-muted">Check booking</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if option.weather_recommendations %}
+                                <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#weather{{ loop.index }}">
+                                    <i class="bi bi-cloud-rain"></i> Tips
+                                </button>
+                                <div class="collapse mt-2" id="weather{{ loop.index }}">
+                                    {% for rec in option.weather_recommendations %}
+                                    <small class="d-block">
+                                        <strong>{{ rec.icon }} {{ rec.action }}:</strong> {{ rec.message }}
+                                    </small>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <a href="{{ url_for('passenger_timetables', origin=travel_plan.origin, destination=travel_plan.destination) }}" 
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-clock-history"></i> View Detailed Timetables
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Multi-Modal Coordination Recommendations -->
+    {% if coordination_recommendations and coordination_recommendations|length %}
+    <div class="card border-success shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-diagram-3"></i> Multi-Modal Connection Recommendations
+            </h5>
+            <small>Smart connections between bus, train, and flight services</small>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for rec in coordination_recommendations %}
+                <div class="col-md-6">
+                    <div class="card h-100 border-{{ 'primary' if rec.type == 'bus_train' else 'info' }}">
+                        <div class="card-header bg-{{ 'primary' if rec.type == 'bus_train' else 'info' }} text-white">
+                            <h6 class="mb-0">
+                                <span class="fs-4">{{ rec.icon }}</span>
+                                <span class="ms-2">{{ rec.title }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">{{ rec.description }}</p>
+                            
+                            <div class="mb-2">
+                                <strong>Bus:</strong>
+                                <div class="ms-3">
+                                    <small>{{ rec.details.bus.service }} - {{ rec.details.bus.from }} → {{ rec.details.bus.to }}</small><br>
+                                    <small class="text-muted">{{ rec.details.bus.departure }} - {{ rec.details.bus.arrival }}</small>
+                                </div>
+                            </div>
+                            
+                            {% if rec.details.train %}
+                            <div class="mb-2">
+                                <strong>Train:</strong>
+                                <div class="ms-3">
+                                    <small>{{ rec.details.train.number }} - {{ rec.details.train.from }} → {{ rec.details.train.to }}</small><br>
+                                    <small class="text-muted">{{ rec.details.train.departure }} - {{ rec.details.train.arrival }}</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if rec.details.flight %}
+                            <div class="mb-2">
+                                <strong>Flight:</strong>
+                                <div class="ms-3">
+                                    <small>{{ rec.details.flight.number }} - {{ rec.details.flight.from }} → {{ rec.details.flight.to }}</small><br>
+                                    <small class="text-muted">{{ rec.details.flight.departure }} - {{ rec.details.flight.arrival }}</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="alert alert-info mb-2 py-2">
+                                <small>
+                                    <i class="bi bi-clock"></i> <strong>Connection Time:</strong> {{ rec.details.connection_time }}<br>
+                                    <i class="bi bi-people"></i> <strong>Expected Crowd:</strong> 
+                                    <span class="badge bg-{{ 'danger' if rec.details.crowd_level == 'high' else 'warning' if rec.details.crowd_level == 'moderate' else 'success' }}">
+                                        {{ rec.details.crowd_prediction }} passengers ({{ rec.details.crowd_level }})
+                                    </span>
+                                </small>
+                            </div>
+                            
+                            <p class="mb-0"><small class="text-success"><i class="bi bi-lightbulb"></i> {{ rec.recommendation }}</small></p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Multi-Modal Connections -->
+    {% if options.multi_modal %}
+    <div class="card multi-modal-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Recommended Multi-Modal Connections</h5>
+        </div>
+        <div class="card-body">
+            {% for connection in options.multi_modal %}
+            <div class="card bg-white text-dark mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h6><i class="bi bi-bus-front"></i> {{ connection.leg1.mode|upper }} - {{ connection.leg1.service }}</h6>
+                            <p class="mb-1">{{ connection.leg1.from }} → {{ connection.leg1.to }}</p>
+                            <small>{{ connection.leg1.departure }} - {{ connection.leg1.arrival }}</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <i class="bi bi-arrow-right fs-4"></i>
+                            <br><small class="badge bg-info">{{ connection.connection_time }}</small>
+                        </div>
+                        <div class="col-md-5">
+                            <h6><i class="bi bi-{{ 'train-front' if connection.type == 'bus_train' else 'airplane' }}"></i> {{ connection.leg2.mode|upper }} - {{ connection.leg2.service }}</h6>
+                            <p class="mb-1">{{ connection.leg2.from }} → {{ connection.leg2.to }}</p>
+                            <small>{{ connection.leg2.departure }} - {{ connection.leg2.arrival }}</small>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> {{ connection.recommendation }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bus Options -->
+    {% if options.bus %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-bus-front"></i> Bus Services</h5>
+        </div>
+        <div class="card-body">
+            {% for bus in options.bus %}
+            <div class="card option-card crowd-{{ 'high' if bus.crowd_prediction > 80 else 'medium' if bus.crowd_prediction > 40 else 'low' }}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ bus.service_number }}</h5>
+                            <p class="mb-1">
+                                <i class="bi bi-geo-alt-fill"></i> <strong>{{ bus.origin }}</strong> 
+                                <i class="bi bi-arrow-right"></i> 
+                                <strong>{{ bus.destination }}</strong>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-clock"></i> 
+                                Departure: {{ bus.departure_time }} | Arrival: {{ bus.arrival_time }}
+                            </p>
+                            {% if bus.via_routes %}
+                            <p class="mb-1">
+                                <small><i class="bi bi-signpost"></i> Via: {{ bus.via_routes|join(', ') }}</small>
+                            </p>
+                            {% endif %}
+                            <div class="mt-2">
+                                <span class="badge bg-{{ 'danger' if bus.crowd_prediction > 80 else 'warning' if bus.crowd_prediction > 40 else 'success' }}">
+                                    Expected Crowd: {{ bus.crowd_prediction }} passengers
+                                </span>
+                            </div>
+                            {% if bus.recommendation %}
+                            <div class="mt-2">
+                                <small class="text-muted"><i class="bi bi-lightbulb"></i> {{ bus.recommendation }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if bus.weather_advisory %}
+                            <div class="weather-badge bg-info text-white">
+                                <small>{{ bus.weather_advisory }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Train Options -->
+    {% if options.train %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-train-front"></i> Train Services</h5>
+        </div>
+        <div class="card-body">
+            {% for train in options.train %}
+            <div class="card option-card">
+                <div class="card-body">
+                    <h5>{{ train.train_number }} - {{ train.train_name }}</h5>
+                    <p class="mb-1">
+                        <i class="bi bi-geo-alt-fill"></i> <strong>{{ train.origin }}</strong> 
+                        <i class="bi bi-arrow-right"></i> 
+                        <strong>{{ train.destination }}</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="bi bi-clock"></i> 
+                        Departure: {{ train.departure_time }} | Arrival: {{ train.arrival_time }}
+                    </p>
+                    {% if train.days_of_operation %}
+                    <p class="mb-0">
+                        <small><i class="bi bi-calendar"></i> {{ train.days_of_operation }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Flight Options -->
+    {% if options.flight %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-airplane"></i> Flight Services</h5>
+        </div>
+        <div class="card-body">
+            {% for flight in options.flight %}
+            <div class="card option-card">
+                <div class="card-body">
+                    <h5>{{ flight.flight_number }} - {{ flight.airline }}</h5>
+                    <p class="mb-1">
+                        <i class="bi bi-geo-alt-fill"></i> <strong>{{ flight.origin }}</strong> 
+                        <i class="bi bi-arrow-right"></i> 
+                        <strong>{{ flight.destination }}</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="bi bi-clock"></i> 
+                        Departure: {{ flight.departure_time }} | Arrival: {{ flight.arrival_time }}
+                    </p>
+                    {% if flight.days_of_operation %}
+                    <p class="mb-0">
+                        <small><i class="bi bi-calendar"></i> {{ flight.days_of_operation }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not options.bus and not options.train and not options.flight and not options.multi_modal %}
+    <div class="alert alert-warning">
+        <h5><i class="bi bi-exclamation-triangle"></i> No Options Found</h5>
+        <p>We couldn't find any travel options for your selected route. Please try different origin/destination or dates.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

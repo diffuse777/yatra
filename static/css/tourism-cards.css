@@ -1,0 +1,381 @@
+/**
+ * Tourist place cards — shared by Plan Trip (timetables) & Tourism page.
+ * Kind overlays use compound selectors .ts-spot.ts-kind-* for reliable matching.
+ */
+#sec-tourism-route.ts-route {
+    border-radius: 16px;
+    background: linear-gradient(155deg, #fffefb 0%, #fff5e6 48%, #fff9f0 100%);
+    border: 1px solid rgba(230, 81, 0, 0.18);
+    box-shadow: 0 8px 32px rgba(11, 31, 58, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+.ts-route__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(11, 31, 58, 0.08);
+    margin-bottom: 0.35rem;
+}
+.ts-route__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff7043, #ff5722);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(255, 87, 34, 0.4);
+}
+.ts-route__title {
+    font-family: var(--font-sans, Verdana, Tahoma, Geneva, sans-serif);
+    font-weight: 700;
+    font-size: 1.08rem;
+    color: var(--navy, #0b1f3a);
+    line-height: 1.25;
+}
+.ts-route__sub {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 2px;
+    max-width: 42rem;
+}
+.ts-column {
+    height: 100%;
+    border-radius: 14px;
+    padding: 1rem 1rem 0.85rem;
+    background: #fff;
+    border: 1px solid rgba(11, 31, 58, 0.1);
+    box-shadow: 0 4px 18px rgba(11, 31, 58, 0.06);
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.ts-column::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+    background: radial-gradient(ellipse 90% 55% at 100% 0%, rgba(66, 165, 245, 0.12), transparent 55%);
+}
+.ts-column--via::before {
+    background: radial-gradient(ellipse 90% 55% at 100% 0%, rgba(255, 152, 0, 0.14), transparent 55%);
+}
+.ts-column > * {
+    position: relative;
+    z-index: 1;
+}
+.ts-column:hover {
+    box-shadow: 0 10px 32px rgba(11, 31, 58, 0.12);
+    transform: translateY(-2px);
+}
+.ts-column--via {
+    border-color: rgba(255, 152, 0, 0.4);
+    background: linear-gradient(180deg, #fffefb 0%, #fff 100%);
+}
+.ts-column__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.ts-column__label--origin {
+    color: #1565c0;
+    border-bottom-color: rgba(21, 101, 192, 0.35);
+}
+.ts-column__label--via {
+    color: #e65100;
+    border-bottom-color: rgba(230, 81, 0, 0.38);
+}
+.ts-column__label--dest {
+    color: #2e7d32;
+    border-bottom-color: rgba(46, 125, 50, 0.35);
+}
+.ts-column__label i {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+/* ── Spot card (light / timetables) ── */
+.ts-spot {
+    border-radius: 14px;
+    padding: 0.85rem 0.95rem;
+    margin-bottom: 0.7rem;
+    background: linear-gradient(145deg, rgba(248, 250, 252, 0.98), #fff);
+    border: 1px solid rgba(11, 31, 58, 0.09);
+    border-left: 4px solid var(--ts-accent, #90a4ae);
+    box-shadow: 0 2px 10px rgba(11, 31, 58, 0.05);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.ts-spot:last-child {
+    margin-bottom: 0;
+}
+.ts-spot:hover {
+    background: #fff;
+    border-color: rgba(11, 31, 58, 0.14);
+    box-shadow: 0 6px 22px rgba(11, 31, 58, 0.1);
+    transform: translateY(-1px);
+}
+.ts-spot > * {
+    position: relative;
+    z-index: 1;
+}
+.ts-spot--origin {
+    --ts-accent: #1565c0;
+}
+.ts-spot--via {
+    --ts-accent: #f57c00;
+}
+.ts-spot--dest {
+    --ts-accent: #43a047;
+}
+
+.ts-spot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+}
+
+/* Compound selectors so overlays always win over base ::after */
+.ts-spot.ts-kind-religious::after {
+    opacity: 0.5;
+    background: radial-gradient(circle at 85% 12%, rgba(255, 193, 7, 0.45), transparent 48%),
+        radial-gradient(circle at 8% 88%, rgba(94, 53, 177, 0.15), transparent 42%);
+    animation: ts-kind-shimmer 5s ease-in-out infinite;
+}
+.ts-spot.ts-kind-nature::after {
+    opacity: 0.55;
+    background: radial-gradient(ellipse 75% 45% at 18% 100%, rgba(46, 125, 50, 0.22), transparent 55%),
+        repeating-linear-gradient(-12deg, transparent, transparent 5px, rgba(129, 199, 132, 0.12) 5px, rgba(129, 199, 132, 0.12) 6px);
+    animation: ts-kind-drift 6s ease-in-out infinite;
+}
+.ts-spot.ts-kind-beach::after {
+    opacity: 0.52;
+    background: linear-gradient(95deg, transparent 0%, rgba(255, 213, 79, 0.28) 42%, rgba(3, 169, 244, 0.2) 100%);
+    background-size: 200% 100%;
+    animation: ts-kind-wave 7s ease-in-out infinite;
+}
+.ts-spot.ts-kind-heritage::after {
+    opacity: 0.48;
+    background: linear-gradient(135deg, rgba(141, 110, 99, 0.18), transparent 52%, rgba(255, 204, 128, 0.15));
+    animation: ts-kind-shimmer 8s ease-in-out infinite;
+}
+.ts-spot.ts-kind-museum::after {
+    opacity: 0.45;
+    background: radial-gradient(circle at 50% 0%, rgba(84, 110, 122, 0.22), transparent 55%);
+}
+.ts-spot.ts-kind-hill::after {
+    opacity: 0.52;
+    background: linear-gradient(180deg, rgba(179, 229, 252, 0.45), transparent 62%);
+    animation: ts-kind-mist 5s ease-in-out infinite;
+}
+.ts-spot.ts-kind-city::after {
+    opacity: 0.38;
+    background: repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(66, 165, 245, 0.1) 11px, rgba(66, 165, 245, 0.1) 12px);
+}
+.ts-spot.ts-kind-local::after {
+    opacity: 0.45;
+    background: radial-gradient(circle at 0% 50%, rgba(255, 152, 0, 0.2), transparent 48%);
+}
+.ts-spot.ts-kind-industrial::after {
+    opacity: 0.4;
+    background: linear-gradient(135deg, rgba(96, 125, 139, 0.22), transparent 58%);
+}
+.ts-spot.ts-kind-general::after {
+    opacity: 0.4;
+    background: radial-gradient(circle at 100% 100%, rgba(26, 58, 92, 0.12), transparent 45%);
+}
+
+@keyframes ts-kind-shimmer {
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.1);
+    }
+}
+@keyframes ts-kind-drift {
+    0%,
+    100% {
+        transform: translateY(0) translateX(0);
+    }
+    50% {
+        transform: translateY(-4px) translateX(3px);
+    }
+}
+@keyframes ts-kind-wave {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+@keyframes ts-kind-mist {
+    0%,
+    100% {
+        opacity: 0.42;
+    }
+    50% {
+        opacity: 0.58;
+    }
+}
+
+.ts-spot__top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+}
+.ts-spot__emoji {
+    font-size: 1.35rem;
+    line-height: 1.2;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: inline-block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+}
+.ts-spot.ts-kind-nature .ts-spot__emoji {
+    animation: ts-emoji-bob 2.8s ease-in-out infinite;
+}
+.ts-spot.ts-kind-beach .ts-spot__emoji {
+    animation: ts-emoji-bob 3.2s ease-in-out infinite 0.3s;
+}
+.ts-spot.ts-kind-religious .ts-spot__emoji {
+    animation: ts-emoji-glow 3s ease-in-out infinite;
+}
+@keyframes ts-emoji-bob {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+@keyframes ts-emoji-glow {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 transparent);
+    }
+    50% {
+        filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.55));
+    }
+}
+
+.ts-spot__title {
+    font-family: var(--font-sans, Verdana, Tahoma, Geneva, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--navy, #0b1f3a);
+    margin: 0;
+    line-height: 1.3;
+}
+.ts-spot__desc {
+    font-size: 0.76rem;
+    line-height: 1.55;
+    color: #5f6368;
+    margin: 0.5rem 0 0 0;
+}
+.ts-spot__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+}
+.ts-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: #455a64;
+    background: rgba(11, 31, 58, 0.06);
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem 0.22rem 0.45rem;
+    border: 1px solid rgba(11, 31, 58, 0.08);
+    max-width: 100%;
+}
+.ts-chip i {
+    font-size: 0.64rem;
+    opacity: 0.88;
+    flex-shrink: 0;
+}
+.ts-chip--rating {
+    background: rgba(255, 179, 0, 0.16);
+    border-color: rgba(255, 179, 0, 0.45);
+    color: #5d4037;
+}
+.ts-chip--rating i {
+    color: #ffb300;
+}
+.ts-spot__type {
+    display: inline-block;
+    margin-top: 0.45rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #546e7a;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    background: rgba(11, 31, 58, 0.07);
+}
+
+/* ── Dark page (Tourism recommendations) ── */
+.ts-spot.ts-spot--on-dark {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-left: 4px solid var(--ts-accent, #64b5f6);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+.ts-spot.ts-spot--on-dark:hover {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+    border-color: rgba(255, 255, 255, 0.22);
+}
+.ts-spot.ts-spot--on-dark .ts-spot__title {
+    color: #fff;
+}
+.ts-spot.ts-spot--on-dark .ts-spot__desc {
+    color: #b0bec5;
+}
+.ts-spot.ts-spot--on-dark .ts-chip {
+    background: rgba(0, 0, 0, 0.28);
+    color: #eceff1;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+.ts-spot.ts-spot--on-dark .ts-chip--rating {
+    background: rgba(255, 179, 0, 0.18);
+    border-color: rgba(255, 179, 0, 0.4);
+    color: #ffe082;
+}
+.ts-spot.ts-spot--on-dark .ts-spot__type {
+    background: rgba(255, 255, 255, 0.1);
+    color: #cfd8dc;
+}
+
+.ts-spot.ts-spot--on-dark.ts-kind-religious::after {
+    opacity: 0.55;
+}
+.ts-spot.ts-spot--on-dark.ts-kind-nature::after {
+    opacity: 0.58;
+}

@@ -1,0 +1,2904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Your Trip – Yatra Saarthi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tourism-cards.css') }}?v=2">
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit" async></script>
+<style>
+        :root {
+            --font-sans: Verdana, Tahoma, Geneva, sans-serif;
+            --navy:   #0B1F3A;
+            --blue:   #1A3A5C;
+            --deep:   #061326;
+            --orange: #FF5722;
+            --amber:  #FFB300;
+            --light:  #F0F4F8;
+            --border: #E5E9F0;
+            --muted:  #6B7280;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--light);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        h1,h2,h3,h4,h5,h6 { font-family: var(--font-sans); }
+
+        /* ── Ticker ── */
+        .ticker-bar {
+            background: linear-gradient(90deg, #FF5722 0%, #E64A19 100%);
+            color: #fff; font-size: 0.7rem; font-family: var(--font-sans);
+            padding: 5px 0; overflow: hidden; white-space: nowrap;
+        }
+        .ticker-inner { display: inline-block; animation: ticker 32s linear infinite; }
+        @keyframes ticker { 0%{transform:translateX(100vw);} 100%{transform:translateX(-100%);} }
+
+        /* ── Navbar ── */
+        .main-nav {
+            background: rgba(11, 31, 58, 0.97);
+            backdrop-filter: blur(12px);
+            padding: 0 2rem; height: 64px;
+            display: flex; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; flex-shrink: 0; }
+        .brand-logo {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(255,87,34,0.4);
+        }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-title { font-family: var(--font-sans); font-weight: 800; font-size: 1rem; color: #fff; }
+        .brand-sub { font-size: 0.58rem; color: var(--amber); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+        .nav-links { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; flex-wrap: wrap; }
+        .nav-links a {
+            color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.78rem; font-weight: 500;
+            padding: 6px 12px; border-radius: 8px; transition: all 0.2s;
+            display: flex; align-items: center; gap: 0.35rem; white-space: nowrap;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-links a.active {
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff; box-shadow: 0 2px 8px rgba(255,87,34,0.35);
+        }
+        .lang-btns { display: flex; gap: 4px; margin-left: 0.75rem; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 0.75rem; }
+        .lang-btns button {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75); border-radius: 6px;
+            padding: 3px 9px; font-size: 0.68rem; cursor: pointer; transition: all 0.2s;
+        }
+        .lang-btns button:hover, .lang-btns button.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+        /* ── Page header ── */
+        .page-header {
+            background: linear-gradient(160deg, var(--deep) 0%, var(--navy) 50%, var(--blue) 100%);
+            color: #fff; padding: 1.75rem 0 1.5rem;
+            border-bottom: 3px solid var(--orange);
+            position: relative; overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .page-header .ph-content { position: relative; z-index: 1; }
+        .page-header h2 {
+            font-family: var(--font-sans);
+            font-size: 1.4rem; font-weight: 800; margin: 0; color: #fff;
+        }
+        .page-header p { color: rgba(255,255,255,0.55); font-size: 0.8rem; margin: 0.2rem 0 0; }
+        .ph-crumbs {
+            display: flex; gap: 0.5rem; align-items: center;
+            font-size: 0.68rem; color: rgba(255,255,255,0.4);
+            margin-bottom: 0.4rem;
+        }
+        .ph-crumbs a { color: var(--amber); text-decoration: none; }
+        .ph-crumbs a:hover { color: #fff; }
+        .ph-crumbs span { color: rgba(255,255,255,0.25); }
+
+        /* ── Search panel ── */
+        .search-panel {
+            background: #fff; padding: 1.25rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .search-panel label {
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.07em; color: var(--navy);
+            display: block; margin-bottom: 5px;
+        }
+        .search-panel .form-control {
+            border: 1.5px solid #dce3ec; font-size: 0.87rem;
+            border-radius: 10px; font-family: var(--font-sans);
+            transition: all 0.2s;
+        }
+        .search-panel .form-control:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,87,34,0.12); }
+        .btn-search {
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff; border: none; font-weight: 700; font-size: 0.88rem;
+            padding: 0.6rem 1.5rem; border-radius: 10px;
+            font-family: var(--font-sans);
+            box-shadow: 0 4px 14px rgba(255,87,34,0.35);
+            transition: all 0.2s;
+        }
+        .btn-search:hover { background: linear-gradient(135deg, #E64A19, var(--orange)); color: #fff; transform: translateY(-1px); }
+        .btn-clear { font-size: 0.78rem; color: var(--orange); font-weight: 600; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1.5px solid rgba(255,87,34,0.3); transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .btn-clear:hover { background: rgba(255,87,34,0.06); color: var(--orange); }
+
+        /* ── Mode strip ── */
+        .mode-strip { display:flex; gap:0.6rem; overflow-x:auto; padding:0.5rem 0 1rem; flex-wrap:nowrap; }
+        .mode-chip {
+            flex-shrink: 0; display: flex; align-items: center; gap: 0.5rem;
+            background: #fff; border: 2px solid var(--border);
+            border-radius: 12px; padding: 0.5rem 1.1rem;
+            cursor: pointer; transition: all 0.2s;
+            text-decoration: none; color: var(--navy);
+            font-size: 0.78rem; font-weight: 600;
+            font-family: var(--font-sans);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .mode-chip:hover { border-color: var(--orange); color: var(--orange); box-shadow: 0 4px 14px rgba(255,87,34,0.12); }
+        .mode-chip.active {
+            background: var(--navy); border-color: var(--navy);
+            color: var(--amber); box-shadow: 0 4px 14px rgba(11,31,58,0.2);
+        }
+        .mode-chip .chip-icon { font-size: 1.2rem; }
+        .mode-chip .chip-count { font-size: 0.62rem; color: #888; font-weight: 400; display: block; margin-top: 1px; }
+        .mode-chip.active .chip-count { color: rgba(255,200,0,0.6); }
+
+        /* ── Section headers ── */
+        .sec-header {
+            background: var(--navy); color: var(--amber);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px 12px 0 0;
+            display: flex; align-items: center; justify-content: space-between;
+            font-family: var(--font-sans); font-weight: 700; font-size: 0.88rem;
+        }
+        .sec-header .cnt {
+            background: linear-gradient(135deg, var(--orange), #FF8A65);
+            color: #fff; border-radius: 20px;
+            padding: 2px 10px; font-size: 0.68rem; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(255,87,34,0.3);
+        }
+
+        /* ── Tables ── */
+        .dep-table {
+            border-radius: 0 0 12px 12px; overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07); margin-bottom: 1.5rem;
+            border: 1px solid var(--border); border-top: none;
+        }
+        .dep-table table { margin: 0; }
+        .dep-table thead th {
+            background: var(--blue); color: #fff; font-size: 0.68rem;
+            text-transform: uppercase; letter-spacing: 0.07em; border: none;
+            padding: 0.6rem 0.85rem; white-space: nowrap;
+            font-family: var(--font-sans);
+        }
+        .dep-table tbody tr:hover { background: #F5F8FF; }
+        .dep-table td { font-size: 0.8rem; vertical-align: middle; padding: 0.55rem 0.85rem; border-color: #EEF2F7; }
+
+        /* Time badges */
+        .t {
+            font-family: 'Courier New', monospace;
+            font-weight: 800; font-size: 0.82rem;
+            background: var(--navy); color: var(--amber);
+            padding: 3px 9px; border-radius: 6px; letter-spacing: 0.04em;
+        }
+        .t.arr { background: var(--blue); }
+
+        /* Route cell */
+        .rc .city { font-weight: 700; color: var(--navy); }
+        .rc .via { color: #888; font-size: 0.65rem; }
+        .rc .arr-icon { color: var(--orange); font-size: 0.72rem; margin: 0 0.25rem; }
+
+        /* Fare / operators */
+        .fare { font-weight: 800; color: #2E7D32; }
+        .op-govt   { background: #003580; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .op-pvt    { background: #7B3F00; color: #FFD700; border-radius: 5px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .op-train  { background: #881600; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .op-flight { background: #01579B; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .status-ok { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; border-radius: 6px; padding: 2px 8px; font-size: 0.67rem; font-weight: 700; }
+        .status-dl { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; border-radius: 6px; padding: 2px 8px; font-size: 0.67rem; font-weight: 700; }
+        .status-ot { background: #F3F4F6; color: #6B7280; border: 1px solid #D1D5DB; border-radius: 6px; padding: 2px 8px; font-size: 0.67rem; font-weight: 700; }
+
+        /* Empty board */
+        .empty-board {
+            background: #111827; border-radius: 0 0 12px 12px;
+            text-align: center; padding: 3rem 1rem;
+            color: rgba(255,255,255,0.3); font-size: 0.82rem;
+        }
+        .empty-board i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.4; }
+        .empty-board a { color: var(--amber); }
+
+        /* Road cards */
+        .road-cards { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+        @media(max-width:500px){ .road-cards { grid-template-columns:1fr; } }
+        .road-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.07); border: 1px solid var(--border); }
+        .road-card-header { padding: 0.85rem 1.1rem; display: flex; align-items: center; gap: 0.6rem; font-family: var(--font-sans); font-weight: 700; font-size: 0.95rem; }
+        .road-card-header .rc-icon { font-size: 1.8rem; }
+        .road-card-body { padding: 0.85rem 1.1rem 1.1rem; }
+        .road-stat { display:flex; align-items:baseline; gap:0.3rem; margin-bottom:0.35rem; }
+        .road-stat .rs-val { font-family: var(--font-sans); font-size:2rem; font-weight:800; line-height:1; }
+        .road-stat .rs-unit { font-size:0.78rem; color:#6c757d; }
+        .road-sub { font-size:0.75rem; color:#6c757d; margin-bottom:0.5rem; }
+        .road-detail-row { display:flex; justify-content:space-between; font-size:0.76rem; color:#444; padding:0.35rem 0; border-top:1px dashed #e5e9f0; }
+        .road-detail-row .label { color:#888; }
+        .road-detail-row .value { font-weight:700; color:var(--navy); }
+        .road-na { background:#fff; border-radius:12px; text-align:center; padding:2.5rem 1rem; color:#aaa; font-size:0.82rem; box-shadow:0 4px 16px rgba(0,0,0,0.06); border:1px solid var(--border); }
+
+        /* Book strip */
+        .book-strip {
+            background: #fff; border-radius: 12px;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        /* Footer */
+        footer { background: var(--deep); color: rgba(255,255,255,0.4); padding: 1rem 0; margin-top: auto; font-size: 0.72rem; text-align: center; }
+        footer .fb { color: var(--amber); font-weight: 700; font-family: var(--font-sans); }
+        footer a { color: rgba(255,200,0,0.7); text-decoration: none; }
+
+        /* Google translate */
+        #google_translate_element { display:none; }
+        .goog-te-banner-frame, #goog-te-banner-frame { display:none !important; }
+        body { top:0 !important; }
+        .skiptranslate { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- Ticker -->
+<div class="ticker-bar">
+    <span class="ticker-inner">
+        &nbsp;&nbsp;🚌 Bus &nbsp;|&nbsp; 🚂 Train (Live IRCTC) &nbsp;|&nbsp; ✈️ Flight (Live AviationStack) &nbsp;|&nbsp; 🚗 Car &nbsp;|&nbsp; 🏍️ Bike – All travel modes compared in one search &nbsp;|&nbsp;
+        Yatra Saarthi – India's Smart Travel Portal &nbsp;|&nbsp; Tamil Nadu · Karnataka · Andhra Pradesh covered &nbsp;&nbsp;
+    </span>
+</div>
+
+<!-- Navbar -->
+<nav class="main-nav">
+    <a class="nav-brand" href="{{ url_for('passengers_home') }}">
+        <div class="brand-logo"><i class="bi bi-compass-fill" style="color:#fff;"></i></div>
+        <div class="brand-text">
+            <span class="brand-title">Yatra Saarthi</span>
+            <span class="brand-sub">Smart Travel Portal</span>
+        </div>
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('passengers_home') }}"><i class="bi bi-house-fill"></i> Home</a>
+        <a href="{{ url_for('passenger_timetables') }}" class="active"><i class="bi bi-map-fill"></i> Plan Trip</a>
+        <a href="{{ url_for('train_map') }}"><i class="bi bi-train-front-fill"></i> Train Map</a>
+        <a href="{{ url_for('tourism_page') }}"><i class="bi bi-camera-fill"></i> Tourism</a>
+        <a href="{{ url_for('travel_guide') }}"><i class="bi bi-journal-richtext"></i> Guide</a>
+        <div class="lang-btns">
+            <button id="lang-en" onclick="switchLang('en')" class="active">EN</button>
+            <button id="lang-ta" onclick="switchLang('ta')">தமிழ்</button>
+            <button id="lang-te" onclick="switchLang('te')">తెలుగు</button>
+        </div>
+    </div>
+</nav>
+<div id="google_translate_element"></div>
+
+<!-- Page header -->
+<div class="page-header">
+    <div class="container ph-content">
+        <div class="ph-crumbs">
+            <a href="{{ url_for('passengers_home') }}">Home</a>
+            <span>›</span>
+            <span>Plan Your Trip</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+                <h2><i class="bi bi-signpost-split-fill me-2" style="color:var(--amber);"></i>All Travel Options</h2>
+                <p>Compare Bus · Train · Flight · Car · Bike for your journey from <strong style="color:rgba(255,255,255,0.8);">{{ origin or 'Origin' }}</strong> to <strong style="color:rgba(255,255,255,0.8);">{{ destination or 'Destination' }}</strong>{% if travel_date %} &nbsp;·&nbsp; <i class="bi bi-calendar3" style="color:var(--amber);"></i> <strong style="color:var(--amber);">{{ travel_date }}</strong>{% endif %}</p>
+            </div>
+            <span id="liveClock" style="font-family:'Courier New',monospace;font-size:1.5rem;color:var(--amber);font-weight:800;letter-spacing:0.1em;background:rgba(255,179,0,0.1);padding:6px 16px;border-radius:10px;border:1px solid rgba(255,179,0,0.2);"></span>
+        </div>
+        </div>
+    </div>
+
+<!-- Autocomplete Styles -->
+<style>
+.ac-wrap { position:relative; }
+.ac-dropdown {
+    position:absolute; top:100%; left:0; right:0; z-index:9999;
+    background:#fff; border:1.5px solid #E65100; border-top:none;
+    border-radius:0 0 10px 10px; box-shadow:0 8px 24px rgba(0,0,0,0.12);
+    max-height:260px; overflow-y:auto; display:none;
+}
+.ac-dropdown.show { display:block; }
+.ac-item {
+    padding:8px 14px; cursor:pointer; font-size:0.83rem;
+    display:flex; align-items:center; gap:8px; border-bottom:1px solid #f5f5f5;
+    transition:background 0.12s;
+}
+.ac-item:hover, .ac-item.active { background:#FFF3E0; }
+.ac-item .ac-name { font-weight:600; color:#1a1a1a; }
+.ac-item .ac-state { color:#888; font-size:0.72rem; }
+.ac-item .ac-icon { font-size:0.9rem; flex-shrink:0; }
+.ac-loading { padding:10px 14px; color:#aaa; font-size:0.78rem; text-align:center; }
+</style>
+
+<!-- Search -->
+<style>
+.date-field input[type="date"] {
+    background: #fff;
+    border: 1.5px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    width: 100%;
+    color: #1a1a1a;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.date-field input[type="date"]:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255,87,34,0.12);
+}
+.date-field input[type="date"]:required:invalid {
+    border-color: #dee2e6;
+}
+.date-badge {
+    display: inline-block;
+    background: rgba(255,179,0,0.15);
+    color: var(--amber);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+#dateHint {
+    font-size: 0.72rem;
+    color: #e53935;
+    margin-top: 4px;
+    display: none;
+}
+</style>
+
+<div class="search-panel">
+    <div class="container">
+        <form method="GET" id="searchForm" class="row g-3 align-items-end" novalidate>
+            <!-- From -->
+            <div class="col-md-3">
+                <label><i class="bi bi-geo-alt-fill" style="color:var(--orange);"></i> From</label>
+                <div class="ac-wrap">
+                    <input type="text" class="form-control" id="originInput" name="origin" value="{{ origin }}"
+                           placeholder="Type city or village…" autocomplete="off">
+                    <div class="ac-dropdown" id="originDropdown"></div>
+                </div>
+                </div>
+            <!-- To -->
+            <div class="col-md-3">
+                <label><i class="bi bi-geo-alt" style="color:#2E7D32;"></i> To</label>
+                <div class="ac-wrap">
+                    <input type="text" class="form-control" id="destinationInput" name="destination" value="{{ destination }}"
+                           placeholder="Type city or village…" autocomplete="off">
+                    <div class="ac-dropdown" id="destinationDropdown"></div>
+                </div>
+            </div>
+            <!-- Date -->
+            <div class="col-md-3 date-field">
+                <label>
+                    <i class="bi bi-calendar3" style="color:var(--amber);"></i>
+                    Travel Date <span class="date-badge">Required</span>
+                </label>
+                <input type="date" id="travelDate" name="date"
+                       value="{{ request.args.get('date', '') }}"
+                       min="{{ today }}"
+                       max="{{ max_date }}">
+                <div id="dateHint">Please select a travel date to search.</div>
+            </div>
+            <!-- Button -->
+            <div class="col-md-3 d-flex gap-2 align-items-end">
+                <button type="submit" id="searchBtn" class="btn-search flex-grow-1">
+                    <i class="bi bi-search me-1"></i> Find All Options
+                    </button>
+                {% if origin or destination %}
+                <a href="{{ url_for('passenger_timetables') }}" class="btn-clear"><i class="bi bi-x-circle"></i> Clear</a>
+                {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+/* ── Date validation: block search until date is picked ── */
+(function(){
+    const form     = document.getElementById('searchForm');
+    const dateIn   = document.getElementById('travelDate');
+    const hint     = document.getElementById('dateHint');
+    const searchBtn= document.getElementById('searchBtn');
+
+    function updateBtn(){
+        const hasDate = dateIn.value.trim() !== '';
+        searchBtn.disabled = !hasDate;
+        searchBtn.style.opacity = hasDate ? '1' : '0.55';
+        searchBtn.style.cursor  = hasDate ? 'pointer' : 'not-allowed';
+        hint.style.display = hasDate ? 'none' : '';
+    }
+
+    dateIn.addEventListener('change', updateBtn);
+    dateIn.addEventListener('input',  updateBtn);
+
+    form.addEventListener('submit', function(e){
+        if(!dateIn.value.trim()){
+            e.preventDefault();
+            hint.style.display = 'block';
+            dateIn.focus();
+            dateIn.style.borderColor = '#e53935';
+            setTimeout(()=>{ dateIn.style.borderColor = ''; }, 2000);
+        }
+    });
+
+    // Run on load — disable button if no date yet
+    updateBtn();
+
+    // If date already in URL (page reload), keep it selected
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('date')) dateIn.value = params.get('date');
+    updateBtn();
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════
+   CITY / VILLAGE AUTOCOMPLETE
+   Local priority list + OpenStreetMap Nominatim
+═══════════════════════════════════════ */
+(function(){
+    const DEBOUNCE_MS = 350;
+    const MIN_CHARS   = 2;
+
+    /* ── Local priority places (shown first, even if Nominatim misses them) ── */
+    /* icon: 'T'=town/village, 'C'=city */
+    const LOCAL_PLACES = [
+        {name:'Krishnankovil',     state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Srivilliputhur',    state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Virudhunagar',      state:'TN', district:'Virudhunagar',      type:'C'},
+        {name:'Madurai',           state:'TN', district:'Madurai',           type:'C'},
+        {name:'Chennai',           state:'TN', district:'Chennai',           type:'C'},
+        {name:'Coimbatore',        state:'TN', district:'Coimbatore',        type:'C'},
+        {name:'Trichy',            state:'TN', district:'Tiruchirappalli',   type:'C'},
+        {name:'Tirunelveli',       state:'TN', district:'Tirunelveli',       type:'C'},
+        {name:'Tenkasi',           state:'TN', district:'Tenkasi',           type:'T'},
+        {name:'Rajapalayam',       state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Sivakasi',          state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Aruppukottai',      state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Watrap',            state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Sattur',            state:'TN', district:'Virudhunagar',      type:'T'},
+        {name:'Tirumangalam',      state:'TN', district:'Madurai',           type:'T'},
+        {name:'Dindigul',          state:'TN', district:'Dindigul',          type:'C'},
+        {name:'Salem',             state:'TN', district:'Salem',             type:'C'},
+        {name:'Bengaluru',         state:'KA', district:'Bengaluru Urban',   type:'C'},
+        {name:'Thiruvananthapuram',state:'KL', district:'Thiruvananthapuram',type:'C'},
+        {name:'Nagercoil',         state:'TN', district:'Kanyakumari',       type:'C'},
+        {name:'Kanyakumari',       state:'TN', district:'Kanyakumari',       type:'T'},
+        {name:'Thoothukudi',       state:'TN', district:'Thoothukudi',       type:'C'},
+        {name:'Kumbakonam',        state:'TN', district:'Thanjavur',         type:'T'},
+        {name:'Thanjavur',         state:'TN', district:'Thanjavur',         type:'C'},
+        {name:'Vellore',           state:'TN', district:'Vellore',           type:'C'},
+        {name:'Erode',             state:'TN', district:'Erode',             type:'C'},
+        {name:'Hyderabad',         state:'TS', district:'Hyderabad',         type:'C'},
+        {name:'Mumbai',            state:'MH', district:'Mumbai',            type:'C'},
+        {name:'Delhi',             state:'DL', district:'Delhi',             type:'C'},
+        {name:'Kolkata',           state:'WB', district:'Kolkata',           type:'C'},
+        {name:'Vijayawada',        state:'AP', district:'Krishna',           type:'C'},
+        {name:'Tirupati',          state:'AP', district:'Tirupati',          type:'C'},
+    ];
+
+    /* Aliases: wrong spelling → correct name in list */
+    const _LOCAL_ALIASES = {
+        'krishnankoil':'krishnankovil',
+        'krishnan koil':'krishnankovil',
+        'srivilliputtur':'srivilliputhur',
+        'srivilliputur':'srivilliputhur',
+        'sriviliputhur':'srivilliputhur',
+        'sriviliputhur':'srivilliputhur',
+        'srvilliputhur':'srivilliputhur',
+        'bangalore':'bengaluru',
+        'bengalore':'bengaluru',
+        'trivandrum':'thiruvananthapuram',
+        'tvm':'thiruvananthapuram',
+        'madras':'chennai',
+        'bombay':'mumbai',
+        'calcutta':'kolkata',
+    };
+
+    function matchLocal(query){
+        var q   = query.toLowerCase().trim();
+        var qnr = q.replace(/\s+/g,'');
+        var norm = _LOCAL_ALIASES[q] || _LOCAL_ALIASES[qnr] || qnr;
+        return LOCAL_PLACES.filter(function(p){
+            var nl = p.name.toLowerCase();
+            var nr = nl.replace(/\s+/g,'');
+            return nr.startsWith(norm)
+                || nr.startsWith(qnr)
+                || nl.startsWith(q)
+                || nl.indexOf(q) >= 0;
+        });
+    }
+
+    function renderLocalItems(matches){
+        return matches.map(function(p, i){
+            var ic = p.type === 'C' ? '&#127961;' : '&#127960;'; /* city vs town (HTML entity - no emoji issues) */
+            return '<div class="ac-item ac-local" data-value="' + p.name + '" data-idx="L' + i + '">'
+                + '<span class="ac-icon">' + ic + '</span>'
+                + '<div><div class="ac-name">' + p.name + '</div>'
+                + '<div class="ac-state">' + p.district + ', ' + p.state + '</div></div>'
+                + '<span style="font-size:0.6rem;background:rgba(255,87,34,0.12);color:#FF5722;padding:1px 6px;border-radius:10px;margin-left:auto;flex-shrink:0;">Local</span>'
+                + '</div>';
+        }).join('');
+    }
+
+    /* State Abbreviation lookup */
+    const STATE_ABBR = {
+        'Tamil Nadu':'TN', 'Karnataka':'KA', 'Kerala':'KL',
+        'Andhra Pradesh':'AP', 'Telangana':'TS', 'Maharashtra':'MH',
+        'Gujarat':'GJ', 'Rajasthan':'RJ', 'Uttar Pradesh':'UP',
+        'Madhya Pradesh':'MP', 'West Bengal':'WB', 'Bihar':'BR',
+        'Odisha':'OD', 'Punjab':'PB', 'Haryana':'HR',
+        'Himachal Pradesh':'HP', 'Uttarakhand':'UK', 'Jharkhand':'JH',
+        'Chhattisgarh':'CG', 'Assam':'AS', 'Delhi':'DL',
+        'Goa':'GA', 'Sikkim':'SK', 'Tripura':'TR', 'Manipur':'MN',
+        'Meghalaya':'ML', 'Nagaland':'NL', 'Mizoram':'MZ',
+        'Arunachal Pradesh':'AR', 'Jammu and Kashmir':'JK',
+        'Ladakh':'LA', 'Puducherry':'PY',
+    };
+
+    function getStateLabel(addressObj){
+        const state = addressObj.state || '';
+        return STATE_ABBR[state] || state.substring(0,12) || '';
+    }
+
+    function getPlaceIcon(type, cls){
+        if(cls==='boundary' || type==='administrative') return '🏙️';
+        if(type==='city' || type==='town') return '🏙️';
+        if(type==='village' || type==='hamlet') return '🏘️';
+        if(type==='suburb' || type==='neighbourhood') return '📍';
+        if(type==='railway' || cls==='railway') return '🚉';
+        return '📌';
+    }
+
+    let _timers = {};
+    let _cache  = {};
+    let _active = {}; // currently highlighted index per field
+
+    function setupAutocomplete(inputId, dropdownId){
+        const input    = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        if(!input || !dropdown) return;
+
+        _active[inputId] = -1;
+
+        input.addEventListener('input', function(){
+            const val = this.value.trim();
+            clearTimeout(_timers[inputId]);
+            if(val.length < MIN_CHARS){ closeDropdown(dropdown); return; }
+            _timers[inputId] = setTimeout(()=> fetchSuggestions(val, input, dropdown, inputId), DEBOUNCE_MS);
+        });
+
+        input.addEventListener('keydown', function(e){
+            const items = dropdown.querySelectorAll('.ac-item');
+            if(!items.length) return;
+            if(e.key==='ArrowDown'){
+                e.preventDefault();
+                _active[inputId] = Math.min(_active[inputId]+1, items.length-1);
+                highlightItem(items, _active[inputId]);
+            } else if(e.key==='ArrowUp'){
+                e.preventDefault();
+                _active[inputId] = Math.max(_active[inputId]-1, -1);
+                highlightItem(items, _active[inputId]);
+            } else if(e.key==='Enter' && _active[inputId] >= 0){
+                e.preventDefault();
+                items[_active[inputId]].click();
+            } else if(e.key==='Escape'){
+                closeDropdown(dropdown);
+            }
+        });
+
+        document.addEventListener('click', function(e){
+            if(!input.contains(e.target) && !dropdown.contains(e.target))
+                closeDropdown(dropdown);
+        });
+    }
+
+    function highlightItem(items, idx){
+        items.forEach((el,i)=> el.classList.toggle('active', i===idx));
+        if(idx>=0) items[idx].scrollIntoView({block:'nearest'});
+    }
+
+    function closeDropdown(dropdown){
+        dropdown.classList.remove('show');
+        dropdown.innerHTML='';
+    }
+
+    function fetchSuggestions(query, input, dropdown, inputId){
+        // Step 1 — show local matches instantly
+        const localMatches = matchLocal(query);
+        const localHTML    = renderLocalItems(localMatches);
+
+        if(_cache[query]){
+            const apiHTML = buildApiHTML(_cache[query]);
+            dropdown.innerHTML = localHTML + (apiHTML ? '<div class="ac-loading" style="font-size:0.68rem;padding:4px 14px;color:#aaa;">── Other places ──</div>' + apiHTML : '');
+            dropdown.classList.add('show');
+            attachClickHandlers(dropdown, input, inputId);
+            return;
+        }
+
+        // Show local results immediately while API loads
+        dropdown.innerHTML = localHTML +
+            (localMatches.length ? '<div class="ac-loading" style="font-size:0.68rem;padding:4px 14px;color:#aaa;">── Searching more… ──</div>' : '<div class="ac-loading"><span class="spinner" style="border-top-color:#E65100;width:14px;height:14px;"></span> Searching…</div>');
+        dropdown.classList.add('show');
+        attachClickHandlers(dropdown, input, inputId);
+
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=in&limit=8&format=json&addressdetails=1&featuretype=city,town,village,hamlet`;
+
+        fetch(url, { headers:{'Accept-Language':'en'} })
+        .then(r=>r.json())
+        .then(results=>{
+            _cache[query] = results;
+            const apiHTML = buildApiHTML(results);
+            dropdown.innerHTML = localHTML +
+                (apiHTML ? '<div class="ac-loading" style="font-size:0.68rem;padding:4px 14px;color:#aaa;">── Other places ──</div>' + apiHTML : '');
+            dropdown.classList.add('show');
+            attachClickHandlers(dropdown, input, inputId);
+        })
+        .catch(()=>{
+            if(!localMatches.length)
+                dropdown.innerHTML='<div class="ac-loading" style="color:#c00;">⚠️ Could not fetch suggestions</div>';
+        });
+    }
+
+    function buildApiHTML(results){
+        if(!results || !results.length) return '';
+        const seen = new Set();
+        const filtered = results.filter(r=>{
+            const key=(r.address.city||r.address.town||r.address.village||r.address.hamlet||r.display_name.split(',')[0]).toLowerCase();
+            if(seen.has(key)) return false; seen.add(key); return true;
+        });
+        return filtered.map((r,i)=>{
+            const placeName = r.address.city||r.address.town||r.address.village||r.address.hamlet||r.address.suburb||r.display_name.split(',')[0];
+            const state = getStateLabel(r.address);
+            const dist  = r.address.county||r.address.state_district||'';
+            const icon  = getPlaceIcon(r.type, r.class);
+            const label = dist&&dist!==placeName?`${dist}, ${state}`:state;
+            return `<div class="ac-item" data-value="${placeName}" data-idx="A${i}">
+                <span class="ac-icon">${icon}</span>
+                <div><div class="ac-name">${placeName}</div><div class="ac-state">${label}</div></div>
+            </div>`;
+        }).join('');
+    }
+
+    function attachClickHandlers(dropdown, input, inputId){
+        dropdown.querySelectorAll('.ac-item').forEach(item=>{
+            item.addEventListener('mouseenter', function(){
+                dropdown.querySelectorAll('.ac-item').forEach(el=>el.classList.remove('active'));
+                this.classList.add('active');
+            });
+            item.addEventListener('click', function(){
+                input.value = this.dataset.value;
+                closeDropdown(dropdown);
+                input.focus();
+            });
+        });
+    }
+
+
+    /* Init both fields */
+    setupAutocomplete('originInput',      'originDropdown');
+    setupAutocomplete('destinationInput', 'destinationDropdown');
+})();
+</script>
+
+<div class="container flex-grow-1 pb-4">
+
+    {% if origin and destination %}
+
+    {% macro tourism_spot_kind(t) -%}
+    {%- set s = (t or '')|lower -%}
+    {%- if 'religious' in s or 'temple' in s or 'mosque' in s or 'church' in s or 'shrine' in s or 'divya' in s %}religious
+    {%- elif 'hill' in s %}hill
+    {%- elif 'nature' in s or 'waterfall' in s or 'lake' in s or 'dam' in s %}nature
+    {%- elif 'beach' in s %}beach
+    {%- elif 'heritage' in s or 'unesco' in s or 'fort' in s or 'palace' in s %}heritage
+    {%- elif 'museum' in s %}museum
+    {%- elif 'city' in s %}city
+    {%- elif 'local' in s %}local
+    {%- elif 'industrial' in s %}industrial
+    {%- else %}general
+    {%- endif -%}
+    {%- endmacro %}
+
+    {% macro tourism_spot_block(spot, accent) -%}
+    <article class="ts-spot ts-spot--{{ accent }} ts-kind-{{ tourism_spot_kind(spot.type) }}">
+        <div class="ts-spot__top">
+            <span class="ts-spot__emoji" aria-hidden="true">{{ spot.emoji or '&#128205;' }}</span>
+            <h4 class="ts-spot__title">{{ spot.name }}</h4>
+        </div>
+        <p class="ts-spot__desc">{{ spot.description or '' }}</p>
+        <div class="ts-spot__meta">
+            {% if spot.rating is defined and spot.rating not in (none, '') %}
+            <span class="ts-chip ts-chip--rating" title="Guide rating"><i class="bi bi-star-fill"></i><strong>{{ spot.rating }}</strong></span>
+            {% endif %}
+            {% if spot.distance %}<span class="ts-chip"><i class="bi bi-signpost-split"></i>{{ spot.distance }}</span>{% endif %}
+            {% if spot.timings %}<span class="ts-chip"><i class="bi bi-clock"></i>{{ spot.timings }}</span>{% endif %}
+            {% if spot.entry %}<span class="ts-chip"><i class="bi bi-ticket-perforated"></i>{{ spot.entry }}</span>{% endif %}
+        </div>
+        {% if spot.type %}
+        <span class="ts-spot__type">{{ spot.type }}</span>
+        {% endif %}
+    </article>
+    {%- endmacro %}
+
+    <!-- ══════════ WEATHER CARDS WITH ANIMATIONS ══════════ -->
+    <style>
+    .weather-route-panel {
+        margin-bottom: 1.15rem;
+        padding: 1rem 1.1rem 1rem;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #f0f7ff 0%, #e8f4fc 40%, #f5f9ff 100%);
+        border: 1px solid rgba(26, 58, 92, 0.12);
+        box-shadow: 0 4px 24px rgba(11, 31, 58, 0.06);
+    }
+    .weather-route-head {
+        display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;
+    }
+    .weather-route-head__icon {
+        width: 42px; height: 42px; border-radius: 12px;
+        background: linear-gradient(135deg, #1A3A5C, #0B1F3A);
+        color: #FFB300; display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem; flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(11, 31, 58, 0.25);
+    }
+    .weather-route-head__title {
+        font-family: var(--font-sans); font-weight: 700; font-size: 0.95rem; color: var(--navy);
+        line-height: 1.2;
+    }
+    .weather-route-head__sub { font-size: 0.78rem; color: #607d8b; margin-top: 2px; }
+    #weatherGrid.weather-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+    }
+    /* ── Card shell ── */
+    .w-card {
+        border-radius:16px;padding:1rem 1rem 1rem 0.9rem;
+        box-shadow:0 4px 20px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.12);
+        border:1px solid rgba(255,255,255,0.15);
+        display:flex;align-items:stretch;gap:0.75rem;overflow:hidden;
+        position:relative;min-height:104px;transition:transform .22s, box-shadow .22s;
+        isolation: isolate;
+    }
+    .w-card::before {
+        content: ''; position: absolute; inset: 0; z-index: 0;
+        background: linear-gradient(125deg, rgba(255,255,255,0.12) 0%, transparent 45%);
+        pointer-events: none;
+    }
+    /* Full-card atmosphere (matches OpenWeather + local DB condition names) */
+    .w-card.wx-rain::after {
+        content: ''; position: absolute; inset: -2px; z-index: 1;
+        pointer-events: none;
+        opacity: 0.42;
+        background:
+            repeating-linear-gradient(-18deg, transparent, transparent 4px, rgba(180, 220, 255, 0.22) 4px, rgba(180, 220, 255, 0.22) 5px),
+            repeating-linear-gradient(-8deg, transparent, transparent 9px, rgba(255,255,255,0.06) 9px, rgba(255,255,255,0.06) 10px);
+        animation: wx-card-rain 0.85s linear infinite;
+    }
+    @keyframes wx-card-rain {
+        from { transform: translateY(-12px); }
+        to { transform: translateY(12px); }
+    }
+    .w-card.wx-thunder::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(255,255,255,0.18), transparent 55%);
+        animation: wx-thunder-sky 5s ease-in-out infinite;
+    }
+    @keyframes wx-thunder-sky {
+        0%, 88%, 100% { opacity: 0; }
+        90%, 93% { opacity: 1; background: rgba(255,255,255,0.35); }
+        91% { opacity: 0.85; }
+    }
+    .w-card.wx-sunny::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        pointer-events: none;
+        opacity: 0.35;
+        background: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55), transparent 42%);
+        animation: wx-sunny-pulse 4s ease-in-out infinite;
+    }
+    @keyframes wx-sunny-pulse { 0%,100%{opacity:0.28;} 50%{opacity:0.45;} }
+    .w-card.wx-clouds::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        pointer-events: none;
+        opacity: 0.2;
+        background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+        background-size: 200% 100%;
+        animation: wx-cloud-sheen 8s ease-in-out infinite;
+    }
+    @keyframes wx-cloud-sheen { 0%,100%{background-position:0% 50%;} 50%{background-position:100% 50%;} }
+    .w-card.wx-mist::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        pointer-events: none;
+        opacity: 0.35;
+        background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent 60%, rgba(245,245,245,0.35));
+        animation: wx-mist-float 5s ease-in-out infinite;
+    }
+    @keyframes wx-mist-float { 0%,100%{opacity:0.25;} 50%{opacity:0.45;} }
+    .w-card.wx-snow::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        pointer-events: none;
+        opacity: 0.5;
+        background-image:
+            radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,0.9), transparent),
+            radial-gradient(1.5px 1.5px at 70% 60%, rgba(255,255,255,0.85), transparent),
+            radial-gradient(1.2px 1.2px at 40% 80%, rgba(255,255,255,0.8), transparent);
+        background-size: 100% 100%;
+        animation: wx-snow-drift 3.5s linear infinite;
+    }
+    @keyframes wx-snow-drift {
+        from { transform: translateY(-6px); opacity: 0.4; }
+        to { transform: translateY(10px); opacity: 0.55; }
+    }
+    .w-card > div:not(.w-card-body) {
+        align-self: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+    }
+    .w-card:hover{
+        transform: translateY(-2px);
+        box-shadow:0 10px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .w-card-body {
+        flex: 1; min-width: 0; z-index: 2;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 2px 0;
+    }
+    .w-role {
+        font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.55); margin-bottom: 0.2rem;
+    }
+    .w-city  {font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.88);text-transform:none;letter-spacing:.02em;line-height:1.2;}
+    .w-temp  {font-size:1.65rem;font-weight:800;font-family:var(--font-sans);color:#fff;line-height:1.05;margin-top:2px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.15);}
+    .w-desc  {font-size:0.76rem;color:rgba(255,255,255,0.92);margin-top:4px;line-height:1.35;}
+    .w-meta-row {
+        display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.55rem;
+    }
+    .w-meta-pill {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        font-size: 0.62rem; font-weight: 600;
+        color: rgba(255,255,255,0.92);
+        background: rgba(0,0,0,0.18);
+        border-radius: 999px; padding: 0.22rem 0.55rem;
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+    .w-meta-pill i { font-size: 0.68rem; opacity: 0.9; }
+    .w-tips  {
+        background:linear-gradient(135deg,#fffefb,#fff8e1);
+        border:1px solid rgba(255, 179, 0, 0.35);
+        border-radius: 12px;
+        padding:.75rem 1rem;font-size:.8rem;color:#4e342e;
+        display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin-top:.85rem;
+        box-shadow: 0 2px 12px rgba(255, 152, 0, 0.08);
+    }
+    .w-tips > strong { color: #E65100; font-size: 0.72rem; letter-spacing: 0.03em; }
+    .w-tip-badge{
+        display:inline-flex;align-items:center;gap:5px;
+        background:#fff;border-radius:999px;padding:5px 12px;
+        font-size:.74rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.06);
+        border: 1px solid rgba(230, 81, 0, 0.12);
+    }
+    @media(max-width:576px){
+        #weatherGrid.weather-grid{grid-template-columns:1fr;}
+    }
+
+    /* ══ SUNNY ══ */
+    .wx-sunny  {background:linear-gradient(135deg,#FF8C00,#FFD700);}
+    .sun-wrap  {position:relative;width:56px;height:56px;flex-shrink:0;}
+    .sun-core  {
+        position:absolute;inset:10px;
+        background:radial-gradient(circle,#fffde7,#FFD700);
+        border-radius:50%;
+        box-shadow:0 0 14px 4px rgba(255,220,0,.6);
+        animation:sun-pulse 2.4s ease-in-out infinite;
+    }
+    .sun-ray   {
+        position:absolute;top:50%;left:50%;
+        width:4px;height:13px;margin-left:-2px;margin-top:-28px;
+        background:#FFD700;border-radius:2px;transform-origin:2px 28px;
+        animation:sun-spin 8s linear infinite;
+    }
+    @keyframes sun-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+    @keyframes sun-spin {to{transform:rotate(360deg);}}
+
+    /* ══ PARTLY CLOUDY ══ */
+    .wx-clouds {background:linear-gradient(135deg,#4A90D9,#7BB8F5);}
+    .cloud-anim{position:relative;width:64px;height:56px;flex-shrink:0;}
+    .cloud-sun {
+        position:absolute;top:4px;right:4px;width:22px;height:22px;
+        background:radial-gradient(circle,#fff9c4,#FFD700);
+        border-radius:50%;
+        animation:sun-pulse 2.4s ease-in-out infinite;
+        box-shadow:0 0 8px rgba(255,220,0,.6);
+    }
+    .cloud-body{
+        position:absolute;bottom:4px;left:0;right:0;height:30px;
+        background:#fff;border-radius:15px;
+        box-shadow:0 2px 6px rgba(0,0,0,.12);
+        animation:cloud-drift 4s ease-in-out infinite;
+    }
+    .cloud-body::before{
+        content:'';position:absolute;top:-12px;left:10px;
+        width:22px;height:22px;background:#fff;border-radius:50%;
+    }
+    .cloud-body::after{
+        content:'';position:absolute;top:-8px;left:26px;
+        width:16px;height:16px;background:#fff;border-radius:50%;
+    }
+    @keyframes cloud-drift{0%,100%{transform:translateX(0);}50%{transform:translateX(4px);}}
+
+    /* ══ RAINY ══ */
+    .wx-rain  {background:linear-gradient(135deg,#2C3E50,#4A6278);}
+    .rain-wrap{position:relative;width:60px;height:60px;flex-shrink:0;overflow:hidden;}
+    .rain-cloud{
+        position:absolute;top:0;left:4px;right:4px;height:26px;
+        background:#8FA8BE;border-radius:13px;
+    }
+    .rain-cloud::before{content:'';position:absolute;top:-10px;left:8px;width:18px;height:18px;background:#8FA8BE;border-radius:50%;}
+    .rain-cloud::after {content:'';position:absolute;top:-7px;left:22px;width:14px;height:14px;background:#8FA8BE;border-radius:50%;}
+    .raindrop{
+        position:absolute;bottom:0;width:2px;border-radius:1px;
+        background:linear-gradient(to bottom,rgba(100,180,255,.0),rgba(100,180,255,.9));
+        animation:fall linear infinite;
+    }
+    .raindrop:nth-child(2){left:10px;height:12px;animation-duration:0.9s;animation-delay:0.1s;}
+    .raindrop:nth-child(3){left:22px;height:14px;animation-duration:0.8s;animation-delay:0.4s;}
+    .raindrop:nth-child(4){left:34px;height:10px;animation-duration:1.0s;animation-delay:0.0s;}
+    .raindrop:nth-child(5){left:44px;height:13px;animation-duration:0.85s;animation-delay:0.3s;}
+    .raindrop:nth-child(6){left:16px;height:11px;animation-duration:0.95s;animation-delay:0.6s;}
+    .raindrop:nth-child(7){left:52px;height:12px;animation-duration:0.82s;animation-delay:0.25s;}
+    @keyframes fall{0%{transform:translateY(-30px);opacity:0;}60%{opacity:1;}100%{transform:translateY(36px);opacity:0;}}
+
+    /* ══ THUNDERSTORM ══ */
+    .wx-thunder{background:linear-gradient(135deg,#1a1a2e,#3a3a5c);}
+    .thunder-wrap{position:relative;width:60px;height:60px;flex-shrink:0;}
+    .thunder-cloud{
+        position:absolute;top:0;left:2px;right:2px;height:28px;
+        background:#555;border-radius:14px;
+    }
+    .thunder-cloud::before{content:'';position:absolute;top:-11px;left:8px;width:20px;height:20px;background:#555;border-radius:50%;}
+    .thunder-cloud::after {content:'';position:absolute;top:-8px;left:24px;width:15px;height:15px;background:#555;border-radius:50%;}
+    .lightning{
+        position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+        animation:flash 1.6s ease-in-out infinite;
+    }
+    .lightning svg{display:block;}
+    @keyframes flash{0%,45%,55%,100%{opacity:0;}48%,52%{opacity:1;filter:drop-shadow(0 0 6px #FFD700);}}
+
+    /* ══ MISTY / HAZE ══ */
+    .wx-mist  {background:linear-gradient(135deg,#B0BEC5,#CFD8DC);}
+    .mist-wrap{position:relative;width:60px;height:56px;flex-shrink:0;}
+    .mist-line{
+        position:absolute;left:4px;right:4px;height:4px;
+        background:rgba(255,255,255,.7);border-radius:2px;
+        animation:mist-drift 3s ease-in-out infinite;
+    }
+    .mist-line:nth-child(1){top:10px;animation-delay:0s;}
+    .mist-line:nth-child(2){top:22px;width:80%;animation-delay:0.4s;}
+    .mist-line:nth-child(3){top:34px;animation-delay:0.8s;}
+    .mist-line:nth-child(4){top:46px;width:70%;animation-delay:1.2s;}
+    @keyframes mist-drift{0%,100%{transform:translateX(0);opacity:.7;}50%{transform:translateX(6px);opacity:1;}}
+
+    /* ══ SNOW ══ */
+    .wx-snow  {background:linear-gradient(135deg,#4A90D9,#AED6F1);}
+    .snow-wrap{position:relative;width:60px;height:60px;flex-shrink:0;overflow:hidden;}
+    .snowflake{
+        position:absolute;color:#fff;font-size:12px;
+        animation:snow-fall linear infinite;opacity:0;
+    }
+    .snowflake:nth-child(1){left:10px;animation-duration:2.2s;animation-delay:0s;}
+    .snowflake:nth-child(2){left:26px;animation-duration:1.8s;animation-delay:0.5s;}
+    .snowflake:nth-child(3){left:42px;animation-duration:2.5s;animation-delay:1.0s;}
+    .snowflake:nth-child(4){left:18px;animation-duration:2.0s;animation-delay:1.4s;}
+    @keyframes snow-fall{0%{transform:translateY(-10px);opacity:0;}30%{opacity:1;}100%{transform:translateY(55px);opacity:0;}}
+    </style>
+
+    <div id="weatherSection" class="weather-route-panel">
+        <div class="weather-route-head">
+            <div class="weather-route-head__icon" aria-hidden="true"><i class="bi bi-cloud-sun-fill"></i></div>
+            <div>
+                <div class="weather-route-head__title">Weather along your route</div>
+                <div class="weather-route-head__sub">Live-style snapshot for origin &amp; destination</div>
+            </div>
+        </div>
+        <div id="weatherGrid" class="weather-grid">
+            <div id="weatherOrigin"></div>
+            <div id="weatherDest"></div>
+        </div>
+        <div id="weatherTips"></div>
+    </div>
+
+    <script>
+    (function(){
+        var origin = "{{ origin }}";
+        var dest   = "{{ destination }}";
+        if(!origin || !dest) return;
+
+        /**
+         * Map OpenWeather `main`, local DB (sunny/cloudy/rainy/…), and free text to visual buckets.
+         * Without this, DB values like "sunny" never match "clear" and both cards looked grey (mist).
+         */
+        function normalizeVisualCondition(raw) {
+            var c = (raw || '').toString().toLowerCase().trim().replace(/\s+/g, '_');
+            if (!c) return 'clear';
+            if (c === 'clear' || c === 'sunny') return 'clear';
+            if (c === 'clouds' || c === 'cloudy' || c === 'overcast' || c === 'partly_cloudy' || c === 'mostly_cloudy')
+                return 'clouds';
+            if (c === 'rain' || c === 'rainy' || c === 'drizzle' || c === 'shower_rain' || c === 'extreme_rain')
+                return 'rain';
+            if (c === 'thunderstorm' || c === 'squall' || c === 'tornado') return 'thunderstorm';
+            if (c === 'snow') return 'snow';
+            if (c === 'mist' || c === 'fog' || c === 'foggy' || c === 'haze' || c === 'smoke' || c === 'dust' || c === 'sand' || c === 'ash')
+                return 'mist';
+            if (c.indexOf('thunder') >= 0) return 'thunderstorm';
+            if (c.indexOf('rain') >= 0 || c.indexOf('drizzle') >= 0) return 'rain';
+            if (c.indexOf('snow') >= 0) return 'snow';
+            if (c.indexOf('cloud') >= 0) return 'clouds';
+            return 'clouds';
+        }
+
+        /* Build animated SVG/HTML for each weather condition */
+        function weatherAnim(condition){
+            var c = normalizeVisualCondition(condition);
+            if(c==='clear'){
+                var rays='';
+                for(var i=0;i<8;i++) rays+='<div class="sun-ray" style="transform:rotate('+(i*45)+'deg) translateY(-28px);animation-delay:'+(i*0.15)+'s"></div>';
+                return '<div class="sun-wrap">'+rays+'<div class="sun-core"></div></div>';
+            }
+            if(c==='clouds'){
+                return '<div class="cloud-anim"><div class="cloud-sun"></div><div class="cloud-body"></div></div>';
+            }
+            if(c==='rain'){
+                return '<div class="rain-wrap"><div class="rain-cloud"></div>'
+                    +'<div class="raindrop"></div><div class="raindrop"></div>'
+                    +'<div class="raindrop"></div><div class="raindrop"></div>'
+                    +'<div class="raindrop"></div><div class="raindrop"></div></div>';
+            }
+            if(c==='thunderstorm'){
+                return '<div class="thunder-wrap"><div class="thunder-cloud"></div>'
+                    +'<div class="lightning"><svg width="18" height="28" viewBox="0 0 18 28">'
+                    +'<polygon points="10,0 0,16 8,16 6,28 18,10 10,10" fill="#FFD700"/>'
+                    +'</svg></div></div>';
+            }
+            if(c==='snow'){
+                return '<div class="snow-wrap">'
+                    +'<div class="snowflake">&#10052;</div><div class="snowflake">&#10052;</div>'
+                    +'<div class="snowflake">&#10052;</div><div class="snowflake">&#10052;</div>'
+                    +'</div>';
+            }
+            /* mist / haze / fog */
+            return '<div class="mist-wrap">'
+                +'<div class="mist-line"></div><div class="mist-line"></div>'
+                +'<div class="mist-line"></div><div class="mist-line"></div>'
+                +'</div>';
+        }
+
+        function cardClass(condition){
+            var c = normalizeVisualCondition(condition);
+            if(c==='clear')        return 'wx-sunny';
+            if(c==='clouds')       return 'wx-clouds';
+            if(c==='rain')         return 'wx-rain';
+            if(c==='thunderstorm') return 'wx-thunder';
+            if(c==='snow')         return 'wx-snow';
+            return 'wx-mist';
+        }
+
+        function renderCard(id, city, data, roleLabel){
+            var el = document.getElementById(id);
+            if(!el) return;
+            if(!data || data.status==='unavailable'){ el.innerHTML=''; return; }
+            var w   = data.weather;
+            var cls = cardClass(w.condition);
+            var anim= weatherAnim(w.condition);
+            var role = roleLabel ? '<div class="w-role">'+roleLabel+'</div>' : '';
+            el.innerHTML =
+                '<div class="w-card '+cls+'">'
+                + anim
+                +'<div class="w-card-body">'
+                + role
+                +'<div class="w-city">'+city+'</div>'
+                +'<div class="w-temp">'+(w.temperature||'--')+'&deg;C</div>'
+                +'<div class="w-desc">'+(w.description||'')+'</div>'
+                +'<div class="w-meta-row">'
+                +'<span class="w-meta-pill"><i class="bi bi-droplet"></i> '+(w.humidity!=null&&w.humidity!==''?w.humidity:'--')+'%</span>'
+                +'<span class="w-meta-pill"><i class="bi bi-wind"></i> '+(w.wind_speed!=null&&w.wind_speed!==''?w.wind_speed:'--')+' m/s</span>'
+                +'</div>'
+                +'</div>'
+                +'</div>';
+        }
+
+        function renderTips(oD, dD){
+            var tips=[];
+            if(oD&&oD.travel_tips) tips=tips.concat(oD.travel_tips);
+            if(dD&&dD.travel_tips) tips=tips.concat(dD.travel_tips);
+            var seen=new Set();
+            tips=tips.filter(function(t){if(seen.has(t.text))return false;seen.add(t.text);return true;});
+            if(!tips.length) return;
+            var el=document.getElementById('weatherTips');
+            if(!el) return;
+            var h='<div class="w-tips"><strong style="color:#E65100;margin-right:6px;">Travel Tips:</strong>';
+            tips.forEach(function(t){ h+='<span class="w-tip-badge" style="color:'+t.color+';">'+t.icon+' '+t.text+'</span>'; });
+            el.innerHTML=h+'</div>';
+        }
+
+        var oData, dData;
+
+        fetch('/api/weather?city='+encodeURIComponent(origin))
+        .then(function(r){return r.json();})
+        .then(function(d){
+            oData=d; renderCard('weatherOrigin',origin,d,'Origin');
+            if(dData!==undefined) renderTips(oData,dData);
+        }).catch(function(){});
+
+        fetch('/api/weather?city='+encodeURIComponent(dest))
+        .then(function(r){return r.json();})
+        .then(function(d){
+            dData=d; renderCard('weatherDest',dest,d,'Destination');
+            if(oData!==undefined) renderTips(oData,dData);
+        }).catch(function(){});
+    })();
+    </script>
+    <!-- ══════════ END WEATHER ══════════ -->
+
+    {% if show_live_bus_map %}
+    <!-- ══════════ LIVE GPS: row button + modal map (Rajapalayam ↔ Madurai · TN55L 9003) ══════════ -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <style>
+        tr.gps-tracked-bus td { box-shadow: inset 3px 0 0 var(--orange); background: rgba(255, 87, 34, 0.06); }
+        .btn-gps-live {
+            font-size: 0.72rem; font-weight: 700; border-radius: 999px; border: 1px solid rgba(255,183,0,0.45);
+            background: linear-gradient(135deg, #37474f, #263238); color: #eceff1;
+            display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px;
+            line-height: 1.2; transition: box-shadow .2s, transform .15s, outline .2s;
+            cursor: pointer;
+        }
+        .btn-gps-live:hover { color: #fff; border-color: var(--amber); box-shadow: 0 2px 10px rgba(255,87,34,0.35); }
+        /* GPS sending fresh data: strong green “live” look + green focus ring */
+        .btn-gps-live.is-live {
+            background: linear-gradient(135deg, #0d4f17, #1b5e20, #2e7d32);
+            border-color: #76ff03;
+            color: #fff;
+            outline: 3px solid rgba(118, 255, 3, 0.95);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 0 14px rgba(118, 255, 3, 0.55);
+            animation: gps-glow 2s ease-in-out infinite;
+        }
+        .btn-gps-live.is-live:hover {
+            outline-color: #b9f6ca;
+            box-shadow: 0 0 18px rgba(118, 255, 3, 0.65);
+        }
+        @keyframes gps-glow { 0%,100%{ box-shadow: 0 0 0 0 rgba(118,255,3,0.35), 0 0 14px rgba(118, 255, 3, 0.45);} 50%{ box-shadow: 0 0 0 6px rgba(118,255,3,0.12), 0 0 20px rgba(118, 255, 3, 0.55);} }
+        .gps-live-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.35); }
+        /* !important: table / Bootstrap must not grey out the LED */
+        .btn-gps-live .gps-live-dot.on {
+            background: #76ff03 !important;
+            box-shadow: 0 0 10px 2px #76ff03, inset 0 0 4px #fff !important;
+            animation: gps-dot-pulse 1.2s ease-in-out infinite;
+        }
+        /* Last fix on server (not yellow — avoids “warning” look) */
+        .btn-gps-live .gps-live-dot.has-last-fix {
+            background: #29b6f6 !important;
+            box-shadow: 0 0 8px rgba(41,182,246,0.85) !important;
+        }
+        .btn-gps-live .gps-live-dot.off { background: #546e7a !important; box-shadow: none !important; }
+        @keyframes gps-dot-pulse { 0%,100%{ opacity: 1;} 50%{ opacity: 0.55;} }
+        #busGpsModalMap { min-height: 320px; border-radius: 10px; z-index: 1; }
+        .modal-content .leaflet-container { background: #1a237e; }
+    </style>
+    <div id="gpsPageCtx" data-origin="{{ origin|e }}" data-destination="{{ destination|e }}" hidden></div>
+
+    <div class="modal fade" id="busGpsLiveModal" tabindex="-1" aria-labelledby="busGpsLiveModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="background:#0f2138;color:#fff;border:1px solid rgba(255,183,0,0.35);">
+                <div class="modal-header border-secondary py-2">
+                    <h5 class="modal-title" id="busGpsLiveModalLabel" style="font-family:var(--font-sans);font-size:1rem;">
+                        <span style="font-size:1.25rem;">&#128652;</span> TN55L 9003 — Live on map
+            </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+                <div class="modal-body pt-2">
+                    {% set gps_row = local_buses|selectattr('bus_number', 'equalto', 'TN55L 9003')|first %}
+                    <p class="small mb-2" style="color:#ECEFF1;font-size:0.82rem;">
+                        <span class="text-white-50">Route</span>
+                        <strong>{{ origin }} ↔ {{ destination }}</strong>
+                        <span class="text-white-50 mx-1">·</span>
+                        <span class="text-white-50">Operator</span>
+                        <strong>{{ gps_row.operator if gps_row else 'TNSTC' }}</strong>
+                    </p>
+                    <div id="gpsModalSpeedBar" class="mb-2 p-2 rounded" style="background:rgba(0,0,0,0.28);font-size:0.85rem;">
+                        <span id="gpsModalSpeedText">Checking GPS…</span>
+                    </div>
+                    <div id="gpsModalAtText" class="mb-2 small px-1" style="color:#B3E5FC;font-size:0.9rem;line-height:1.35;display:none;"></div>
+                    <div id="busGpsModalMap" style="height:380px;width:100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        var ctx = document.getElementById('gpsPageCtx');
+        if(!ctx || typeof L === 'undefined') return;
+        var o = ctx.getAttribute('data-origin') || '';
+        var d = ctx.getAttribute('data-destination') || '';
+        /* Krishnankovil — app.py CITY_COORDS; route polyline uses same rough corridor as the bus service */
+        var krk = [9.572774, 77.678473];
+        /* Approximate road path Rajapalayam → Krishnankovil → Virudhunagar → Madurai (map illustration) */
+        var ROUTE_RAJ_MAD_LATLNG = [
+            [9.450, 77.570], [9.475, 77.595], [9.505, 77.628], [9.530, 77.655],
+            [9.572774, 77.678473], [9.585, 77.820], [9.620, 77.920], [9.750, 77.965],
+            [9.860, 78.040], [9.9252, 78.1198]
+        ];
+        var ROUTE_LANDMARKS = [
+            { name: 'Rajapalayam', lat: 9.450, lng: 77.570 },
+            { name: 'Srivilliputhur side', lat: 9.505, lng: 77.628 },
+            { name: 'Krishnankovil', lat: 9.572774, lng: 77.678473 },
+            { name: 'Virudhunagar area', lat: 9.585, lng: 77.920 },
+            { name: 'Tirumangalam area', lat: 9.750, lng: 77.965 },
+            { name: 'Madurai', lat: 9.9252, lng: 78.1198 }
+        ];
+        var map = null, krkAreaCircle = null, busMarker = null, fallbackMarker = null, modalOpen = false;
+        var cachedBus = null, cachedIsLive = false;
+        var baseTileLayer = null, routePolyline = null;
+        var lastReverseKey = '', lastReverseLabel = '';
+        var osmRevToken = 0;
+        function makeBusIcon(live){
+            var ring = live ? '#76ff03' : '#90a4ae';
+            var bg   = live ? 'rgba(13,79,23,0.95)' : 'rgba(55,71,79,0.92)';
+            var html = '<div style="font-size:28px;line-height:1;padding:6px 7px;border-radius:50%;background:'+bg+';border:3px solid '+ring+';box-shadow:0 2px 8px rgba(0,0,0,.4);filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));">&#128652;</div>';
+            return L.divIcon({
+                className: 'gps-bus-marker',
+                html: html,
+                iconSize: [44, 46],
+                iconAnchor: [22, 44]
+            });
+        }
+        var modalEl = document.getElementById('busGpsLiveModal');
+
+        function haversineKm(lat1, lng1, lat2, lng2){
+            var R = 6371, rad = Math.PI / 180;
+            var dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad;
+            var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLng/2)*Math.sin(dLng/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function nearestCorridorLabel(lat, lng){
+            var best = 'the Rajapalayam–Madurai corridor', bestKm = 1e9;
+            for(var i = 0; i < ROUTE_LANDMARKS.length; i++){
+                var p = ROUTE_LANDMARKS[i];
+                var km = haversineKm(lat, lng, p.lat, p.lng);
+                if(km < bestKm){ bestKm = km; best = p.name; }
+            }
+            if(bestKm > 35) return { line: 'The bus is currently <strong>along the route corridor</strong> (approx.).', short: 'Corridor (approx.)' };
+            var prep = (bestKm <= 3) ? 'at' : 'near';
+            return {
+                line: 'The bus is currently <strong>' + prep + ' ' + best + '</strong> (≈ ' + bestKm.toFixed(1) + ' km from landmark centre).',
+                short: best
+            };
+        }
+
+        function _escHtml(s){
+            if(s == null || s === '') return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        /**
+         * Build a precise line from Nominatim: road, neighbourhood, suburb, city — not only the city name.
+         * zoom=18 reverse returns street-level fields where OSM has them (e.g. areas within Madurai).
+         */
+        function describePlaceFromOsm(j){
+            var addr = (j && j.address) ? j.address : {};
+            var dn = (j && j.display_name) ? j.display_name : '';
+            var neighbourhood = addr.neighbourhood || addr.quarter;
+            var suburb = addr.suburb;
+            var hamlet = addr.hamlet;
+            var village = addr.village;
+            var road = addr.road || addr.pedestrian || addr.residential;
+            var cityDistrict = addr.city_district;
+            var town = addr.town;
+            var city = addr.city || addr.municipality;
+            var state = addr.state;
+            var county = addr.county;
+
+            var areaLocal = neighbourhood || hamlet || village;
+            if(!areaLocal && suburb) areaLocal = suburb;
+
+            var parts = [];
+            if(road){
+                parts.push('Near <strong>' + _escHtml(road) + '</strong>');
+            }
+            if(areaLocal){
+                var cityLo = (city || town || '').toLowerCase();
+                var areaLo = String(areaLocal).toLowerCase();
+                if(!cityLo || areaLo !== cityLo)
+                    parts.push('<strong>' + _escHtml(areaLocal) + '</strong>');
+            }
+            if(!parts.length && cityDistrict && city && cityDistrict !== city){
+                parts.push('<strong>' + _escHtml(cityDistrict) + '</strong>');
+            }
+            if(city || town){
+                var c = city || town;
+                var tail = state ? (_escHtml(c) + ', ' + _escHtml(state)) : _escHtml(c);
+                if(parts.length)
+                    parts.push(tail);
+                else
+                    parts.push('<strong>' + tail + '</strong>');
+            } else if(county && !parts.length){
+                parts.push('<strong>' + _escHtml(county) + '</strong>');
+            }
+
+            if(parts.length){
+                return 'The bus is currently at ' + parts.join(' · ') +
+                    ' <span class="text-white-50">(OpenStreetMap)</span>';
+            }
+
+            if(dn){
+                var seg = dn.split(',').map(function(s){ return s.trim(); }).filter(function(s){
+                    if(!s) return false;
+                    if(/^India$/i.test(s)) return false;
+                    if(/^\d{4,7}(-\d{3})?$/.test(s)) return false;
+                    return true;
+                });
+                var line = seg.slice(0, 5).map(_escHtml).join(', ');
+                if(line)
+                    return 'The bus is currently at <strong>' + line + '</strong> <span class="text-white-50">(map)</span>';
+            }
+            return null;
+        }
+
+        function maybeFetchOsmPlaceName(lat, lng){
+            var key = lat.toFixed(5) + ',' + lng.toFixed(5);
+            if(key === lastReverseKey && lastReverseLabel) return;
+            var myTok = ++osmRevToken;
+            lastReverseKey = key;
+            lastReverseLabel = '';
+            var atEl = document.getElementById('gpsModalAtText');
+            /* zoom=18: street / neighbourhood level inside cities (e.g. areas within Madurai) */
+            var url = 'https://nominatim.openstreetmap.org/reverse?lat=' + encodeURIComponent(lat) +
+                '&lon=' + encodeURIComponent(lng) +
+                '&format=json&zoom=18&addressdetails=1&namedetails=1';
+            fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Accept-Language': 'en'
+                }
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(j){
+                if(myTok !== osmRevToken) return;
+                if(!atEl) return;
+                var line = describePlaceFromOsm(j);
+                if(line){
+                    lastReverseLabel = line;
+                    atEl.innerHTML = line;
+                }
+            })
+            .catch(function(){ /* keep corridor / fallback text */ });
+        }
+
+        function showAtLineForBus(lat, lng){
+            var atEl = document.getElementById('gpsModalAtText');
+            if(!atEl) return;
+            atEl.style.display = 'block';
+            var n = nearestCorridorLabel(lat, lng);
+            atEl.innerHTML = n.line +
+                '<div class="small text-white-50 mt-1">Looking up roads &amp; neighbourhoods on the map…</div>';
+            maybeFetchOsmPlaceName(lat, lng);
+        }
+
+        /** When fix is stale/offline: do not show OSM “currently at Sengottai…” — it may not reflect the live bus. */
+        function showStaleGpsWaitingLine(){
+            osmRevToken++;
+            var atEl = document.getElementById('gpsModalAtText');
+            if(!atEl) return;
+            lastReverseKey = '';
+            lastReverseLabel = '';
+            atEl.style.display = 'block';
+            atEl.innerHTML =
+                '<span class="badge bg-secondary me-1">GPS offline</span>' +
+                '<strong> GPS signal is weak or interrupted.</strong> Please wait while a fresh position is received. ' +
+                '<span class="text-white-50">The marker shows the last point stored on the server, not a live street name.</span>';
+        }
+
+        function hideAtLine(){
+            var atEl = document.getElementById('gpsModalAtText');
+            if(atEl){ atEl.style.display = 'none'; atEl.textContent = ''; }
+            lastReverseKey = ''; lastReverseLabel = '';
+        }
+
+        function ensureRoutePolyline(){
+            if(!map || routePolyline) return;
+            routePolyline = L.polyline(ROUTE_RAJ_MAD_LATLNG, {
+                color: '#FF9800',
+                weight: 4,
+                opacity: 0.88,
+                lineJoin: 'round',
+                dashArray: '12 8'
+            }).addTo(map);
+            routePolyline.bindPopup('TN55L 9003 — Rajapalayam ↔ Madurai (illustrative path)');
+        }
+
+        function fitMapToRouteAndBus(lat, lng){
+            if(!map) return;
+            ensureRoutePolyline();
+            var pts = ROUTE_RAJ_MAD_LATLNG.map(function(x){ return L.latLng(x[0], x[1]); });
+            var b = L.latLngBounds(pts);
+            if(lat != null && lng != null && !isNaN(lat) && !isNaN(lng)){
+                b.extend(L.latLng(lat, lng));
+            }
+            try {
+                map.fitBounds(b, { padding: [36, 36], maxZoom: 14, animate: true });
+            } catch(e){
+                map.setView([lat, lng], 13, { animate: true });
+            }
+        }
+
+        function updateRowBadge(isLive, hasAnyFix, ageSec){
+            var dot = document.getElementById('gpsRowLiveDot');
+            var label = document.getElementById('gpsRowLiveLabel');
+            var btn = document.getElementById('gpsRowLiveBtn');
+            if(!dot || !label || !btn) return;
+            var ageHint = (ageSec != null && ageSec !== '') ? (' Last server update: ' + ageSec + 's ago.') : '';
+            if(isLive){
+                dot.className = 'gps-live-dot on';
+                label.textContent = 'Live';
+                btn.classList.add('is-live');
+                btn.setAttribute('title', 'GPS online — server received a fresh fix.' + ageHint + ' Tap for map.');
+            } else if(hasAnyFix){
+                dot.className = 'gps-live-dot has-last-fix';
+                label.textContent = 'GPS offline';
+                btn.classList.remove('is-live');
+                btn.setAttribute('title', 'GPS offline — no fresh signal. Showing last saved position on the server.' + ageHint + ' Tap for map.');
+            } else {
+                dot.className = 'gps-live-dot off';
+                label.textContent = 'GPS offline';
+                btn.classList.remove('is-live');
+                btn.setAttribute('title', 'GPS offline — no position from the bus device yet. Open map for the default route marker.');
+            }
+        }
+
+        function refreshMapLayout(){
+            if(!map) return;
+            map.invalidateSize(true);
+        }
+
+        function ensureTilesWork(){
+            if(!map || !baseTileLayer) return;
+            var triedFallback = false;
+            baseTileLayer.once('tileerror', function(){
+                if(triedFallback || !map) return;
+                triedFallback = true;
+                try { map.removeLayer(baseTileLayer); } catch(e){}
+                baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    subdomains: 'abcd',
+                    maxZoom: 20,
+                    attribution: '&copy; OpenStreetMap &copy; CARTO'
+                }).addTo(map);
+                refreshMapLayout();
+            });
+        }
+
+        function initMapOnce(){
+            if(map) return;
+            var el = document.getElementById('busGpsModalMap');
+            if(!el) return;
+            map = L.map(el, { scrollWheelZoom: true });
+            baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                maxNativeZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+            ensureTilesWork();
+            /* ~2 km radius = Krishnankovil locality only (no Rajapalayam/Madurai route on map) */
+            krkAreaCircle = L.circle(krk, {
+                radius: 2200,
+                color: '#1565c0',
+                weight: 2,
+                fillColor: '#42a5f5',
+                fillOpacity: 0.14
+            }).addTo(map);
+            krkAreaCircle.bindPopup('Krishnankovil area');
+            ensureRoutePolyline();
+            fitMapToRouteAndBus(krk[0], krk[1]);
+            map.whenReady(function(){ refreshMapLayout(); });
+        }
+
+        function clearBusMarker(){
+            if(map && busMarker){
+                try { map.removeLayer(busMarker); } catch(e){}
+                busMarker = null;
+            }
+        }
+
+        function clearFallbackMarker(){
+            if(map && fallbackMarker){
+                try { map.removeLayer(fallbackMarker); } catch(e){}
+                fallbackMarker = null;
+            }
+        }
+
+        /* No GPS / no server fix — Krishnankovil area only */
+        function showKrishnankovilDefault(opts){
+            opts = opts || {};
+            if(!map) return;
+            clearBusMarker();
+            clearFallbackMarker();
+            var icon = L.divIcon({
+                className: 'gps-krk-ref',
+                html: '<div style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:10px;background:rgba(25,118,210,0.95);color:#fff;border:2px solid #64b5f6;white-space:nowrap;">Krishnankovil</div>',
+                iconSize: [110, 28],
+                iconAnchor: [55, 14]
+            });
+            ensureRoutePolyline();
+            fallbackMarker = L.marker(krk, { icon: icon, zIndexOffset: -50 }).addTo(map);
+            fallbackMarker.bindPopup(
+                '<b>Krishnankovil</b> (default)<br>' +
+                'Lat <code>9.572774</code> &nbsp; Lon <code>77.678473</code><br>' +
+                '<small>Same as CITY_COORDS in the app. Live bus GPS replaces this.</small>'
+            );
+            fitMapToRouteAndBus(krk[0], krk[1]);
+            var atEl = document.getElementById('gpsModalAtText');
+            if(atEl && !opts.statusHtml){
+                atEl.style.display = 'block';
+                atEl.innerHTML = '<span class="badge bg-secondary me-1">GPS offline</span> No live signal yet. Default marker: <strong>Krishnankovil</strong> on the orange route (Rajapalayam ↔ Madurai).';
+            } else if(atEl && opts.statusHtml){
+                hideAtLine();
+            }
+            var bar = document.getElementById('gpsModalSpeedText');
+            if(bar){
+                if(opts.statusHtml){
+                    bar.innerHTML = opts.statusHtml;
+                } else {
+                    bar.innerHTML =
+                        '<div><span class="badge bg-secondary me-1">GPS offline</span> <span class="badge bg-info text-dark me-1">Krishnankovil</span> <strong>Default map position</strong></div>' +
+                        '<div class="small mt-1" style="color:#B0BEC5;font-family:monospace;">Lat 9.5727740 &nbsp; Lon 77.6784730</div>' +
+                        '<div class="small text-white-50 mt-1">When the device sends a fix, the bus icon moves here. Map checks every 30s.</div>';
+                }
+            }
+        }
+
+        /* GPS sends decimal degrees N/E — Leaflet needs [latitude, longitude] as numbers */
+        function applyBusToMap(b, stale){
+            if(!map || !b) return;
+            clearFallbackMarker();
+            clearBusMarker();
+            var plat = parseFloat(b.latitude);
+            var plng = parseFloat(b.longitude);
+            if (isNaN(plat) || isNaN(plng)) return;
+            var live = !stale;
+            busMarker = L.marker([plat, plng], { icon: makeBusIcon(live) }).addTo(map);
+            var spd = (b.speed_kmh != null) ? Number(b.speed_kmh) : 0;
+            var coordStr = plat.toFixed(6) + ', ' + plng.toFixed(6);
+            busMarker.bindPopup(
+                '<b>' + (b.bus_number || 'Bus') + '</b><br>' +
+                'Speed: <strong>' + spd + '</strong> km/h<br>' +
+                '<small style="color:#333;">GPS: ' + coordStr + '</small>' +
+                (stale
+                    ? '<br><span style="color:#ffb74d;">Waiting for fresh GPS…</span>'
+                    : '')
+            );
+            ensureRoutePolyline();
+            fitMapToRouteAndBus(plat, plng);
+            if(stale){
+                showStaleGpsWaitingLine();
+            } else {
+                showAtLineForBus(plat, plng);
+            }
+            var bar = document.getElementById('gpsModalSpeedText');
+            if(bar){
+                bar.innerHTML =
+                    '<div><strong style="color:#FFB300;">' + (b.bus_number || 'TN55L 9003') + '</strong> &nbsp;|&nbsp; Speed: <strong style="font-size:1.05rem;color:#fff;">' + spd + ' km/h</strong> ' +
+                    (stale ? '<span class="badge bg-secondary ms-1">GPS offline</span><span class="badge bg-warning text-dark ms-1">Stale fix</span>' : '<span class="badge bg-success ms-1">GPS live</span>') + '</div>' +
+                    '<div class="small mt-1" style="color:#B0BEC5;font-family:monospace;">Lat ' + plat.toFixed(7) + ' &nbsp; Lon ' + plng.toFixed(7) + '</div>' +
+                    '<div class="small text-white-50 mt-1">Updates every 30s from the server.</div>';
+            }
+        }
+
+        function poll(){
+            fetch('/api/gps/live?origin=' + encodeURIComponent(o) + '&destination=' + encodeURIComponent(d))
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if(!data || data.status !== 'ok' || !data.tracked){
+                    cachedBus = null;
+                    cachedIsLive = false;
+                    updateRowBadge(false, false, null);
+                    var bar = document.getElementById('gpsModalSpeedText');
+                    if(modalOpen && bar) bar.innerHTML = '<span class="badge bg-secondary me-1">GPS offline</span> Live tracking is not enabled for this route search.';
+                    if(modalOpen) hideAtLine();
+                    return;
+                }
+                var buses = data.buses || [];
+                var live = buses.filter(function(x){ return x.live; });
+                var b = live[0] || buses[0];
+                if(b){
+                    cachedBus = b;
+                    cachedIsLive = live.length > 0;
+                } else {
+                    cachedBus = null;
+                    cachedIsLive = false;
+                }
+                var age = (b && b.seconds_since_update != null) ? b.seconds_since_update : null;
+                updateRowBadge(live.length > 0, !!(b && b.latitude != null && b.longitude != null), age);
+                if(modalOpen && map){
+                    if(b) applyBusToMap(b, !live.length);
+                    else {
+                        showKrishnankovilDefault();
+                    }
+                }
+            })
+            .catch(function(){
+                updateRowBadge(false, false, null);
+                if(modalOpen && map){
+                    showKrishnankovilDefault({
+                        statusHtml:
+                            '<div><span class="badge bg-secondary me-1">GPS offline</span> <span class="badge bg-warning text-dark me-1">Map only</span> <strong>Cannot reach GPS server</strong></div>' +
+                            '<div class="small mt-1" style="color:#B0BEC5;font-family:monospace;">Lat 9.5727740 &nbsp; Lon 77.6784730</div>' +
+                            '<div class="small text-white-50 mt-1">Krishnankovil default shown. Check your connection, then reopen the map.</div>'
+                    });
+                }
+            });
+        }
+
+        function afterModalMapReady(){
+            if(!map) return;
+            refreshMapLayout();
+            if(cachedBus){
+                applyBusToMap(cachedBus, !cachedIsLive);
+            } else {
+                showKrishnankovilDefault();
+            }
+            poll();
+            setTimeout(refreshMapLayout, 120);
+            setTimeout(refreshMapLayout, 400);
+        }
+
+        if(modalEl){
+            modalEl.addEventListener('shown.bs.modal', function(){
+                modalOpen = true;
+                initMapOnce();
+                requestAnimationFrame(function(){
+                    requestAnimationFrame(function(){
+                        afterModalMapReady();
+                    });
+                });
+            });
+            modalEl.addEventListener('hidden.bs.modal', function(){ modalOpen = false; });
+        }
+
+        poll();
+        setInterval(poll, 30000);
+    });
+    </script>
+    {% endif %}
+
+    <!-- ── Mode summary chips ── -->
+    <div class="mode-strip">
+        <a href="#sec-govt" class="mode-chip active">
+            <span class="chip-icon">🚌</span>
+            <span>Govt Bus<span class="chip-count">{{ local_buses|length }} found</span></span>
+        </a>
+        <a href="#sec-pvt" class="mode-chip">
+            <span class="chip-icon">🚌</span>
+            <span>Private Bus<span class="chip-count">{{ private_buses|length }} found</span></span>
+        </a>
+        <a href="#sec-train" class="mode-chip">
+            <span class="chip-icon">🚂</span>
+            <span>Train<span class="chip-count">{{ trains|length }} found</span></span>
+        </a>
+        <a href="#sec-flight" class="mode-chip">
+            <span class="chip-icon">✈️</span>
+            <span>Flight<span class="chip-count">{{ flights|length }} found</span></span>
+        </a>
+        <a href="#sec-car" class="mode-chip">
+            <span class="chip-icon">🚗</span>
+            <span>By Car<span class="chip-count">{% if road_info %}~{{ road_info.car_hours }}h {{ road_info.car_mins }}m{% else %}—{% endif %}</span></span>
+        </a>
+        <a href="#sec-bike" class="mode-chip">
+            <span class="chip-icon">🏍️</span>
+            <span>By Bike<span class="chip-count">{% if road_info %}~{{ road_info.bike_hours }}h {{ road_info.bike_mins }}m{% else %}—{% endif %}</span></span>
+        </a>
+    </div>
+
+    <!-- Result summary banner -->
+    <div class="mb-3 py-3 px-4" style="background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-radius:14px;font-size:0.82rem;box-shadow:0 4px 16px rgba(11,31,58,0.2);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <i class="bi bi-signpost-split-fill" style="color:var(--amber);font-size:1.3rem;flex-shrink:0;"></i>
+        <div>
+            <div style="font-family:var(--font-sans);font-weight:700;font-size:0.88rem;">
+                {{ origin }} <span style="color:var(--orange);">→</span> {{ destination }}
+            </div>
+            <div style="color:rgba(255,255,255,0.55);font-size:0.75rem;margin-top:1px;">
+                <strong style="color:var(--amber);">{{ local_buses|length + private_buses|length + trains|length + flights|length }}</strong> scheduled services found
+                {% if road_info %}· Road estimates available{% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if route_tourism and (route_tourism.origin_spots or route_tourism.destination_spots or route_tourism.via_segments) %}
+    <div id="sec-tourism-route" class="ts-route mb-4 p-3 p-md-4">
+        <div class="ts-route__head">
+            <div class="ts-route__icon" aria-hidden="true">&#127958;&#65039;</div>
+            <div class="flex-grow-1" style="min-width:0;">
+                <div class="ts-route__title">Places to explore on this route</div>
+                <p class="ts-route__sub mb-0">Curated highlights for <strong>{{ route_tourism.origin_name }}</strong>, key <strong>via</strong> stops, and <strong>{{ route_tourism.destination_name }}</strong>.</p>
+            </div>
+            <a href="{{ url_for('tourism_page', destination=destination) }}" class="btn btn-sm btn-outline-secondary align-self-center" style="font-size:0.78rem;border-radius:999px;padding:0.35rem 0.9rem;">Guide · {{ destination }}</a>
+        </div>
+        <div class="row g-3">
+            {% if route_tourism.origin_spots %}
+            <div class="col-md-6 col-lg-4">
+                <div class="ts-column">
+                    <div class="ts-column__label ts-column__label--origin"><i class="bi bi-geo-alt-fill"></i> {{ route_tourism.origin_name }}</div>
+                    {% for spot in route_tourism.origin_spots %}
+                        {{ tourism_spot_block(spot, 'origin') }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% for seg in route_tourism.via_segments %}
+            <div class="col-md-6 col-lg-4">
+                <div class="ts-column ts-column--via">
+                    <div class="ts-column__label ts-column__label--via"><i class="bi bi-signpost-split"></i> Via · {{ seg.place }}</div>
+                    {% for spot in seg.spots %}
+                        {{ tourism_spot_block(spot, 'via') }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% if route_tourism.destination_spots %}
+            <div class="col-md-6 col-lg-4">
+                <div class="ts-column">
+                    <div class="ts-column__label ts-column__label--dest"><i class="bi bi-flag-fill"></i> {{ route_tourism.destination_name }}</div>
+                    {% for spot in route_tourism.destination_spots %}
+                        {{ tourism_spot_block(spot, 'dest') }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- ════════════ GOVT BUS ════════════ -->
+    <div id="sec-govt">
+        <div class="sec-header">
+            <span>🚌 &nbsp;Government Buses &nbsp;<small style="color:rgba(255,200,0,0.55);font-weight:400;">(TNSTC · SETC · MTC)</small></span>
+            <span class="cnt">{{ local_buses|length }}</span>
+        </div>
+            {% if local_buses %}
+        <div class="dep-table">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr>
+                        <th>Bus No.</th><th>Operator</th><th>Route</th>
+                        <th>Departs</th><th>Arrives</th><th>Duration</th>
+                        <th>Type</th><th>Fare</th><th>Status</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for b in local_buses %}
+                    <tr class="{% if show_live_bus_map and b.bus_number == 'TN55L 9003' %}gps-tracked-bus{% endif %}">
+                        <td><strong>{{ b.bus_number }}</strong>{% if show_live_bus_map and b.bus_number == 'TN55L 9003' %} <span class="badge bg-warning text-dark" style="font-size:0.65rem;">GPS</span>{% endif %}</td>
+                        <td><span class="op-govt">{{ b.operator }}</span></td>
+                        <td><div class="rc">
+                            <span class="city">{{ b.origin }}</span>
+                            <span class="arr-icon">→</span>
+                            <span class="city">{{ b.destination }}</span>
+                            {% if b.via_stops %}<div class="via">via {{ (b.via_stops or [])|join(', ') }}</div>{% endif %}
+                        </div></td>
+                        <td><span class="t">{{ b.departure_time.strftime('%H:%M') if b.departure_time else '--:--' }}</span></td>
+                        <td><span class="t arr">{{ b.arrival_time.strftime('%H:%M') if b.arrival_time else '--:--' }}</span></td>
+                        <td style="font-size:0.75rem;">
+                            {% if b.departure_time and b.arrival_time %}
+                                {% set d = ((b.arrival_time.hour*60+b.arrival_time.minute)-(b.departure_time.hour*60+b.departure_time.minute)) %}
+                                {% if d < 0 %}{% set d = d+1440 %}{% endif %}
+                                {{ d//60 }}h {{ d%60 }}m
+                            {% else %}–{% endif %}
+                            </td>
+                        <td><small>{{ b.bus_type or 'Ordinary' }}</small></td>
+                        <td><span class="fare">₹{{ b.fare }}</span></td>
+                        <td>
+                            <div class="d-flex flex-column align-items-start gap-1" style="min-width:6.5rem;">
+                                {% if b.status=='running' %}<span class="status-ok">On Time</span>{% elif b.status=='delayed' %}<span class="status-dl">Delayed</span>{% else %}<span class="status-ot">{{ b.status|title }}</span>{% endif %}
+                                {% if show_live_bus_map and b.bus_number == 'TN55L 9003' %}
+                                <button type="button" class="btn btn-gps-live" id="gpsRowLiveBtn" data-bs-toggle="modal" data-bs-target="#busGpsLiveModal" title="GPS offline — open map">
+                                    <span class="gps-live-dot off" id="gpsRowLiveDot"></span><span id="gpsRowLiveLabel">GPS offline</span>
+                                </button>
+                                {% endif %}
+                            </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            {% else %}
+        <div class="empty-board">
+            <i class="bi bi-bus-front"></i>
+            {% if origin and destination %}No government buses found for this route.{% else %}Enter origin &amp; destination to search.{% endif %}
+        </div>
+            {% endif %}
+    </div>
+
+    <!-- ════════════ PRIVATE BUS ════════════ -->
+    <div id="sec-pvt">
+        <div class="sec-header">
+            <span>🚌 &nbsp;Private Bus Operators &nbsp;<small style="color:rgba(255,200,0,0.55);font-weight:400;">(Long distance · AC / Sleeper)</small></span>
+            <span class="cnt">{{ private_buses|length }}</span>
+        </div>
+            {% if private_buses %}
+        <div class="dep-table">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr>
+                        <th>Bus No.</th><th>Operator</th><th>Route</th>
+                        <th>Departs</th><th>Arrives</th><th>Duration</th>
+                        <th>Type</th><th>Fare</th><th>Rating</th><th>Status</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for b in private_buses %}
+                    <tr>
+                        <td><strong>{{ b.bus_number }}</strong></td>
+                        <td><span class="op-pvt">{{ b.operator_name }}</span></td>
+                        <td><div class="rc">
+                            <span class="city">{{ b.origin }}</span><span class="arr-icon">→</span><span class="city">{{ b.destination }}</span>
+                            {% if b.via_stops %}<div class="via">via {{ (b.via_stops or [])|join(', ') }}</div>{% endif %}
+                        </div></td>
+                        <td><span class="t">{{ b.departure_time.strftime('%H:%M') if b.departure_time else '--:--' }}</span></td>
+                        <td><span class="t arr">{{ b.arrival_time.strftime('%H:%M') if b.arrival_time else '--:--' }}</span></td>
+                        <td style="font-size:0.75rem;">
+                            {% if b.duration %}{{ b.duration }}{% elif b.departure_time and b.arrival_time %}
+                                {% set d = ((b.arrival_time.hour*60+b.arrival_time.minute)-(b.departure_time.hour*60+b.departure_time.minute)) %}
+                                {% if d<0 %}{% set d=d+1440 %}{% endif %}{{ d//60 }}h {{ d%60 }}m
+                            {% else %}–{% endif %}
+                            </td>
+                        <td><small>{{ b.bus_type }}</small></td>
+                        <td><span class="fare">₹{{ b.fare }}</span></td>
+                        <td>{% if b.rating>0 %}<span style="color:#F59E0B;font-weight:700;">★ {{ b.rating }}</span>{% else %}–{% endif %}</td>
+                        <td>{% if b.status=='available' %}<span class="status-ok">Available</span>{% elif b.status=='delayed' %}<span class="status-dl">Delayed</span>{% else %}<span class="status-ot">{{ b.status|title }}</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+                                {% else %}
+        <div class="empty-board">
+            <i class="bi bi-bus-front-fill"></i>
+            {% if origin and destination %}No private buses found for this route.{% else %}Enter origin &amp; destination to search.{% endif %}
+        </div>
+                                {% endif %}
+    </div>
+
+    <!-- ════════════ TRAIN ════════════ -->
+    <div id="sec-train">
+        <div class="sec-header" style="background:#881600;">
+            <span>🚂 &nbsp;Train Services &nbsp;<small style="color:rgba(255,200,0,0.55);font-weight:400;">(Live via IRCTC / erail.in)</small></span>
+            <div class="d-flex align-items-center gap-2">
+                {% if origin and destination %}
+                <input type="date" id="trainDatePicker" class="form-control form-control-sm"
+                    style="font-size:0.72rem;padding:2px 6px;max-width:130px;background:#fff;border:none;border-radius:8px;"
+                    value="{{ today_date }}">
+                <button id="btnLiveTrains" onclick="loadLiveTrains()" class="btn btn-sm"
+                    style="background:#FFA000;color:#000;font-weight:700;font-size:0.72rem;padding:2px 10px;border:none;border-radius:10px;">
+                    🔄 Refresh
+                </button>
+                                {% endif %}
+            </div>
+        </div>
+
+        <!-- Station info bar -->
+        {% if origin and destination %}
+        <div id="trainStationBar" style="display:none;background:#FFEBEE;border-left:4px solid #881600;padding:0.6rem 1rem;font-size:0.78rem;color:#881600;"></div>
+                                {% endif %}
+
+        <!-- Boarding-station notice (auto-filled by JS when nearest station is used) -->
+        <div id="boardingNotice" style="display:none;"></div>
+
+        <!-- Live IRCTC result — all trains fetched from erail.in API -->
+        <div id="liveTrainsResult">
+            {% if not origin or not destination %}
+            <div class="empty-board" style="background:#1A0A0A;">
+                <i class="bi bi-train-front" style="color:#ff6b6b;font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                Enter origin &amp; destination above to fetch live train schedules from IRCTC.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ════════════ FLIGHT ════════════ -->
+    <div id="sec-flight" style="margin-top:1.5rem;">
+        <div class="sec-header" style="background:#01579B;">
+            <span>✈️ &nbsp;Flights &nbsp;<small style="color:rgba(255,200,0,0.55);font-weight:400;">(Air services)</small></span>
+            <div class="d-flex align-items-center gap-2">
+                {% if origin and destination %}
+                <button id="btnLiveFlights" onclick="loadLiveFlights()" class="btn btn-sm" style="background:#FFA000;color:#000;font-weight:700;font-size:0.72rem;padding:2px 10px;border:none;border-radius:10px;">
+                    <span id="liveFlightsBtnText">⚡ Load Live Data</span>
+                </button>
+                {% endif %}
+                <span class="cnt">{{ flights|length }}</span>
+            </div>
+        </div>
+
+        <!-- Airport info bar -->
+        {% if origin and destination %}
+        <div id="airportInfoBar" style="display:none;background:#E3F2FD;border-left:4px solid #01579B;padding:0.6rem 1rem;font-size:0.78rem;color:#01579B;"></div>
+        {% endif %}
+
+        <!-- Nearby airports for origin + destination -->
+        {% if origin and destination %}
+        <div id="nearbyFlightAlerts" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <div id="nearbyAirportOrigin"></div>
+            <div id="nearbyAirportDest"></div>
+        </div>
+        {% endif %}
+
+        <!-- Live flights result (injected by JS) -->
+        <div id="liveFlightsResult"></div>
+
+        <!-- DB flights (static) -->
+        {% if flights %}
+        <div class="dep-table">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background:#01579B;"><tr>
+                        <th>Flight No.</th><th>Airline</th><th>From Airport</th><th>To Airport</th>
+                        <th>Departs</th><th>Arrives</th><th>Days</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for f in flights %}
+                    <tr>
+                        <td><span class="op-flight">{{ f.flight_number }}</span></td>
+                        <td><strong>{{ f.airline }}</strong></td>
+                        <td>{{ f.origin_airport }}</td>
+                        <td>{{ f.destination_airport }}</td>
+                        <td><span class="t" style="background:#01579B;">{{ f.departure_time.strftime('%H:%M') if f.departure_time else '--:--' }}</span></td>
+                        <td><span class="t" style="background:#013F6E;">{{ f.arrival_time.strftime('%H:%M') if f.arrival_time else '--:--' }}</span></td>
+                        <td><small>{{ f.days_of_operation or 'Daily' }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            {% else %}
+        <div class="empty-board" style="background:#021B2F;" id="flightEmptyState">
+            <i class="bi bi-airplane" style="color:#64B5F6;"></i>
+            {% if origin and destination %}
+            No scheduled flights in database. Click <strong style="color:var(--amber);">⚡ Load Live Data</strong> above for real-time flights.
+            {% else %}Enter origin &amp; destination to search.{% endif %}
+        </div>
+            {% endif %}
+        </div>
+
+    <!-- ════════════ NEARBY AIRPORTS ════════════ -->
+    <div id="sec-airports" style="margin-top:1.5rem;">
+        <div class="sec-header" style="background:#1565C0;">
+            <span>🛫 &nbsp;Nearby Airports
+                <small style="color:rgba(255,200,0,0.55);font-weight:400;">
+                    {% if origin %} near {{ origin }}{% endif %}
+                </small>
+            </span>
+            <div class="d-flex align-items-center gap-2">
+                <button onclick="detectNearbyAirports()" class="btn btn-sm" style="background:#FFA000;color:#000;font-weight:700;font-size:0.72rem;padding:2px 10px;border:none;border-radius:10px;">
+                    📍 Use My Location
+                </button>
+                <span id="nearbyAirportsCnt" class="cnt" style="background:#1565C0;border:1px solid rgba(255,255,255,0.3);">—</span>
+    </div>
+</div>
+        <div id="nearbyAirportsResult" style="background:#fff;border-radius:0 0 6px 6px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:1.5rem;">
+            <div style="text-align:center;padding:1.5rem;color:#aaa;font-size:0.82rem;">
+                <i class="bi bi-geo-alt" style="font-size:2rem;display:block;margin-bottom:0.5rem;color:#1565C0;"></i>
+                <div>Click <strong>📍 Use My Location</strong> to find airports within 80 km of you,<br>
+                or search a city above to see nearby airports automatically.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════ CAR & BIKE ════════════ -->
+    <div style="margin-top:1.5rem;" id="sec-car">
+        <div class="sec-header" style="background:#2E7D32;">
+            <span>🚗 &nbsp;By Road &nbsp;<small style="color:rgba(255,200,0,0.55);font-weight:400;">(Car &amp; Bike estimated travel times)</small></span>
+        </div>
+        {% if road_info %}
+        <div style="background:#fff;border-radius:0 0 6px 6px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:1.5rem;">
+            <!-- Distance banner -->
+            <div class="text-center mb-3 py-2" style="background:#F1F8E9;border-radius:6px;">
+                <span style="font-size:1.4rem;font-weight:800;color:#2E7D32;">{{ road_info.distance_km }} km</span>
+                <span style="font-size:0.8rem;color:#666;margin-left:0.5rem;">approximate road distance</span>
+                <span style="color:#aaa;margin:0 0.75rem;">|</span>
+                <span style="font-size:0.8rem;color:#888;">{{ origin }} → {{ destination }}</span>
+            </div>
+            <div class="road-cards" id="sec-bike">
+                <!-- Car -->
+                <div class="road-card">
+                    <div class="road-card-header" style="background:#E8F5E9;color:#1B5E20;">
+                        <span class="rc-icon">🚗</span>
+                        <div>
+                            <div>By Car</div>
+                            <div style="font-size:0.68rem;font-weight:400;color:#4CAF50;">Avg speed 60 km/h</div>
+                        </div>
+                    </div>
+                    <div class="road-card-body">
+                        <div class="road-stat">
+                            <span class="rs-val" style="color:#2E7D32;">{{ road_info.car_hours }}</span>
+                            <span class="rs-unit">hr</span>
+                            <span class="rs-val" style="color:#2E7D32;font-size:1.4rem;">{{ road_info.car_mins }}</span>
+                            <span class="rs-unit">min</span>
+                        </div>
+                        <div class="road-sub">Estimated journey time</div>
+                        <div class="road-detail-row">
+                            <span class="label">Distance</span>
+                            <span class="value">{{ road_info.distance_km }} km</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Est. Fuel (petrol)</span>
+                            <span class="value">~₹{{ road_info.car_fuel_cost }}</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Fuel needed</span>
+                            <span class="value">~{{ (road_info.distance_km / 15)|round(1) }} L</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Via (suggested)</span>
+                            <span class="value">National Highway</span>
+                        </div>
+                        <a href="https://www.google.com/maps/dir/{{ origin }}/{{ destination }}" target="_blank"
+                           class="btn btn-success btn-sm w-100 mt-2" style="font-size:0.75rem;font-weight:700;">
+                            <i class="bi bi-map-fill me-1"></i> Open in Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bike -->
+                <div class="road-card">
+                    <div class="road-card-header" style="background:#FFF8E1;color:#E65100;">
+                        <span class="rc-icon">🏍️</span>
+                        <div>
+                            <div>By Bike</div>
+                            <div style="font-size:0.68rem;font-weight:400;color:#FFA000;">Avg speed 40 km/h</div>
+                        </div>
+                    </div>
+                    <div class="road-card-body">
+                        <div class="road-stat">
+                            <span class="rs-val" style="color:var(--orange);">{{ road_info.bike_hours }}</span>
+                            <span class="rs-unit">hr</span>
+                            <span class="rs-val" style="color:var(--orange);font-size:1.4rem;">{{ road_info.bike_mins }}</span>
+                            <span class="rs-unit">min</span>
+                        </div>
+                        <div class="road-sub">Estimated journey time</div>
+                        <div class="road-detail-row">
+                            <span class="label">Distance</span>
+                            <span class="value">{{ road_info.distance_km }} km</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Est. Fuel (petrol)</span>
+                            <span class="value">~₹{{ road_info.bike_fuel_cost }}</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Fuel needed</span>
+                            <span class="value">~{{ (road_info.distance_km / 45)|round(1) }} L</span>
+                        </div>
+                        <div class="road-detail-row">
+                            <span class="label">Best for</span>
+                            <span class="value">{% if road_info.distance_km <= 150 %}Short trips{% else %}Experienced riders only{% endif %}</span>
+                        </div>
+                        <a href="https://www.google.com/maps/dir/{{ origin }}/{{ destination }}" target="_blank"
+                           class="btn btn-warning btn-sm w-100 mt-2 text-dark" style="font-size:0.75rem;font-weight:700;">
+                            <i class="bi bi-map-fill me-1"></i> Open in Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="road-na">
+            <i class="bi bi-car-front" style="font-size:2rem;display:block;margin-bottom:0.5rem;color:#aaa;"></i>
+            {% if origin and destination %}
+            Road distance not available for this route in our database.
+            <br><a href="https://www.google.com/maps/dir/{{ origin }}/{{ destination }}" target="_blank" style="color:var(--orange);">Check on Google Maps →</a>
+            {% else %}
+            Enter origin &amp; destination to see car and bike travel estimates.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ════════════ Book Online ════════════ -->
+    <div class="book-strip">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-box-arrow-up-right" style="color:var(--orange);"></i>
+            <strong style="font-size:0.85rem;color:var(--navy);">Book Online</strong>
+        </div>
+        <div class="row g-2">
+            <div class="col-6 col-md-3">
+                <a href="https://www.redbus.in/{% if origin and destination %}bus-tickets/{{ origin|lower|replace(' ','-') }}-to-{{ destination|lower|replace(' ','-') }}-bus-tickets{% endif %}"
+                   target="_blank" class="btn btn-danger btn-sm w-100 fw-bold">🚌 RedBus</a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="https://www.abhibus.com/" target="_blank" class="btn btn-warning btn-sm w-100 fw-bold text-dark">🚌 AbhiBus</a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="https://www.irctc.co.in/nget/train-search" target="_blank" class="btn btn-dark btn-sm w-100 fw-bold">🚂 IRCTC Trains</a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="https://www.makemytrip.com/flights/" target="_blank" class="btn btn-info btn-sm w-100 fw-bold text-white">✈️ MMT Flights</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <span class="fb">Yatra Saarthi</span> &nbsp;·&nbsp;
+    Designed by <a href="#">Nextlinkers</a> &nbsp;·&nbsp; Design Build Operate &nbsp;·&nbsp; <a href="#">KARE University</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+    /* Live flights panel */
+    .live-flight-card { background:#E3F2FD; border-radius:8px; padding:0.75rem 1rem; margin-bottom:0.6rem; border-left:4px solid #01579B; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .live-flight-card .lf-num { font-family:'Courier New',monospace; font-weight:800; font-size:0.95rem; color:#01579B; min-width:90px; }
+    .live-flight-card .lf-airline { font-size:0.8rem; font-weight:700; color:#333; flex:1; }
+    .live-flight-card .lf-times { display:flex; gap:0.75rem; align-items:center; }
+    .live-flight-card .lf-t { font-family:'Courier New',monospace; font-weight:800; font-size:0.88rem; }
+    .lf-dep { color:#01579B; } .lf-arr { color:#004D90; }
+    .lf-arrow { color:#FFA000; }
+    .lf-status-ok { background:#E8F5E9; color:#2E7D32; border-radius:4px; padding:1px 8px; font-size:0.7rem; font-weight:700; }
+    .lf-status-dl { background:#FFF3E0; color:#E65100; border-radius:4px; padding:1px 8px; font-size:0.7rem; font-weight:700; }
+    .lf-status-ot { background:#EEE; color:#555; border-radius:4px; padding:1px 8px; font-size:0.7rem; font-weight:700; }
+    .lf-delay { color:#E65100; font-size:0.7rem; font-weight:700; }
+
+    /* Airport cards */
+    .airport-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; padding:0.75rem 1rem; margin-bottom:0.6rem; display:flex; align-items:center; gap:1rem; }
+    .airport-card .ap-code { font-family:'Courier New',monospace; font-weight:800; font-size:1.1rem; color:#1565C0; background:#E3F2FD; border-radius:6px; padding:0.25rem 0.6rem; min-width:56px; text-align:center; flex-shrink:0; }
+    .airport-card .ap-info { flex:1; }
+    .airport-card .ap-name { font-weight:700; color:#0D1B2A; font-size:0.85rem; }
+    .airport-card .ap-city { color:#666; font-size:0.73rem; }
+    .airport-card .ap-dist { font-size:0.8rem; font-weight:700; color:#1565C0; text-align:right; white-space:nowrap; }
+    .airport-card .ap-btn { font-size:0.72rem; font-weight:700; }
+
+    /* Spinner */
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:4px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Setup guide */
+    .api-setup-box { background:#FFF8E1; border:1px solid #FFD54F; border-radius:8px; padding:1rem; }
+    .api-setup-box code { background:#fff3cd; padding:2px 6px; border-radius:3px; font-size:0.8rem; }
+</style>
+
+<script>
+/* ── Clock ── */
+function updateClock() {
+    const n = new Date(), el = document.getElementById('liveClock');
+    if(el) el.textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+}
+setInterval(updateClock,1000); updateClock();
+
+/* ── Mode chips ── */
+document.querySelectorAll('.mode-chip').forEach(chip=>{
+    chip.addEventListener('click',function(){ document.querySelectorAll('.mode-chip').forEach(c=>c.classList.remove('active')); this.classList.add('active'); });
+});
+
+/* ── Language ── */
+function googleTranslateInit(){ new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'ta,te,hi,kn,ml,en',autoDisplay:false},'google_translate_element'); }
+function switchLang(lang){
+    document.querySelectorAll('.lang-btns button').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('lang-'+lang); if(btn) btn.classList.add('active');
+    const sel=document.querySelector('.goog-te-combo');
+    if(sel){sel.value=lang;sel.dispatchEvent(new Event('change'));}
+    else{document.cookie='googtrans=/en/'+lang+'; path=/';if(lang!=='en')location.reload();}
+    localStorage.setItem('preferredLang',lang);
+}
+document.addEventListener('DOMContentLoaded',()=>{const s=localStorage.getItem('preferredLang');if(s&&s!=='en')setTimeout(()=>switchLang(s),800);});
+
+/* ════════════════════════════════════════════
+   NEARBY AIRPORT / STATION PANELS
+   — Always shown when a route is searched —
+════════════════════════════════════════════ */
+
+function loadNearbyAirportsPanel(cityName, boxId, usedCode){
+    const box = document.getElementById(boxId);
+    if(!box || !cityName) return;
+    box.innerHTML = `<div style="padding:0.5rem 1rem;font-size:0.75rem;color:#888;">🔍 Looking for airports within 80 km of <em>${cityName}</em>…</div>`;
+
+    fetch(`/api/nearby-airports?city=${encodeURIComponent(cityName)}&radius=80`)
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.airports || !data.airports.length){
+            box.innerHTML = `<div style="padding:0.6rem 1rem;font-size:0.78rem;background:#FFF3E0;border-left:4px solid #FF8F00;">
+                ⚠️ No airports found within 80 km of <strong>${cityName}</strong>.
+            </div>`;
+            return;
+        }
+        const isNearest = !data.airports.some(a => a.code === usedCode);
+        let html = `<div style="background:${isNearest?'#FFF3E0':'#E3F2FD'};border-left:4px solid ${isNearest?'#FF8F00':'#01579B'};padding:0.6rem 1rem;font-size:0.8rem;">`;
+        if(isNearest){
+            html += `<div class="fw-bold mb-2" style="color:#E65100;">⚠️ No direct airport in <strong>${cityName}</strong> — nearest options within 80 km:</div>`;
+        } else {
+            html += `<div class="fw-bold mb-2" style="color:#01579B;">✈️ Airports within 80 km of <strong>${cityName}</strong>:</div>`;
+        }
+        html += `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">`;
+        data.airports.forEach(ap=>{
+            const isUsed = ap.code === usedCode;
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ap.name+', '+ap.city)}`;
+            html += `<div style="${isUsed?'background:#01579B;color:#fff;':'background:#fff;color:#333;border:1px solid #BBDEFB;'}
+                border-radius:8px;padding:4px 12px;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px;">
+                <span style="font-family:monospace;font-weight:800;font-size:0.85rem;">${ap.code}</span>
+                <span>${ap.name}</span>
+                <span style="opacity:0.7;">· ${ap.distance_km} km</span>
+                <a href="${mapsUrl}" target="_blank" style="color:${isUsed?'#90CAF9':'#01579B'};font-size:0.65rem;">📍</a>
+            </div>`;
+        });
+        html += `</div></div>`;
+        box.innerHTML = html;
+    })
+    .catch(()=>{ box.innerHTML=''; });
+}
+
+/* ── helpers for road-to-station estimates ── */
+function roadTime(km, speedKmh){
+    const totalMins = Math.round(km / speedKmh * 60);
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m} min`;
+}
+function fuelCost(km, kmPerLitre, pricePerLitre){
+    return '₹' + Math.round(km / kmPerLitre * pricePerLitre);
+}
+
+function loadNearbyStationsPanel(cityName, boxId, usedCode, noTrainsFound){
+    const box = document.getElementById(boxId);
+    if(!box || !cityName) return;
+    const isOriginBox = boxId === 'nearbyStationOrigin';
+    box.innerHTML = `<div style="padding:0.5rem 1rem;font-size:0.75rem;color:#888;">🔍 Finding stations near <em>${cityName}</em>…</div>`;
+
+    fetch(`/api/nearby-stations?city=${encodeURIComponent(cityName)}&radius=150`)
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.stations || !data.stations.length){
+            box.innerHTML = `<div style="padding:0.75rem 1rem;font-size:0.82rem;background:#FFF8E1;border-left:4px solid #F9A825;border-radius:0 8px 8px 0;">
+                ⚠️ No railway stations found within 150 km of <strong>${cityName}</strong>.
+            </div>`;
+            return;
+        }
+
+        /* If nearest station was used but returned 0 trains → force prominent mode */
+        const hasDirectStation = !noTrainsFound && data.stations.some(s => s.code === usedCode);
+
+        let html = '';
+
+        if(!hasDirectStation){
+            /* ── NO DIRECT STATION: show prominent "how to reach" cards ── */
+            html += `<div style="background:#FFF3E0;border-left:4px solid #E65100;border-radius:0 0 0 0;padding:0.85rem 1.1rem;">
+                <div style="font-family:var(--font-sans);font-weight:700;font-size:0.85rem;color:#BF360C;margin-bottom:0.75rem;">
+                    ⚠️ No direct railway station in <strong>${cityName}</strong>
+                    — here's how to reach the nearest station by road:
+                </div>`;
+
+            /* Show top 3 nearest stations with road-to-station travel cards */
+            data.stations.slice(0, 3).forEach((st, idx) => {
+                const isUsed  = idx === 0;
+                const dist    = parseFloat(st.distance_km);
+                const carTime = roadTime(dist, 60);
+                const bikTime = roadTime(dist, 35);
+                const carFuel = fuelCost(dist, 15, 102);   // car: 15 km/l, ₹102/l petrol
+                const bikFuel = fuelCost(dist, 45, 102);   // bike: 45 km/l
+                const mapsUrl = `https://www.google.com/maps/dir/${encodeURIComponent(cityName)}/${encodeURIComponent(st.name+' Railway Station')}`;
+                const role    = isOriginBox ? 'origin' : 'dest';
+
+                html += `
+                <div style="background:#fff;border:1.5px solid ${isUsed?'#E65100':'#e0e4ec'};border-radius:12px;padding:0.85rem 1rem;margin-bottom:0.6rem;">
+                    <!-- Station name row -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;flex-wrap:wrap;">
+                        <span style="font-family:monospace;font-weight:800;font-size:1rem;background:${isUsed?'#881600':'#FFEBEE'};color:${isUsed?'#fff':'#881600'};padding:3px 10px;border-radius:6px;">
+                            ${st.code}
+                        </span>
+                        <span style="font-weight:700;font-size:0.85rem;color:#1a1a2e;">${st.name}</span>
+                        <span style="font-size:0.72rem;color:#888;margin-left:auto;">${dist} km from ${cityName}</span>
+                        ${isUsed ? `<span style="background:#E8F5E9;color:#2E7D32;border-radius:6px;padding:1px 8px;font-size:0.65rem;font-weight:700;">Nearest</span>` : ''}
+                    </div>
+
+                    <!-- Road travel cards -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem;">
+                        <!-- Car -->
+                        <div style="background:#E8F5E9;border-radius:8px;padding:0.6rem 0.8rem;display:flex;align-items:center;gap:0.6rem;">
+                            <span style="font-size:1.4rem;">🚗</span>
+                            <div>
+                                <div style="font-family:var(--font-sans);font-weight:800;font-size:1rem;color:#2E7D32;line-height:1;">${carTime}</div>
+                                <div style="font-size:0.65rem;color:#555;margin-top:1px;">by Car &nbsp;·&nbsp; ${carFuel} fuel</div>
+                            </div>
+                        </div>
+                        <!-- Bike -->
+                        <div style="background:#FFF8E1;border-radius:8px;padding:0.6rem 0.8rem;display:flex;align-items:center;gap:0.6rem;">
+                            <span style="font-size:1.4rem;">🏍️</span>
+                            <div>
+                                <div style="font-family:var(--font-sans);font-weight:800;font-size:1rem;color:#E65100;line-height:1;">${bikTime}</div>
+                                <div style="font-size:0.65rem;color:#555;margin-top:1px;">by Bike &nbsp;·&nbsp; ${bikFuel} fuel</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button onclick="swapStationAndReload('${st.code}','${st.name}','${role}')"
+                            style="background:#881600;color:#fff;border:none;border-radius:7px;padding:5px 14px;font-size:0.75rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                            🚂 See Trains from ${st.code}
+                        </button>
+                        <a href="${mapsUrl}" target="_blank"
+                            style="background:#1565C0;color:#fff;border-radius:7px;padding:5px 14px;font-size:0.75rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                            📍 Directions
+                        </a>
+                    </div>
+                </div>`;
+            });
+
+            html += `</div>`;
+
+        } else {
+            /* ── DIRECT STATION EXISTS: compact list with road info ── */
+            html += `<div style="background:#FFEBEE;border-left:4px solid #881600;padding:0.75rem 1.1rem;font-size:0.8rem;">
+                <div style="font-family:var(--font-sans);font-weight:700;font-size:0.82rem;color:#881600;margin-bottom:0.6rem;">
+                    🚂 Stations near <strong>${cityName}</strong>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">`;
+
+            data.stations.forEach(st => {
+                const isUsed  = st.code === usedCode;
+                const dist    = parseFloat(st.distance_km);
+                const carTime = roadTime(dist, 60);
+                const bikTime = roadTime(dist, 35);
+                const mapsUrl = `https://www.google.com/maps/dir/${encodeURIComponent(cityName)}/${encodeURIComponent(st.name+' Railway Station')}`;
+                const role    = isOriginBox ? 'origin' : 'dest';
+
+                html += `<div style="${isUsed?'background:#881600;color:#fff;':'background:#fff;color:#333;border:1px solid #FFCDD2;'}
+                    border-radius:8px;padding:5px 10px;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+                    <span style="font-family:monospace;font-weight:800;">${st.code}</span>
+                    <span>${st.name}</span>
+                    <span style="opacity:0.7;font-size:0.68rem;white-space:nowrap;">· ${dist} km · 🚗 ${carTime} · 🏍️ ${bikTime}</span>
+                    ${!isUsed
+                        ? `<button onclick="swapStationAndReload('${st.code}','${st.name}','${role}')"
+                            style="background:#881600;color:#fff;border:none;border-radius:5px;padding:1px 7px;font-size:0.65rem;cursor:pointer;">
+                            🚂 Trains
+                          </button>`
+                        : `<span style="font-size:0.65rem;opacity:0.8;">✓ active</span>`}
+                    <a href="${mapsUrl}" target="_blank" style="color:${isUsed?'#FFCDD2':'#881600'};font-size:0.65rem;">📍</a>
+                </div>`;
+            });
+
+            html += `</div></div>`;
+        }
+
+        box.innerHTML = html;
+    })
+    .catch(()=>{ box.innerHTML=''; });
+}
+
+/* Called when user clicks "🚂 Trains" on an alternate nearby station */
+function swapStationAndReload(stationCode, stationName, role){
+    const origin      = "{{ origin }}";
+    const destination = "{{ destination }}";
+    const datePicker  = document.getElementById('trainDatePicker');
+    const date        = datePicker ? datePicker.value : '';
+
+    const resultDiv  = document.getElementById('liveTrainsResult');
+    const stationBar = document.getElementById('trainStationBar');
+    const btn        = document.getElementById('btnLiveTrains');
+
+    resultDiv.innerHTML = `<div style="background:#FFEBEE;padding:1rem 1.2rem;text-align:center;font-size:0.82rem;color:#881600;">
+        <span class="spinner" style="border-color:rgba(136,22,0,0.2);border-top-color:#881600;width:18px;height:18px;"></span>
+        &nbsp; Fetching trains from <strong>${stationCode} — ${stationName}</strong>…
+        <br><small style="color:#aaa;">This may take up to 20 seconds</small>
+    </div>`;
+    if(btn){ btn.innerHTML='<span class="spinner"></span> Loading…'; btn.disabled=true; }
+
+    const fromCode = role === 'origin'      ? stationCode : null;
+    const toCode   = role === 'dest'        ? stationCode : null;
+    const fromCity = role === 'origin'      ? stationCode : origin;
+    const toCity   = role === 'dest'        ? stationCode : destination;
+
+    let url = `/api/live-trains?origin=${encodeURIComponent(fromCity)}&destination=${encodeURIComponent(toCity)}`;
+    if(date) url += `&date=${date}`;
+
+    fetch(url)
+    .then(r=>r.json())
+    .then(data=>{
+        if(btn){ btn.disabled=false; btn.innerHTML='✅ Live'; }
+        if(stationBar && data.from_code && data.to_code){
+            stationBar.innerHTML = `🚂 &nbsp;<strong>${data.from_code}</strong> ${data.from_name||''} &nbsp;→&nbsp; <strong>${data.to_code}</strong> ${data.to_name||''}`;
+            stationBar.style.display='block';
+        }
+        renderTrainResults(data, resultDiv, origin, destination);
+    })
+    .catch(err=>{
+        if(btn){ btn.innerHTML='⚡ Retry'; btn.disabled=false; }
+        resultDiv.innerHTML=`<div class="alert alert-danger m-2">❌ ${err.message}</div>`;
+    });
+}
+
+/* Shared function to render train results table */
+function renderTrainResults(data, resultDiv, origin, destination){
+    const emptyEl = document.getElementById('trainEmptyState');
+    if(emptyEl) emptyEl.style.display='none';
+
+    if(!data.trains || !data.trains.length){
+        resultDiv.innerHTML=`<div style="background:#1A0A0A;border-radius:0 0 6px 6px;text-align:center;padding:2rem 1.5rem;">
+            <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:0.75rem;">
+                🚂 &nbsp;No direct trains found from <strong style="color:#FFA000;">${data.from_code||'—'}</strong> to <strong style="color:#FFA000;">${data.to_code||'—'}</strong> on ${data.date||'today'}.
+            </div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.35);margin-bottom:1rem;">
+                Try a nearby station below, or check IRCTC directly.
+            </div>
+            <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                <a href="https://www.irctc.co.in/nget/train-search" target="_blank"
+                   style="background:#881600;color:#fff;border-radius:7px;padding:6px 14px;font-size:0.78rem;font-weight:700;text-decoration:none;">
+                    🚂 Search on IRCTC →
+                </a>
+                <a href="#sec-car"
+                   style="background:#2E7D32;color:#fff;border-radius:7px;padding:6px 14px;font-size:0.78rem;font-weight:700;text-decoration:none;">
+                    🚗 See Car / Bike Options ↓
+                </a>
+            </div>
+        </div>`;
+        return;
+    }
+
+    const boardStn  = data.from_code || '';
+    const boardName = data.from_name || boardStn;
+    const destStn   = data.to_code   || '';
+
+    let html=`<div style="background:#fff;border-radius:0 0 6px 6px;padding:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <div style="font-size:0.78rem;color:#881600;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">
+        ⚡ ${data.count} train(s) available — ${data.date||'today'}
+        <span style="font-weight:400;color:#555;text-transform:none;letter-spacing:0;margin-left:0.5rem;">
+            Board at <strong>${boardStn}</strong> · ${boardName}
+        </span>
+    </div>
+    <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.8rem;">
+    <thead style="background:#881600;color:#fff;"><tr>
+        <th>Train No.</th><th>Train Name</th><th>Type</th>
+        <th>Departs<br><small style="font-weight:400;opacity:0.8;">from ${boardStn}</small></th>
+        <th>Arrives<br><small style="font-weight:400;opacity:0.8;">at ${destStn}</small></th>
+        <th>Duration</th><th>Classes</th><th>Runs On</th><th>Book</th>
+    </tr></thead><tbody>`;
+
+    data.trains.forEach(t=>{
+        const days    = Array.isArray(t.run_days) ? t.run_days.join(', ') : (t.run_days||'Daily');
+        const classes = Array.isArray(t.classes)  ? t.classes.join(' · ') : (t.classes||'');
+        const ttype   = t.train_type ? `<span style="font-size:0.65rem;background:#FFEBEE;color:#881600;border-radius:3px;padding:1px 5px;">${t.train_type}</span>` : '';
+        /* Show train's actual origin only when it differs from boarding station */
+        const originNote = (t.train_origin_code && t.train_origin_code !== boardStn)
+            ? `<br><small style="color:#aaa;font-size:0.65rem;">Originates from ${t.train_origin_code}</small>`
+            : '';
+        html+=`<tr>
+            <td><span class="op-train">${t.number}</span></td>
+            <td><strong>${t.name}</strong>${originNote}${t.distance?`<br><small style="color:#aaa;">${t.distance} km</small>`:''}</td>
+            <td>${ttype}</td>
+            <td><span class="t" style="background:#881600;">${t.dep_time||'--:--'}</span></td>
+            <td><span class="t" style="background:#5D1010;">${t.arr_time||'--:--'}</span></td>
+            <td style="white-space:nowrap;">${t.duration||'—'}</td>
+            <td style="font-size:0.7rem;color:#333;">${classes}</td>
+            <td style="font-size:0.7rem;">${days}</td>
+            <td><a href="https://www.irctc.co.in/nget/train-search" target="_blank" class="btn btn-danger btn-sm" style="font-size:0.65rem;padding:2px 7px;font-weight:700;">Book</a></td>
+        </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+    resultDiv.innerHTML=html;
+}
+
+/* ════════════════════════════════════════════
+   LIVE TRAINS (IRCTC)
+════════════════════════════════════════════ */
+function loadLiveTrains(){
+    const origin      = "{{ origin }}";
+    const destination = "{{ destination }}";
+    const btn         = document.getElementById('btnLiveTrains');
+    const resultDiv   = document.getElementById('liveTrainsResult');
+    const stationBar  = document.getElementById('trainStationBar');
+    const datePicker  = document.getElementById('trainDatePicker');
+
+    if(!origin || !destination) return;
+
+    const date = datePicker ? datePicker.value : '';
+    if(btn){ btn.innerHTML='<span class="spinner"></span> Loading…'; btn.disabled=true; }
+    resultDiv.innerHTML=`<div style="background:#FFEBEE;padding:1rem 1.2rem;text-align:center;font-size:0.82rem;color:#881600;">
+        <span class="spinner" style="border-color:rgba(136,22,0,0.2);border-top-color:#881600;width:18px;height:18px;"></span>
+        &nbsp; Fetching IRCTC trains <strong>${origin}</strong> → <strong>${destination}</strong>…
+        <br><small style="color:#aaa;margin-top:4px;display:block;">This may take up to 30 seconds — please wait</small>
+    </div>`;
+
+    let url = `/api/live-trains?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+    if(date) url += `&date=${date}`;
+
+    fetch(url)
+    .then(r=>r.json())
+    .then(data=>{
+        if(btn){ btn.disabled=false; }
+
+        // Station info bar — show which station is being used
+        const boardingNotice = document.getElementById('boardingNotice');
+        if(data.from_code && data.to_code){
+            const distTag = data.from_nearest_dist
+                ? ` &nbsp;<span style="background:#FFF3E0;color:#E65100;border-radius:4px;padding:1px 6px;font-size:0.7rem;">&#128205; ${data.from_nearest_dist} km from ${data.origin_city}</span>`
+                : '';
+            if(stationBar){
+                stationBar.innerHTML = `&#128642; &nbsp;<strong>${data.from_code}</strong> ${data.from_name}${distTag} &nbsp;&rarr;&nbsp; <strong>${data.to_code}</strong> ${data.to_name}`;
+                stationBar.style.display = 'block';
+            }
+
+            if(boardingNotice){
+                if(data.station_switched){
+                    /* Case: original station (e.g. SVPR) returned 0 trains →
+                       system retried and found trains from a nearby station (e.g. VPT) */
+                    boardingNotice.style.display = 'block';
+                    boardingNotice.innerHTML =
+                        `<div style="background:#FFF8E1;border-left:4px solid #FFA000;padding:0.75rem 1.25rem;font-size:0.82rem;color:#555;margin-bottom:0.25rem;display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;">
+                            <span style="font-size:1.1rem;">&#9888;&#65039;</span>
+                            <span>
+                                <strong style="color:#E65100;">Trains from ${data.original_from_name} (${data.original_from_code}) are not available</strong>
+                                between <strong>${data.original_from_code}</strong> and <strong>${data.to_code}</strong>.
+                                &nbsp;&#8594;&nbsp;
+                                Showing trains from the nearest available station:
+                                <strong style="color:#1565C0;">${data.from_name} (${data.from_code})</strong>
+                                ${data.from_nearest_dist ? `— ${data.from_nearest_dist} km away` : ''}.
+                                Departure times below are from <strong>${data.from_code}</strong>.
+                            </span>
+                        </div>`;
+                } else if(data.from_nearest_used){
+                    /* Case: city has no direct station, using nearest */
+                    boardingNotice.style.display = 'block';
+                    boardingNotice.innerHTML =
+                        `<div style="background:#E3F2FD;border-left:4px solid #1565C0;padding:0.6rem 1rem;font-size:0.8rem;color:#0D47A1;margin-bottom:0.25rem;">
+                            &#128649; &nbsp;No direct station in <strong>${data.origin_city}</strong> &mdash;
+                            showing trains from nearest station &nbsp;<strong>${data.from_code} &middot; ${data.from_name}</strong>&nbsp;
+                            (${data.from_nearest_dist} km away). Depart times below are from <strong>${data.from_code}</strong>.
+                        </div>`;
+                } else {
+                    boardingNotice.style.display = 'none';
+                }
+            }
+        }
+
+        if(data.status==='no_key'){
+            if(btn) btn.innerHTML='⚡ Live IRCTC';
+            resultDiv.innerHTML=`
+            <div class="api-setup-box m-2" style="background:#FFF3E0;border-color:#FF8F00;">
+                <div class="fw-bold mb-2" style="color:#E65100;">🚂 IRCTC RapidAPI Key Required</div>
+                <p style="font-size:0.8rem;color:#555;margin-bottom:0.75rem;">
+                    Get a <strong>free</strong> IRCTC API key from RapidAPI (100 free calls/month):
+                </p>
+                <ol style="font-size:0.78rem;color:#444;line-height:1.9;">
+                    <li>Visit <a href="https://rapidapi.com/IRCTCAPI/api/irctc1" target="_blank" style="color:#881600;font-weight:700;">rapidapi.com/IRCTCAPI/api/irctc1</a></li>
+                    <li>Click <strong>Subscribe to Test</strong> → choose the <strong>Basic (Free)</strong> plan</li>
+                    <li>Copy your <code>X-RapidAPI-Key</code> from the header section</li>
+                    <li>Set env variable: <code>IRCTC_RAPIDAPI_KEY=your_key</code> and restart app</li>
+                </ol>
+                <a href="https://www.irctc.co.in/nget/train-search" target="_blank" class="btn btn-danger btn-sm mt-2 text-white fw-bold">
+                    🚂 Search on IRCTC.co.in →
+                </a>
+            </div>`;
+            return;
+        }
+
+        if(data.status==='no_station'){
+            if(btn) btn.innerHTML='⚡ Live IRCTC';
+            resultDiv.innerHTML=`<div style="background:#FFF8E1;border-left:4px solid #FFA000;padding:0.75rem 1rem;font-size:0.82rem;color:#555;">
+                ⚠️ ${data.message}
+                <br><a href="https://www.irctc.co.in/nget/train-search" target="_blank" style="color:#881600;font-weight:700;">Search on IRCTC.co.in →</a>
+            </div>`;
+            return;
+        }
+
+        if(data.status==='error' || data.status==='api_error'){
+            if(btn) btn.innerHTML='⚡ Retry';
+            resultDiv.innerHTML=`<div class="alert alert-danger m-2" style="font-size:0.8rem;">❌ ${data.message}</div>`;
+            return;
+        }
+
+        if(btn) btn.innerHTML='✅ Live';
+        renderTrainResults(data, resultDiv, origin, destination);
+    })
+    .catch(err=>{
+        if(btn){ btn.innerHTML='⚡ Retry'; btn.disabled=false; }
+        resultDiv.innerHTML=`<div class="alert alert-danger m-2" style="font-size:0.8rem;">❌ Network error: ${err.message}</div>`;
+    });
+}
+
+/* ════════════════════════════════════════════
+   LIVE FLIGHTS
+════════════════════════════════════════════ */
+function fmt(dtStr){
+    if(!dtStr) return '--:--';
+    try{
+        const d = new Date(dtStr);
+        /* The API timestamps include +05:30 offset for Indian airports, so
+           toLocaleTimeString with IST is the safest conversion */
+        return d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Kolkata'});
+    } catch{ return '--:--'; }
+}
+
+function loadLiveFlights(){
+    const origin      = "{{ origin }}";
+    const destination = "{{ destination }}";
+    const btn       = document.getElementById('btnLiveFlights');
+    const resultDiv = document.getElementById('liveFlightsResult');
+    const infoBar   = document.getElementById('airportInfoBar');
+
+    if(!origin || !destination) return;
+
+    if(btn){ btn.innerHTML = '<span class="spinner"></span> Loading…'; btn.disabled = true; }
+    resultDiv.innerHTML = `<div style="background:#E3F2FD;padding:1rem 1.2rem;text-align:center;font-size:0.82rem;color:#01579B;">
+        <span class="spinner" style="border-color:rgba(1,87,155,0.2);border-top-color:#01579B;width:18px;height:18px;"></span>
+        &nbsp; Fetching live flights from <strong>${origin}</strong> → <strong>${destination}</strong>…
+    </div>`;
+
+    fetch(`/api/live-flights?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`)
+    .then(r=>r.json())
+    .then(data=>{
+        if(btn){ btn.disabled = false; }
+
+        // Show airport info bar + nearby panels for nearest-used
+        if(data.dep_airport || data.arr_airport){
+            const dep = data.dep_airport
+                ? `<strong>${data.dep_airport.code}</strong> ${data.dep_airport.name}`
+                : (data.origin_city || 'Origin');
+            const arr = data.arr_airport
+                ? `<strong>${data.arr_airport.code}</strong> ${data.arr_airport.name}`
+                : (data.dest_city || 'Destination');
+            if(infoBar){
+                infoBar.innerHTML = `✈️ &nbsp;${dep} &nbsp;→&nbsp; ${arr}`;
+                infoBar.style.display = 'block';
+            }
+        }
+
+        // Always show nearby airports for both cities
+        const depCode = data.dep_airport ? data.dep_airport.code : null;
+        const arrCode = data.arr_airport ? data.arr_airport.code : null;
+        loadNearbyAirportsPanel(data.origin_city || origin, 'nearbyAirportOrigin', depCode);
+        loadNearbyAirportsPanel(data.dest_city   || destination, 'nearbyAirportDest',   arrCode);
+
+        if(data.status==='no_key'){
+            if(btn) btn.innerHTML='⚡ Load Live Data';
+            resultDiv.innerHTML=`
+            <div class="api-setup-box m-2">
+                <div class="fw-bold mb-2" style="color:#E65100;">⚙️ API Key Required for Live Flight Data</div>
+                <p style="font-size:0.8rem;color:#555;margin-bottom:0.75rem;">
+                    To show real-time flights, add a free AviationStack API key:
+                </p>
+                <ol style="font-size:0.78rem;color:#444;line-height:1.8;">
+                    <li>Go to <a href="https://aviationstack.com/signup/free" target="_blank" style="color:#01579B;font-weight:700;">aviationstack.com/signup/free</a> and sign up (free)</li>
+                    <li>Copy your API key from the dashboard</li>
+                    <li>Set it as an environment variable: <code>AVIATIONSTACK_KEY=your_key_here</code></li>
+                    <li>Restart the app — live flights will appear automatically</li>
+                </ol>
+                <div style="font-size:0.75rem;color:#888;margin-top:0.5rem;">Free plan: 100 requests/month. No credit card required.</div>
+                <a href="https://www.makemytrip.com/flights/" target="_blank" class="btn btn-info btn-sm mt-2 text-white fw-bold">
+                    ✈️ Search flights on MakeMyTrip instead →
+                </a>
+            </div>`;
+            return;
+        }
+
+        if(data.status==='no_airport'){
+            if(btn) btn.innerHTML='⚡ Load Live Data';
+            resultDiv.innerHTML=`<div style="background:#FFF8E1;border-left:4px solid #FFA000;padding:0.75rem 1rem;font-size:0.82rem;color:#555;">
+                ⚠️ ${data.message}
+                <br><a href="https://www.makemytrip.com/flights/" target="_blank" style="color:#01579B;font-weight:700;">Search on MakeMyTrip →</a>
+            </div>`;
+            loadNearbyAirportsPanel(origin, 'nearbyAirportOrigin', null);
+            loadNearbyAirportsPanel(destination, 'nearbyAirportDest', null);
+            return;
+        }
+
+        if(data.status==='error'){
+            if(btn) btn.innerHTML='⚡ Retry';
+            resultDiv.innerHTML=`<div class="alert alert-danger m-2" style="font-size:0.8rem;">❌ Error fetching live flights: ${data.message}</div>`;
+            return;
+        }
+
+        if(btn) btn.innerHTML='✅ Live';
+
+        if(!data.flights || data.flights.length===0){
+            const emptyEl = document.getElementById('flightEmptyState');
+            if(emptyEl) emptyEl.style.display='none';
+            resultDiv.innerHTML=`
+            <div style="background:#021B2F;border-radius:0 0 6px 6px;text-align:center;padding:2rem;color:rgba(255,255,255,0.4);font-size:0.82rem;">
+                ✈️ &nbsp;No live flights currently operating on this route.
+                <br><a href="https://www.makemytrip.com/flights/" target="_blank" style="color:#FFA000;">Book on MakeMyTrip →</a>
+            </div>`;
+            return;
+        }
+
+        // Build live flight cards
+        const emptyEl = document.getElementById('flightEmptyState');
+        if(emptyEl) emptyEl.style.display='none';
+
+        let html=`<div style="background:#fff;border-radius:0 0 6px 6px;padding:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div class="fw-bold mb-2" style="font-size:0.75rem;color:#01579B;text-transform:uppercase;letter-spacing:0.05em;">
+            ⚡ Live Flight Data — ${data.count} flight(s) found
+        </div>`;
+
+        data.flights.forEach(f=>{
+            const depTime = fmt(f.dep_scheduled);
+            const arrTime = fmt(f.arr_scheduled);
+            const delay   = f.dep_delay > 0 ? `<span class="lf-delay">+${f.dep_delay}m delay</span>` : '';
+            const status  = f.status.toLowerCase();
+            let statusBadge = `<span class="lf-status-ot">${f.status}</span>`;
+            if(status.includes('active')||status.includes('en route')) statusBadge=`<span class="lf-status-ok">In Air</span>`;
+            else if(status.includes('land')) statusBadge=`<span class="lf-status-ok">Landed</span>`;
+            else if(status.includes('depart')) statusBadge=`<span class="lf-status-ok">Departed</span>`;
+            else if(status.includes('delay')) statusBadge=`<span class="lf-status-dl">Delayed</span>`;
+            else if(status.includes('cancel')) statusBadge=`<span class="lf-status-dl">Cancelled</span>`;
+            const gate = f.gate_dep ? `Gate ${f.gate_dep}` : '';
+            const term = f.terminal_dep ? `T${f.terminal_dep}` : '';
+
+            html+=`<div class="live-flight-card">
+                <div class="lf-num">${f.flight_number||'—'}</div>
+                <div class="lf-airline">${f.airline||'—'}${term?'<br><small style="color:#aaa;">'+term+'</small>':''}</div>
+                <div class="lf-times">
+                    <span class="lf-t lf-dep">${depTime}</span>
+                    <span class="lf-arrow">→</span>
+                    <span class="lf-t lf-arr">${arrTime}</span>
+                </div>
+                <div>${statusBadge} ${delay}</div>
+                ${gate?`<div style="font-size:0.7rem;color:#888;">${gate}</div>`:''}
+            </div>`;
+        });
+        html+='</div>';
+        resultDiv.innerHTML=html;
+    })
+    .catch(err=>{
+        if(btn){ btn.innerHTML='⚡ Retry'; btn.disabled=false; }
+        resultDiv.innerHTML=`<div class="alert alert-danger m-2" style="font-size:0.8rem;">❌ Network error: ${err.message}</div>`;
+    });
+}
+
+/* ════════════════════════════════════════════
+   NEARBY AIRPORTS
+════════════════════════════════════════════ */
+function renderAirports(data){
+    const cnt = document.getElementById('nearbyAirportsCnt');
+    const box = document.getElementById('nearbyAirportsResult');
+    if(cnt) cnt.textContent = data.airports.length+' found';
+
+    if(!data.airports.length){
+        box.innerHTML=`<div style="text-align:center;padding:1.5rem;color:#aaa;font-size:0.82rem;">
+            <i class="bi bi-airplane" style="font-size:2rem;display:block;margin-bottom:0.5rem;color:#1565C0;opacity:0.4;"></i>
+                No airports found within 80 km radius.
+        </div>`;
+        return;
+    }
+
+    let html='<div class="row g-2">';
+    data.airports.forEach(ap=>{
+        const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ap.name+', '+ap.city)}`;
+        html+=`<div class="col-md-6">
+        <div class="airport-card">
+            <div class="ap-code">${ap.code}</div>
+            <div class="ap-info">
+                <div class="ap-name">${ap.name}</div>
+                <div class="ap-city">📍 ${ap.city} &nbsp;·&nbsp; Terminal: ${ap.terminal||'Main'}</div>
+            </div>
+            <div class="text-end">
+                <div class="ap-dist">${ap.distance_km} km</div>
+                <a href="${mapsUrl}" target="_blank" class="btn btn-outline-primary btn-sm ap-btn mt-1">
+                    <i class="bi bi-map-fill"></i> Map
+                </a>
+            </div>
+        </div></div>`;
+    });
+    html+='</div>';
+    box.innerHTML=html;
+}
+
+function loadAirportsByCity(cityName){
+    if(!cityName) return;
+    fetch(`/api/nearby-airports?city=${encodeURIComponent(cityName.toLowerCase())}&radius=80`)
+    .then(r=>r.json())
+    .then(data=>{
+        if(data.airports && data.airports.length) renderAirports(data);
+    })
+    .catch(()=>{});
+}
+
+function detectNearbyAirports(){
+    const box = document.getElementById('nearbyAirportsResult');
+    const cnt = document.getElementById('nearbyAirportsCnt');
+    if(!navigator.geolocation){
+        box.innerHTML=`<div class="alert alert-warning" style="font-size:0.8rem;">Your browser does not support geolocation.</div>`;
+        return;
+    }
+    box.innerHTML=`<div style="text-align:center;padding:1.5rem;color:#1565C0;font-size:0.82rem;">
+        <span class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:#1565C0;width:22px;height:22px;"></span>
+        &nbsp;Detecting your location…
+    </div>`;
+    if(cnt) cnt.textContent='…';
+
+    navigator.geolocation.getCurrentPosition(
+        pos=>{
+            const {latitude:lat, longitude:lng} = pos.coords;
+            fetch(`/api/nearby-airports?lat=${lat}&lng=${lng}&radius=80`)
+            .then(r=>r.json())
+            .then(renderAirports)
+            .catch(e=>{ box.innerHTML=`<div class="alert alert-danger" style="font-size:0.8rem;">Error: ${e.message}</div>`; });
+        },
+        err=>{
+            box.innerHTML=`<div class="alert alert-warning" style="font-size:0.8rem;">
+                ⚠️ Location access denied. 
+                ${`{{ origin }}`? `Showing airports near <strong>{{ origin }}</strong> instead.` : 'Enter an origin city and search to see nearby airports.'}
+            </div>`;
+            // Fallback: load for searched origin
+            if("{{ origin }}") loadAirportsByCity("{{ origin }}");
+        }
+    );
+}
+
+/* Auto-load on page load */
+document.addEventListener('DOMContentLoaded', ()=>{
+    const origin = "{{ origin }}";
+    const destination = "{{ destination }}";
+
+    /* Auto-load nearby airports (bottom section) */
+    if(origin) loadAirportsByCity(origin);
+
+    /* Auto-load nearby airport panels immediately (always show for flights) */
+    if(origin && destination){
+        loadNearbyAirportsPanel(origin,      'nearbyAirportOrigin', null);
+        loadNearbyAirportsPanel(destination, 'nearbyAirportDest',   null);
+        /* Nearby stations are loaded ONLY inside loadLiveTrains
+           — shown only when no direct station is found */
+    }
+
+    /* Auto-load live trains & flights */
+    if(origin && destination) {
+        setTimeout(loadLiveTrains,  400);
+        setTimeout(loadLiveFlights, 800);
+    }
+
+    /* Set today's date on the date picker */
+    const dp = document.getElementById('trainDatePicker');
+    if(dp && !dp.value){
+        const today = new Date();
+        dp.value = today.toISOString().split('T')[0];
+    }
+});
+</script>
+</body>
+</html>

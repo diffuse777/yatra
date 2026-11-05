@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Route Map – Yatra Saarthi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <!-- Google Translate -->
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit" async></script>
+    <style>
+        * { font-family: Verdana, Tahoma, Geneva, sans-serif !important; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+        }
+        #translate-fab { position:fixed; bottom:80px; right:20px; z-index:9999; }
+        #translate-fab .fab-btn { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#4285f4,#34a853); color:white; border:none; box-shadow:0 4px 16px rgba(0,0,0,0.4); font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
+        #translate-fab .fab-btn:hover { transform:scale(1.1); }
+        #translate-panel { display:none; background:rgba(30,30,50,0.97); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:1rem; margin-bottom:0.6rem; min-width:200px; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+        #translate-panel .lang-opt { display:block; width:100%; text-align:left; padding:0.4rem 0.8rem; margin-bottom:0.3rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; cursor:pointer; font-size:0.9rem; transition:background 0.15s; }
+        #translate-panel .lang-opt:hover, #translate-panel .lang-opt.active { background:rgba(66,133,244,0.4); }
+        .goog-te-banner-frame, #goog-te-banner-frame { display:none !important; }
+        body { top:0 !important; }
+        .skiptranslate { display:none !important; }
+        #map { height: 520px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.2); }
+        .glass-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+        }
+        .station-badge {
+            background: rgba(0,170,255,0.2);
+            border: 1px solid rgba(0,170,255,0.4);
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .train-row {
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 0.8rem;
+            margin-bottom: 0.6rem;
+            border-left: 4px solid #00aaff;
+            transition: background 0.2s;
+        }
+        .train-row:hover { background: rgba(255,255,255,0.12); }
+        footer { background: rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('passengers_home') }}">
+            <i class="bi bi-bus-front"></i> Yatra Saarthi
+        </a>
+        <!-- Language buttons always visible -->
+        <div class="btn-group ms-auto me-2 flex-shrink-0">
+            <button class="btn btn-warning btn-sm active" id="lang-en" onclick="switchLang('en')">
+                <i class="bi bi-translate"></i> EN
+            </button>
+            <button class="btn btn-outline-warning btn-sm" id="lang-ta" onclick="switchLang('ta')">
+                தமிழ்
+            </button>
+            <button class="btn btn-outline-warning btn-sm" id="lang-te" onclick="switchLang('te')">
+                తెలుగు
+            </button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navTrainMap">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navTrainMap">
+            <div class="ms-auto d-flex gap-2 align-items-center">
+                <a href="{{ url_for('passenger_timetables') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-compass"></i> Plan Trip
+                </a>
+                <a href="{{ url_for('weather_page') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-cloud-sun"></i> Weather
+                </a>
+                <a href="{{ url_for('tourism_page') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-camera"></i> Tourism
+                </a>
+                <a href="{{ url_for('passenger_timetables') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-clock-history"></i> Timetable
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h1><i class="bi bi-train-front-fill text-info"></i> Train Route Map</h1>
+        <p class="opacity-75">Visualize train routes across Tamil Nadu & Karnataka</p>
+    </div>
+
+    <!-- Route Selector -->
+    <div class="glass-card p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-white-50">From Station / City</label>
+                <select name="origin" class="form-select" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+                    <option value="" style="background:#1a1a2e;">-- Select Origin --</option>
+                    {% for p in places %}
+                    <option value="{{ p }}" {% if p == origin %}selected{% endif %} style="background:#1a1a2e;color:#fff;">{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-white-50">To Station / City</label>
+                <select name="destination" class="form-select" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+                    <option value="" style="background:#1a1a2e;">-- Select Destination --</option>
+                    {% for p in places %}
+                    <option value="{{ p }}" {% if p == destination %}selected{% endif %} style="background:#1a1a2e;color:#fff;">{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-info w-100">
+                    <i class="bi bi-map"></i> Show Route
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Map -->
+    <div class="glass-card p-3 mb-4">
+        <div id="map"></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Nearest Railway Stations -->
+        <div class="col-md-5">
+            <div class="glass-card p-4 h-100">
+                <h5 class="mb-3"><i class="bi bi-train-front text-info"></i> Railway Stations</h5>
+                {% set stations = {
+                    'Krishnankovil': 'Srivilliputhur (~15 km)',
+                    'Sivakasi': 'Sivakasi (~10 km)',
+                    'Srivilliputhur': 'Srivilliputhur (Direct)',
+                    'Tirumangalam': 'Tirumangalam / Madurai',
+                    'Tenkasi': 'Tenkasi (Direct)',
+                    'Rajapalayam': 'Rajapalayam (~25 km to Virudhunagar)',
+                    'Madurai': 'Madurai Junction',
+                    'Dindigul': 'Dindigul Junction',
+                    'Salem': 'Salem Junction',
+                    'Erode': 'Erode Junction',
+                    'Tiruppur': 'Tiruppur',
+                    'Hosur': 'Hosur',
+                    'Chennai': 'Chennai Central / Egmore',
+                    'Bengaluru': 'Bengaluru City / Yesvantpur'
+                } %}
+                {% if origin %}
+                <div class="mb-3">
+                    <small class="text-info text-uppercase fw-bold">Origin</small>
+                    <div class="station-badge mt-1">
+                        <span>📍 {{ origin }}</span>
+                        <span class="badge bg-primary">{{ stations.get(origin, 'Nearest Junction') }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% if destination %}
+                <div class="mb-3">
+                    <small class="text-info text-uppercase fw-bold">Destination</small>
+                    <div class="station-badge mt-1">
+                        <span>🎯 {{ destination }}</span>
+                        <span class="badge bg-success">{{ stations.get(destination, 'Nearest Junction') }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% if not origin and not destination %}
+                <p class="opacity-50 text-center mt-4">Select origin and destination to see nearest railway stations.</p>
+                {% endif %}
+                <hr class="border-secondary mt-3">
+                <h6 class="mb-2 text-warning">All Stations</h6>
+                {% for city, station in stations.items() %}
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="opacity-75">{{ city }}</span>
+                    <span class="text-info">{{ station }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Key Train Services -->
+        <div class="col-md-7">
+            <div class="glass-card p-4 h-100">
+                <h5 class="mb-3"><i class="bi bi-list-check text-success"></i> Key Train Services
+                    {% if origin and destination %}
+                    <small class="text-muted fs-6">– {{ origin }} to {{ destination }}</small>
+                    {% endif %}
+                </h5>
+
+                {% set all_trains = [
+                    {'name': 'Pandian Express', 'number': '12637/12638', 'from': 'Chennai Egmore', 'to': 'Madurai Jn', 'dep': '21:00', 'arr': '06:05', 'days': 'Daily', 'type': 'Superfast', 'duration': '9h 05m'},
+                    {'name': 'Vaigai Express', 'number': '12635/12636', 'from': 'Chennai Egmore', 'to': 'Madurai Jn', 'dep': '12:00', 'arr': '20:40', 'days': 'Daily', 'type': 'Superfast', 'duration': '8h 40m'},
+                    {'name': 'Nellai Express', 'number': '12631/12632', 'from': 'Chennai Egmore', 'to': 'Tirunelveli', 'dep': '19:30', 'arr': '08:15', 'days': 'Daily', 'type': 'Express', 'duration': '12h 45m'},
+                    {'name': 'Kaveri Express', 'number': '16021/16022', 'from': 'Chennai Egmore', 'to': 'Mysore', 'dep': '22:30', 'arr': '09:45', 'days': 'Daily', 'type': 'Express', 'duration': '11h 15m'},
+                    {'name': 'Madurai – Bengaluru Express', 'number': '12661/12662', 'from': 'Madurai Jn', 'to': 'Bengaluru City', 'dep': '11:00', 'arr': '22:00', 'days': 'Daily', 'type': 'Superfast', 'duration': '11h'},
+                    {'name': 'Shatabdi Express', 'number': '12007/12008', 'from': 'Chennai Central', 'to': 'Bengaluru', 'dep': '06:00', 'arr': '11:00', 'days': 'Daily', 'type': 'Shatabdi', 'duration': '5h'},
+                    {'name': 'Kanyakumari Express', 'number': '12633/12634', 'from': 'Chennai Egmore', 'to': 'Kanyakumari', 'dep': '07:15', 'arr': '20:45', 'days': 'Daily', 'type': 'Express', 'duration': '13h 30m'},
+                    {'name': 'Erode – Salem Passenger', 'number': '56009', 'from': 'Erode', 'to': 'Salem', 'dep': '08:20', 'arr': '10:45', 'days': 'Daily', 'type': 'Passenger', 'duration': '2h 25m'},
+                    {'name': 'Dindigul – Madurai Passenger', 'number': '56723', 'from': 'Dindigul Jn', 'to': 'Madurai Jn', 'dep': '07:00', 'arr': '08:15', 'days': 'Daily', 'type': 'Passenger', 'duration': '1h 15m'},
+                    {'name': 'Tiruppur – Coimbatore Passenger', 'number': '56020', 'from': 'Tiruppur', 'to': 'Coimbatore', 'dep': '08:10', 'arr': '09:10', 'days': 'Daily', 'type': 'Passenger', 'duration': '1h'},
+                ] %}
+
+                {% set filtered = [] %}
+                {% if origin and destination %}
+                    {% for t in all_trains %}
+                        {% if origin|lower in t.from|lower or origin|lower in t.to|lower or destination|lower in t.from|lower or destination|lower in t.to|lower %}
+                            {% if filtered.append(t) %}{% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if not filtered %}
+                        {% for t in all_trains %}{% if filtered.append(t) %}{% endif %}{% endfor %}
+                    {% endif %}
+                {% else %}
+                    {% for t in all_trains %}{% if filtered.append(t) %}{% endif %}{% endfor %}
+                {% endif %}
+
+                {% for train in filtered %}
+                <div class="train-row">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-bold">🚂 {{ train.name }}</div>
+                            <small class="text-info">{{ train.number }}</small>
+                        </div>
+                        <span class="badge bg-{% if train.type == 'Shatabdi' %}danger{% elif train.type == 'Superfast' %}warning text-dark{% elif train.type == 'Express' %}primary{% else %}secondary{% endif %}">
+                            {{ train.type }}
+                        </span>
+                    </div>
+                    <div class="mt-2 d-flex gap-3 flex-wrap small">
+                        <span>📍 <strong>{{ train.from }}</strong></span>
+                        <span>→</span>
+                        <span>🎯 <strong>{{ train.to }}</strong></span>
+                    </div>
+                    <div class="mt-1 d-flex gap-3 small opacity-75">
+                        <span>🕐 Dep: {{ train.dep }}</span>
+                        <span>🕐 Arr: {{ train.arr }}</span>
+                        <span>⏱ {{ train.duration }}</span>
+                        <span>📅 {{ train.days }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <a href="https://www.irctc.co.in/nget/train-search" target="_blank" class="btn btn-sm btn-danger">
+                        <i class="bi bi-box-arrow-up-right"></i> Book on IRCTC
+                    </a>
+                    <a href="https://www.railyatri.in/train-ticket" target="_blank" class="btn btn-sm btn-primary">
+                        <i class="bi bi-train-front"></i> RailYatri
+                    </a>
+                    <a href="https://www.confirmtkt.com/" target="_blank" class="btn btn-sm btn-outline-light">
+                        ConfirmTkt
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="py-3 mt-4">
+    <div class="container text-center text-white-50 small">
+        Designed and developed by Nextlinkers | Design Build Operate | KARE
+    </div>
+</footer>
+
+<!-- Floating Translate Button -->
+<div id="translate-fab">
+    <div id="translate-panel">
+        <div style="font-size:0.75rem;color:#aaa;margin-bottom:0.5rem;">🌐 Select Language</div>
+        <button class="lang-opt active" onclick="doTranslate('en')">🇬🇧 English</button>
+        <button class="lang-opt" onclick="doTranslate('ta')">🇮🇳 தமிழ் (Tamil)</button>
+        <button class="lang-opt" onclick="doTranslate('te')">🇮🇳 తెలుగు (Telugu)</button>
+        <button class="lang-opt" onclick="doTranslate('hi')">🇮🇳 हिन्दी (Hindi)</button>
+        <button class="lang-opt" onclick="doTranslate('kn')">🇮🇳 ಕನ್ನಡ (Kannada)</button>
+        <button class="lang-opt" onclick="doTranslate('ml')">🇮🇳 മലയാളം (Malayalam)</button>
+        <div id="google_translate_element" style="display:none;"></div>
+    </div>
+    <button class="fab-btn" onclick="toggleTranslatePanel()" title="Translate page">
+        <i class="bi bi-translate"></i>
+    </button>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// City coordinates
+const CITIES = {
+    'Krishnankovil':  [9.50,  77.80],
+    'Sivakasi':       [9.45,  77.82],
+    'Srivilliputhur': [9.52,  77.63],
+    'Tirumangalam':   [9.82,  78.08],
+    'Tenkasi':        [8.95,  77.30],
+    'Rajapalayam':    [9.45,  77.57],
+    'Madurai':        [9.93,  78.12],
+    'Dindigul':       [10.35, 77.95],
+    'Salem':          [11.65, 78.17],
+    'Erode':          [11.34, 77.73],
+    'Tiruppur':       [11.11, 77.35],
+    'Hosur':          [12.74, 77.83],
+    'Chennai':        [13.08, 80.27],
+    'Bengaluru':      [12.97, 77.59],
+    // Railway junctions (may differ from city centre)
+    'Madurai Junction': [9.920, 78.116],
+    'Salem Junction':   [11.666, 78.147],
+    'Erode Junction':   [11.337, 77.727],
+    'Chennai Central':  [13.083, 80.275],
+    'Chennai Egmore':   [13.079, 80.262],
+    'Bengaluru City':   [12.977, 77.572],
+    'Yesvantpur':       [13.018, 77.552],
+};
+
+// Major train routes (polylines)
+const TRAIN_ROUTES = [
+    { name: 'Chennai – Madurai', coords: [[13.08,80.27],[12.82,79.70],[11.94,79.35],[11.12,78.55],[10.35,77.95],[9.93,78.12]], color: '#ff6b6b' },
+    { name: 'Chennai – Bengaluru', coords: [[13.08,80.27],[12.97,79.16],[12.82,78.28],[12.74,77.83],[12.97,77.59]], color: '#4ecdc4' },
+    { name: 'Madurai – Bengaluru', coords: [[9.93,78.12],[10.35,77.95],[11.34,77.73],[11.65,78.17],[12.74,77.83],[12.97,77.59]], color: '#45b7d1' },
+    { name: 'Madurai – Tirunelveli – Kanyakumari', coords: [[9.93,78.12],[9.50,77.80],[8.73,77.70],[8.08,77.55]], color: '#f9ca24' },
+    { name: 'Salem – Erode – Tiruppur', coords: [[11.65,78.17],[11.34,77.73],[11.11,77.35]], color: '#6c5ce7' },
+    { name: 'Tenkasi – Madurai', coords: [[8.95,77.30],[9.45,77.57],[9.82,78.08],[9.93,78.12]], color: '#00b894' },
+];
+
+// Initialise map
+const map = L.map('map').setView([10.5, 78.5], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18
+}).addTo(map);
+
+// Draw all train routes
+TRAIN_ROUTES.forEach(route => {
+    const poly = L.polyline(route.coords, { color: route.color, weight: 3, opacity: 0.75, dashArray: '6,4' }).addTo(map);
+    poly.bindPopup(`<b>🚂 ${route.name}</b>`);
+});
+
+// Station markers
+const stationIcon = L.divIcon({
+    html: '<div style="background:#00aaff;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>',
+    iconSize: [12, 12], className: ''
+});
+
+Object.entries(CITIES).forEach(([name, coords]) => {
+    L.marker(coords, { icon: stationIcon })
+     .addTo(map)
+     .bindPopup(`<b>🚉 ${name}</b>`);
+});
+
+// Highlight selected route if origin & destination given
+const origin = "{{ origin }}";
+const dest = "{{ destination }}";
+
+if (origin && dest && CITIES[origin] && CITIES[dest]) {
+    const oCoords = CITIES[origin];
+    const dCoords = CITIES[dest];
+
+    // Highlight route line
+    const routeLine = L.polyline([oCoords, dCoords], { color: '#ff4757', weight: 5, opacity: 0.9 }).addTo(map);
+    routeLine.bindPopup(`<b>🗺️ ${origin} → ${dest}</b>`).openPopup();
+
+    // Origin marker
+    L.marker(oCoords, {
+        icon: L.divIcon({ html: '<div style="background:#28a745;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px #28a745;"></div>', iconSize:[18,18], className:'' })
+    }).addTo(map).bindPopup(`<b>📍 Origin: ${origin}</b>`);
+
+    // Destination marker
+    L.marker(dCoords, {
+        icon: L.divIcon({ html: '<div style="background:#dc3545;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px #dc3545;"></div>', iconSize:[18,18], className:'' })
+    }).addTo(map).bindPopup(`<b>🎯 Destination: ${dest}</b>`);
+
+    // Fit map to route
+    map.fitBounds(L.latLngBounds([oCoords, dCoords]).pad(0.3));
+}
+</script>
+<script>
+function googleTranslateInit() {
+    new google.translate.TranslateElement({ pageLanguage:'en', includedLanguages:'ta,te,hi,kn,ml,en', autoDisplay:false }, 'google_translate_element');
+}
+function switchLang(lang) {
+    ['en','ta','te'].forEach(l => {
+        const btn = document.getElementById('lang-' + l);
+        if (!btn) return;
+        if (l === lang) { btn.classList.remove('btn-outline-warning'); btn.classList.add('btn-warning','active'); }
+        else { btn.classList.remove('btn-warning','active'); btn.classList.add('btn-outline-warning'); }
+    });
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        const d = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${d}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        if (lang !== 'en') window.location.reload();
+    }
+    localStorage.setItem('preferredLang', lang);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('preferredLang');
+    if (saved && saved !== 'en') setTimeout(() => switchLang(saved), 800);
+});
+function toggleTranslatePanel() {
+    const p = document.getElementById('translate-panel');
+    p.style.display = p.style.display === 'block' ? 'none' : 'block';
+}
+function doTranslate(lang) {
+    document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        const d = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${d}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        window.location.reload();
+    }
+    if (lang !== 'en') document.getElementById('translate-panel').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+    const fab = document.getElementById('translate-fab');
+    if (fab && !fab.contains(e.target)) document.getElementById('translate-panel').style.display = 'none';
+});
+</script>
+</body>
+</html>

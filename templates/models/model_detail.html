@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ model.short_name }} — Models{% endblock %}
+
+{% block extra_css %}
+<style>
+    .model-back { font-size: 0.82rem; margin-bottom: 0.75rem; display: inline-block; color: var(--transport-blue); text-decoration: none; }
+    .model-back:hover { color: var(--transport-orange); }
+    .model-header-panel {
+        background: linear-gradient(135deg, var(--transport-navy), var(--transport-blue));
+        color: #fff;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.25rem;
+        border-left: 5px solid var(--transport-orange);
+    }
+    .model-header-panel .abbr {
+        font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--transport-amber); font-weight: 800;
+    }
+    .model-header-panel h1 { font-size: 1.4rem; font-weight: 800; margin: 0.2rem 0 0.35rem; }
+    .model-header-panel .full { opacity: 0.85; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .model-header-panel .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.65rem;
+    }
+    .model-header-panel .meta-item {
+        background: rgba(255,255,255,0.08);
+        border-radius: 4px;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.8rem;
+    }
+    .model-header-panel .meta-item strong { display: block; color: var(--transport-amber); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.15rem; }
+    .section-card { margin-bottom: 1.15rem; }
+    .section-card .card-header {
+        background: #fff;
+        color: var(--transport-navy);
+        font-weight: 800;
+        font-size: 0.9rem;
+    }
+    .info-table td { font-size: 0.84rem; }
+    .info-table th {
+        width: 28%;
+        background: #F4F6F9;
+        font-size: 0.8rem;
+        color: var(--transport-navy);
+        font-weight: 700;
+    }
+    .empty-results {
+        background: #F4F6F9;
+        border-radius: 6px;
+        padding: 1.5rem;
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% block model_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin_models') }}" class="model-back"><i class="bi bi-arrow-left"></i> Back to Models</a>
+
+<div class="model-header-panel">
+    <div class="abbr">{{ model.short_name }}</div>
+    <h1>{{ model.name }}</h1>
+    <div class="full">{{ model.full_name }}</div>
+    <div class="meta-grid">
+        <div class="meta-item"><strong>Purpose</strong>{{ model.purpose }}</div>
+        <div class="meta-item"><strong>Problem it solves</strong>{{ model.problem }}</div>
+        <div class="meta-item"><strong>Category</strong>{{ model.category }}</div>
+    </div>
+</div>
+
+{% block model_actions %}{% endblock %}
+
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-info-circle me-1"></i> Model Information</div>
+    <div class="card-body p-0">
+        <table class="table info-table mb-0">
+            <tbody>
+                <tr><th>Algorithm / technique</th><td>{{ model.algorithm }}</td></tr>
+                <tr><th>Learning / optimization</th><td>{{ model.approach }}</td></tr>
+                <tr><th>Input</th><td>{{ model.input }}</td></tr>
+                <tr><th>Output</th><td>{{ model.output }}</td></tr>
+                <tr><th>Main features</th><td>{{ model.main_features }}</td></tr>
+                <tr><th>Why used in Yatra Saarthi</th><td>{{ model.why }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-database me-1"></i> Data Information</div>
+    <div class="card-body p-0">
+        <table class="table info-table mb-0">
+            <tbody>
+                <tr><th>Dataset name</th><td>{% block data_dataset %}{{ model.data.dataset_name }}{% endblock %}</td></tr>
+                <tr><th>Dataset size</th><td>{% block data_size %}{{ model.data.dataset_size }}{% endblock %}</td></tr>
+                <tr><th>Features</th><td>{% block data_features %}{{ model.data.features }}{% endblock %}</td></tr>
+                <tr><th>Target</th><td>{% block data_target %}{{ model.data.target }}{% endblock %}</td></tr>
+                <tr><th>Data range</th><td>{% block data_range %}{{ model.data.data_range }}{% endblock %}</td></tr>
+                <tr><th>Preprocessing</th><td>{% block data_prep %}{{ model.data.preprocessing }}{% endblock %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-gear me-1"></i> Model Implementation</div>
+    <div class="card-body p-0">
+        <table class="table info-table mb-0">
+            <tbody>
+                <tr><th>Architecture / algorithm</th><td>{% block impl_arch %}{{ model.implementation.architecture }}{% endblock %}</td></tr>
+                <tr><th>Parameters</th><td>{% block impl_params %}{{ model.implementation.parameters }}{% endblock %}</td></tr>
+                <tr><th>Training / optimization config</th><td>{% block impl_config %}{{ model.implementation.config }}{% endblock %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-bar-chart-line me-1"></i> Results</div>
+    <div class="card-body">
+        {% block model_results %}
+        {# Results intentionally empty until this model is trained — no fabricated metrics. #}
+        {% endblock %}
+    </div>
+</div>
+
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-lightbulb me-1"></i> Model Insights</div>
+    <div class="card-body">
+        {% block model_insights %}
+        <ul class="mb-0" style="font-size:0.88rem;">
+            {% for tip in model.insights %}
+            <li class="mb-1">{{ tip }}</li>
+            {% endfor %}
+        </ul>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% block model_extra_scripts %}{% endblock %}
+{% endblock %}

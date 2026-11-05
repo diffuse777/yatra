@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Travel Planner{% endblock %}
+
+{% block extra_css %}
+<style>
+    .travel-planner-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .form-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="travel-planner-card text-center">
+        <h1 class="display-4 mb-3"><i class="bi bi-geo-alt"></i> Smart Travel Planner</h1>
+        <p class="lead">Plan your journey with intelligent recommendations for bus, train, and flight connections</p>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('travel_planner') }}">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="origin" class="form-label"><i class="bi bi-geo-alt-fill"></i> From</label>
+                    <select class="form-select" id="origin" name="origin" required>
+                        <option value="">Select origin...</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="destination" class="form-label"><i class="bi bi-geo-alt"></i> To</label>
+                    <select class="form-select" id="destination" name="destination" required>
+                        <option value="">Select destination...</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="travel_date" class="form-label"><i class="bi bi-calendar"></i> Travel Date</label>
+                    <input type="date" class="form-control" id="travel_date" name="travel_date" 
+                           value="{{ date.today().strftime('%Y-%m-%d') }}" min="{{ date.today().strftime('%Y-%m-%d') }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="preferred_time" class="form-label"><i class="bi bi-clock"></i> Preferred Time (Optional)</label>
+                    <input type="time" class="form-control" id="preferred_time" name="preferred_time">
+                </div>
+            </div>
+
+            <div class="alert alert-info mb-3">
+                <i class="bi bi-info-circle"></i> <strong>Note:</strong> This is a travel planning and recommendation system. 
+                We don't book seats through this platform. You'll get recommendations and can book directly with operators.
+                {% if False %}
+                <!-- Optional: Only show if you want to enable notifications -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label"><i class="bi bi-phone"></i> Phone (Optional - for travel alerts)</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="10-digit mobile number">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-search"></i> Search Travel Options
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-bus-front fs-1 text-primary"></i>
+                    <h5 class="mt-2">Bus Services</h5>
+                    <p class="text-muted">Find direct bus routes with crowd predictions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-train-front fs-1 text-success"></i>
+                    <h5 class="mt-2">Train Connections</h5>
+                    <p class="text-muted">Plan bus-train connections seamlessly</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-airplane fs-1 text-info"></i>
+                    <h5 class="mt-2">Flight Connections</h5>
+                    <p class="text-muted">Connect bus routes with flight schedules</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

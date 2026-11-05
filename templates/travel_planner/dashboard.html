@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Passenger Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .plan-card {
+        border-left: 4px solid #007bff;
+        transition: transform 0.2s;
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+    }
+    .notification-item {
+        border-left: 3px solid #e9ecef;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+    }
+    .notification-item.urgent { border-left-color: #dc3545; }
+    .notification-item.high { border-left-color: #ffc107; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Passenger Dashboard</h1>
+
+    {% if passenger_phone %}
+    <div class="alert alert-info">
+        <i class="bi bi-person-circle"></i> Logged in as: <strong>{{ passenger_phone }}</strong>
+    </div>
+    {% endif %}
+
+    <!-- Notifications -->
+    {% if notifications %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="bi bi-bell"></i> Notifications ({{ notifications|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% for notification in notifications %}
+            <div class="notification-item {{ notification.priority }}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6>{{ notification.title }}</h6>
+                        <p class="mb-0">{{ notification.message }}</p>
+                        <small class="text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else '' }}</small>
+                    </div>
+                    <span class="badge bg-{{ 'danger' if notification.priority == 'urgent' else 'warning' if notification.priority == 'high' else 'secondary' }}">
+                        {{ notification.notification_type }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Travel Plans -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Active Travel Plans</h5>
+        </div>
+        <div class="card-body">
+            {% if plans %}
+                {% for plan in plans %}
+                <div class="card plan-card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>{{ plan.origin }} → {{ plan.destination }}</h5>
+                                <p class="mb-1">
+                                    <i class="bi bi-calendar"></i> {{ plan.travel_date.strftime('%B %d, %Y') }}
+                                    {% if plan.preferred_time %}
+                                    | <i class="bi bi-clock"></i> {{ plan.preferred_time.strftime('%H:%M') }}
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1">
+                                    <span class="badge bg-info">{{ plan.transport_mode }}</span>
+                                    {% if plan.crowd_prediction %}
+                                    <span class="badge bg-{{ 'danger' if plan.crowd_prediction > 80 else 'warning' if plan.crowd_prediction > 40 else 'success' }}">
+                                        {{ plan.crowd_prediction }} passengers expected
+                                    </span>
+                                    {% endif %}
+                                </p>
+                                {% if plan.weather_alert %}
+                                <p class="mb-0">
+                                    <small class="text-muted"><i class="bi bi-cloud-rain"></i> {{ plan.weather_alert[:100] }}...</small>
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{{ url_for('travel_planner') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No active travel plans. <a href="{{ url_for('travel_planner') }}">Plan a trip</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Access -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-search fs-1 text-primary"></i>
+                    <h5 class="mt-2">Plan New Trip</h5>
+                    <a href="{{ url_for('travel_planner') }}" class="btn btn-primary">Start Planning</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-gear fs-1 text-success"></i>
+                    <h5 class="mt-2">Preferences</h5>
+                    {% if preferences %}
+                    <p class="text-muted">Preferences saved</p>
+                    {% else %}
+                    <p class="text-muted">Set your preferences</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clock-history fs-1 text-info"></i>
+                    <h5 class="mt-2">Travel History</h5>
+                    <p class="text-muted">View past trips</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

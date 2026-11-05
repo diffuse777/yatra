@@ -1,0 +1,30 @@
+<div class="stop-form mb-3 p-3 border rounded">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-label">Stop Name</label>
+                <input type="text" name="name" class="form-control" required>
+                <div class="invalid-feedback">Please provide a stop name.</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="form-label">Arrival Time</label>
+                <input type="time" name="arrival" class="form-control" required>
+                <div class="invalid-feedback">Please provide an arrival time.</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="form-label">Departure Time</label>
+                <input type="time" name="departure" class="form-control" required>
+                <div class="invalid-feedback">Please provide a departure time.</div>
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-danger btn-sm remove-stop w-100">
+                <i class="fas fa-trash"></i> Remove
+            </button>
+        </div>
+    </div>
+</div>

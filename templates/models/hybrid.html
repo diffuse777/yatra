@@ -1,0 +1,417 @@
+{% extends "models/model_detail.html" %}
+
+{% block model_extra_css %}
+<style>
+    .train-bar {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border-left: 4px solid var(--transport-orange);
+    }
+    .train-bar .status-note { font-size: 0.84rem; color: #445; max-width: 720px; }
+    .metric-tile {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border-left: 4px solid var(--transport-navy);
+        height: 100%;
+    }
+    .metric-tile.hybrid { border-left-color: var(--transport-orange); }
+    .metric-tile .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6c757d; font-weight: 700; }
+    .metric-tile .value { font-size: 1.45rem; font-weight: 800; color: var(--transport-navy); }
+    .chart-wrap { position: relative; height: 280px; }
+    .btn-train {
+        background: var(--transport-orange);
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        border-radius: 4px;
+        padding: 0.5rem 1.1rem;
+    }
+    .btn-train:hover { background: #bf360c; color: #fff; }
+    .btn-train:disabled { opacity: 0.65; }
+    .arch-box {
+        background: #F4F6F9;
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+        line-height: 1.45;
+        color: #223;
+        white-space: pre;
+        overflow-x: auto;
+    }
+    .cmp-table th { font-size: 0.78rem; background: #F4F6F9; }
+    .cmp-table td { font-size: 0.84rem; }
+    .best-banner {
+        background: #E8F5E9;
+        border-left: 4px solid #2E7D32;
+        border-radius: 4px;
+        padding: 0.75rem 1rem;
+        font-size: 0.88rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block model_actions %}
+<div class="train-bar">
+    <div class="status-note">
+        {% if results and results.trained %}
+            Last trained:
+            <strong>{{ results.metadata.trained_at if results.metadata else '—' }}</strong>
+            · Test samples:
+            <strong>{{ results.metadata.test_samples if results.metadata else '—' }}</strong>
+            · Split:
+            <strong>{{ results.metadata.split_method if results.metadata else 'chronological' }}</strong>
+        {% else %}
+            Train the Hybrid stacker on the shared hourly operational demand series.
+            Training runs only when you click the button — this page never auto-retrains.
+            Both LSTM and XGBoost branches are trained inside the hybrid pipeline on identical chronological partitions.
+        {% endif %}
+    </div>
+    <form method="post" action="{{ url_for('admin_models_hybrid_train') }}" id="hybrid-train-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-train" id="hybrid-train-btn">
+            <i class="bi bi-play-fill"></i> Train Hybrid Model
+        </button>
+    </form>
+    {% if results and results.trained %}
+    <a href="{{ url_for('admin_models_hybrid_predictions_csv') }}" class="btn btn-outline-dark btn-sm">
+        <i class="bi bi-download"></i> Download Predictions (CSV)
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block data_dataset %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.dataset_name }}
+    {% if results.metadata.data.is_synthetic %}
+        <span class="badge" style="background:var(--transport-amber);color:#222;">SYNTHETIC DEMO DATA</span>
+    {% else %}
+        <span class="badge bg-success">{{ results.metadata.data.dataset_type or 'REAL / OPERATIONAL' }}</span>
+    {% endif %}
+{% else %}
+    {{ model.data.dataset_name }}
+{% endif %}
+{% endblock %}
+
+{% block data_size %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.dataset_size }} hourly rows
+    (train {{ results.metadata.train_samples }},
+     val {{ results.metadata.validation_samples }},
+     test {{ results.metadata.test_samples }})
+{% else %}
+    {{ model.data.dataset_size }}
+{% endif %}
+{% endblock %}
+
+{% block data_features %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    LSTM: {{ results.metadata.data.lstm_features | join(', ') }}
+    · XGBoost: {{ results.metadata.data.xgb_features | join(', ') }}
+{% else %}
+    {{ model.data.features }}
+{% endif %}
+{% endblock %}
+
+{% block data_target %}
+{% if results and results.trained and results.metadata and results.metadata.data %}
+    {{ results.metadata.data.target }}
+{% else %}
+    {{ model.data.target }}
+{% endif %}
+{% endblock %}
+
+{% block data_range %}
+{% if results and results.trained and results.metadata and results.metadata.data and results.metadata.data.periods %}
+    {{ results.metadata.data.data_range_start }} → {{ results.metadata.data.data_range_end }}
+    <div class="text-muted" style="font-size:0.78rem; margin-top:0.35rem;">
+        Train: {{ results.metadata.data.periods.train_start }} → {{ results.metadata.data.periods.train_end }}<br>
+        Validation: {{ results.metadata.data.periods.validation_start }} → {{ results.metadata.data.periods.validation_end }}<br>
+        Test: {{ results.metadata.data.periods.test_start }} → {{ results.metadata.data.periods.test_end }}
+    </div>
+{% else %}
+    {{ model.data.data_range }}
+{% endif %}
+{% endblock %}
+
+{% block data_prep %}
+{% if results and results.trained and results.metadata %}
+    <ul class="mb-0 ps-3">
+        <li>{{ results.metadata.split_method }}</li>
+        {% for step in results.metadata.leakage_prevention %}
+        <li>{{ step }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    {{ model.data.preprocessing }}
+{% endif %}
+{% endblock %}
+
+{% block impl_arch %}
+{% if results and results.trained and results.metadata %}
+    {{ results.metadata.architecture }}
+{% else %}
+    {{ model.implementation.architecture }}
+{% endif %}
+{% endblock %}
+
+{% block impl_params %}
+{% if results and results.trained and results.metadata and results.metadata.meta_model %}
+    Meta: {{ results.metadata.meta_model.type }} · inputs={{ results.metadata.meta_model.inputs | join(', ') }}
+{% else %}
+    {{ model.implementation.parameters }}
+{% endif %}
+{% endblock %}
+
+{% block impl_config %}
+{% if results and results.trained and results.metadata and results.metadata.meta_model %}
+    {{ results.metadata.meta_model.training_data }} · {{ results.metadata.meta_model.validation_strategy }}
+{% else %}
+    {{ model.implementation.config }}
+{% endif %}
+{% endblock %}
+
+{% block model_results %}
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-diagram-3 me-1"></i> Hybrid Architecture</div>
+    <div class="card-body">
+        <div class="arch-box">Historical Demand
+       │
+       ├───────────────┐
+       ▼               ▼
+     LSTM           XGBoost
+       │               │
+       ▼               ▼
+ LSTM Prediction  XGBoost Prediction
+       │               │
+       └───────┬───────┘
+               ▼
+          Meta-Model
+               │
+               ▼
+      Hybrid Prediction</div>
+        <p class="text-muted mb-0 mt-2" style="font-size:0.82rem;">
+            Stacking / meta-learning: the meta-model is trained on validation-period base predictions only,
+            then applied to the held-out test period. This matches the implementation under
+            <code>ml/demand_forecasting/train_hybrid.py</code>.
+        </p>
+    </div>
+</div>
+
+{% if results and results.trained and results.metadata %}
+<div class="card section-card">
+    <div class="card-header"><i class="bi bi-layers me-1"></i> Base Models &amp; Meta-Model</div>
+    <div class="card-body p-0">
+        <table class="table info-table mb-0">
+            <tbody>
+                <tr>
+                    <th>LSTM</th>
+                    <td>
+                        {{ results.metadata.base_models.lstm.architecture }}<br>
+                        <span class="text-muted" style="font-size:0.78rem;">
+                            Role: {{ results.metadata.base_models.lstm.role }} ·
+                            seq={{ results.metadata.base_models.lstm.parameters.sequence_length }},
+                            units={{ results.metadata.base_models.lstm.parameters.lstm_units_1 }}/{{ results.metadata.base_models.lstm.parameters.lstm_units_2 }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>XGBoost</th>
+                    <td>
+                        Tabular branch on hourly calendar + lag features<br>
+                        <span class="text-muted" style="font-size:0.78rem;">
+                            Role: {{ results.metadata.base_models.xgboost.role }} ·
+                            n_estimators={{ results.metadata.base_models.xgboost.parameters.n_estimators }},
+                            max_depth={{ results.metadata.base_models.xgboost.parameters.max_depth }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Meta-model</th>
+                    <td>
+                        {{ results.metadata.meta_model.type }} ·
+                        Inputs: {{ results.metadata.meta_model.inputs | join(', ') }}<br>
+                        <span class="text-muted" style="font-size:0.78rem;">
+                            {{ results.metadata.meta_model.why_selected }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if results and results.trained and results.metrics %}
+    {% set m = results.metrics %}
+    {% set best = results.comparison.best if results.comparison else None %}
+
+    {% if best %}
+    <div class="best-banner">
+        <strong>Best performing model (test MAE):</strong> {{ best.best_model }}
+        <span class="text-muted">· {{ best.criterion }}</span>
+        {% if results.metadata and results.metadata.improvement %}
+        <div class="mt-1" style="font-size:0.82rem;">
+            Hybrid ΔMAE vs LSTM:
+            <strong>{{ results.metadata.improvement.vs_lstm.mae }}</strong>
+            · vs XGBoost:
+            <strong>{{ results.metadata.improvement.vs_xgboost.mae }}</strong>
+            <span class="text-muted">(positive = hybrid improved)</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h6 class="fw-bold mb-3" style="color:var(--transport-navy);">Model Performance (same test rows)</h6>
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered cmp-table mb-0">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>MAE</th>
+                    <th>RMSE</th>
+                    <th>MAPE (%)</th>
+                    <th>R²</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>LSTM</th>
+                    <td>{{ m.lstm.mae }}</td>
+                    <td>{{ m.lstm.rmse }}</td>
+                    <td>{{ m.lstm.mape }}</td>
+                    <td>{{ m.lstm.r2 }}</td>
+                </tr>
+                <tr>
+                    <th>XGBoost</th>
+                    <td>{{ m.xgboost.mae }}</td>
+                    <td>{{ m.xgboost.rmse }}</td>
+                    <td>{{ m.xgboost.mape }}</td>
+                    <td>{{ m.xgboost.r2 }}</td>
+                </tr>
+                <tr>
+                    <th>Hybrid</th>
+                    <td>{{ m.hybrid.mae }}</td>
+                    <td>{{ m.hybrid.rmse }}</td>
+                    <td>{{ m.hybrid.mape }}</td>
+                    <td>{{ m.hybrid.r2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="metric-tile hybrid">
+                <div class="label">Hybrid MAE</div>
+                <div class="value">{{ m.hybrid.mae }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile hybrid">
+                <div class="label">Hybrid RMSE</div>
+                <div class="value">{{ m.hybrid.rmse }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile hybrid">
+                <div class="label">Hybrid MAPE (%)</div>
+                <div class="value">{{ m.hybrid.mape }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-tile hybrid">
+                <div class="label">Hybrid R²</div>
+                <div class="value">{{ m.hybrid.r2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Performance Comparison</h6>
+            <div class="chart-wrap"><canvas id="hybridCmpChart"></canvas></div>
+        </div>
+        <div class="col-lg-6">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Hybrid Prediction Error</h6>
+            <div class="chart-wrap"><canvas id="hybridErrChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Actual vs LSTM</h6>
+            <div class="chart-wrap"><canvas id="hybridLstmChart"></canvas></div>
+        </div>
+        <div class="col-lg-4">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Actual vs XGBoost</h6>
+            <div class="chart-wrap"><canvas id="hybridXgbChart"></canvas></div>
+        </div>
+        <div class="col-lg-4">
+            <h6 class="fw-bold" style="color:var(--transport-navy);">Actual vs Hybrid</h6>
+            <div class="chart-wrap"><canvas id="hybridPredChart"></canvas></div>
+        </div>
+    </div>
+
+    <h6 class="fw-bold mb-2" style="color:var(--transport-navy);">Prediction Table (test set)</h6>
+    <p class="text-muted" style="font-size:0.82rem;">
+        Each row shares the same timestamp key for Actual, LSTM, XGBoost, and Hybrid predictions.
+    </p>
+    <div class="table-responsive mb-2" style="max-height: 360px; overflow-y: auto;">
+        <table class="table table-sm table-striped mb-0" id="hybrid-prediction-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Route</th>
+                    <th>Actual</th>
+                    <th>LSTM</th>
+                    <th>XGBoost</th>
+                    <th>Hybrid</th>
+                    <th>LSTM Err</th>
+                    <th>XGB Err</th>
+                    <th>Hybrid Err</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="9" class="text-muted">Loading predictions…</td></tr>
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="empty-results">
+        No hybrid results yet. Click <strong>Train Hybrid Model</strong> to run stacking on the aligned hourly demand series.
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block model_insights %}
+{% if results and results.trained and results.metadata and results.metadata.insights %}
+<ul class="mb-0" style="font-size:0.88rem;">
+    {% for tip in results.metadata.insights %}
+    <li class="mb-1">{{ tip }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<ul class="mb-0" style="font-size:0.88rem;">
+    {% for tip in model.insights %}
+    <li class="mb-1">{{ tip }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
+
+{% block model_extra_scripts %}
+<script src="{{ url_for('static', filename='js/hybrid_charts.js') }}?v=1"></script>
+{% endblock %}

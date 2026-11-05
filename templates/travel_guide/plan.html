@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Plan Your Route - KARE Students Travel Guide{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-2"><i class="bi bi-route"></i> Official Route Planner</h3>
+                    <p class="mb-0">For Kalasalingam University (KARE) Students - Find your way to exam centers</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Instructions for KARE Students</h6>
+                        <p class="mb-2"><strong>Example:</strong> To reach MEPCO exam center from KARE:</p>
+                        <ul class="mb-0">
+                            <li><strong>From:</strong> Kalasalingam University, Krishnankovil (or simply "KARE")</li>
+                            <li><strong>To:</strong> MEPCO Schlenk Engineering College, Sivakasi (or "MEPCO")</li>
+                        </ul>
+                    </div>
+                    <form id="routePlanForm">
+                        <div class="mb-3">
+                            <label for="origin" class="form-label"><strong>From (Origin)</strong> - Your Starting Point</label>
+                            <input type="text" class="form-control" id="origin" name="origin" 
+                                   placeholder="e.g., Kalasalingam University, Krishnankovil or KARE" 
+                                   value="{{ prefill_origin }}"
+                                   list="originList" required>
+                            <small class="text-muted">For KARE students: Enter "Kalasalingam University" or "KARE"</small>
+                            <datalist id="originList">
+                                {% if institutions %}
+                                {% for inst in institutions %}
+                                <option value="{{ inst.name }}, {{ inst.location }}">
+                                {% endfor %}
+                                {% endif %}
+                                <option value="Kalasalingam University, Krishnankovil">
+                                <option value="Krishnankovil Bus Stop">
+                                <option value="Srivilliputhur Bus Stand">
+                            </datalist>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="destination" class="form-label"><strong>To (Destination)</strong> - Your Exam Center or Destination</label>
+                            <input type="text" class="form-control" id="destination" name="destination" 
+                                   placeholder="e.g., MEPCO Schlenk Engineering College, Sivakasi" 
+                                   value="{{ prefill_destination }}"
+                                   list="destList" required>
+                            <small class="text-muted">Common destinations: MEPCO, PSR, or other exam centers</small>
+                            <datalist id="destList">
+                                {% if institutions %}
+                                {% for inst in institutions %}
+                                <option value="{{ inst.name }}, {{ inst.location }}">
+                                {% endfor %}
+                                {% endif %}
+                                <option value="MEPCO Schlenk Engineering College, Sivakasi">
+                                <option value="PSR Engineering College, Sivakasi">
+                                <option value="Sivakasi Bus Stand">
+                            </datalist>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-search"></i> Plan Route
+                        </button>
+                    </form>
+
+                    <div id="routeResults" class="mt-4" style="display: none;">
+                        <!-- Results will be loaded here via AJAX -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('routePlanForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const origin = document.getElementById('origin').value;
+    const destination = document.getElementById('destination').value;
+    
+    if (!origin || !destination) {
+        alert('Please enter both origin and destination');
+        return;
+    }
+    
+    // Show loading
+    const resultsDiv = document.getElementById('routeResults');
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Fetch route data
+    fetch('{{ url_for("travel_guide_plan") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'origin': origin,
+            'destination': destination
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            resultsDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            return;
+        }
+        
+        // Redirect to results page
+        if (data.route_id) {
+            window.location.href = `/travel-guide/results/${data.route_id}`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultsDiv.innerHTML = '<div class="alert alert-danger">Error planning route. Please try again.</div>';
+    });
+});
+</script>
+{% endblock %}
+

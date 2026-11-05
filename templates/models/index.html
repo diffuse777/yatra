@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Models — Yatra Saarthi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .models-hero {
+        background: linear-gradient(135deg, var(--transport-navy) 0%, var(--transport-blue) 100%);
+        color: #fff;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 5px solid var(--transport-orange);
+    }
+    .models-hero h1 { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.35rem; }
+    .models-hero p { margin: 0; opacity: 0.85; font-size: 0.9rem; }
+    .category-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--transport-navy);
+        font-weight: 800;
+        margin: 1.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid var(--transport-orange);
+        display: inline-block;
+    }
+    .model-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border-top: 3px solid var(--transport-orange);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .model-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(11,31,58,0.12);
+    }
+    .model-card .card-body { flex: 1; padding: 1.15rem; }
+    .model-card .model-abbr {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: var(--transport-orange);
+        text-transform: uppercase;
+    }
+    .model-card h3 {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--transport-navy);
+        margin: 0.25rem 0 0.5rem;
+    }
+    .model-card .full-name {
+        font-size: 0.78rem;
+        color: #6c757d;
+        margin-bottom: 0.65rem;
+    }
+    .model-card .desc { font-size: 0.84rem; color: #445; margin-bottom: 0.65rem; }
+    .model-card .purpose {
+        font-size: 0.78rem;
+        background: #F4F6F9;
+        border-radius: 4px;
+        padding: 0.45rem 0.6rem;
+        color: var(--transport-navy);
+        margin-bottom: 0;
+    }
+    .model-card .card-footer {
+        background: transparent;
+        border-top: 1px solid #eef1f5;
+        padding: 0.85rem 1.15rem;
+    }
+    .btn-view-model {
+        background: var(--transport-navy);
+        color: #fff;
+        border: none;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border-radius: 4px;
+        padding: 0.4rem 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .btn-view-model:hover { background: var(--transport-blue); color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="models-hero">
+    <h1><i class="bi bi-cpu me-2"></i>AI / ML Models</h1>
+    <p>Yatra Saarthi model architecture for demand forecasting, route optimization, network intelligence, spatial analytics, and personalized recommendations.</p>
+</div>
+
+{% for category, models in model_categories.items() %}
+<div class="category-label">{{ category }}</div>
+<div class="row g-3 mb-2">
+    {% for m in models %}
+    <div class="col-md-6 col-xl-4">
+        <div class="model-card">
+            <div class="card-body">
+                <div class="model-abbr">{{ m.short_name }}</div>
+                <h3>{{ m.name }}</h3>
+                <div class="full-name">{{ m.full_name }}</div>
+                <p class="desc">{{ m.description }}</p>
+                <div class="purpose"><strong>Purpose:</strong> {{ m.purpose }}</div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for(m.endpoint) }}" class="btn-view-model">
+                    <i class="bi bi-eye"></i> View Model
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login – Yatra Saarthi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --navy:  #0B1F3A;
+            --blue:  #1A3A5C;
+            --orange:#E65100;
+            --amber: #FFA000;
+        }
+        * { font-family: Verdana, Tahoma, Geneva, sans-serif !important; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--navy);
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated road background ── */
+        .road-bg {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background: #111;
+            z-index: 0;
+        }
+        .road-bg::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0;
+            width: 200%;
+            height: 4px;
+            background: repeating-linear-gradient(90deg,
+                rgba(255,255,255,0.8) 0 60px,
+                transparent 60px 120px);
+            transform: translateY(-50%);
+            animation: roadMove 2s linear infinite;
+        }
+        @keyframes roadMove { 0%{transform:translateX(0) translateY(-50%);} 100%{transform:translateX(-50%) translateY(-50%);} }
+
+        /* ── Moving buses ── */
+        .bus-lane { position:fixed; bottom:12px; left:0; right:0; height:36px; z-index:1; pointer-events:none; overflow:hidden; }
+        .moving-bus {
+            position: absolute;
+            bottom: 0;
+            width: 72px; height: 36px;
+            animation: busDrive var(--speed, 14s) linear infinite;
+            animation-delay: var(--delay, 0s);
+        }
+        .moving-bus .mb-body { width:72px; height:30px; background:linear-gradient(to bottom, var(--color, #FFD700), color-mix(in srgb, var(--color, #FFD700) 70%, #000)); border-radius:7px; position:relative; }
+        .moving-bus .mb-body::before { content:''; position:absolute; left:5px; top:7px; width:16px; height:11px; background:rgba(155,210,255,0.85); border-radius:2px; }
+        .moving-bus .mb-body::after  { content:''; position:absolute; right:6px; top:6px; width:28px; height:12px; background:rgba(155,210,255,0.85); border-radius:2px; }
+        .moving-bus .mb-w { position:absolute; bottom:-6px; width:13px; height:13px; background:#222; border:2.5px solid #555; border-radius:50%; }
+        .moving-bus .mb-w.l { left:8px; } .moving-bus .mb-w.r { right:8px; }
+        @keyframes busDrive { 0%{left:-100px;} 100%{left:110%;} }
+
+        /* ── Skyline silhouette ── */
+        .skyline {
+            position: fixed;
+            bottom: 60px; left: 0; right: 0;
+            height: 160px;
+            z-index: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            padding: 0 5%;
+        }
+        .sky-bld {
+            background: rgba(26,58,92,0.6);
+            border-radius: 3px 3px 0 0;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .sky-bld::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            right: 15%;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0 8px,
+                rgba(255,200,0,0.15) 8px 12px
+            );
+        }
+
+        /* ── Floating particles ── */
+        .particle {
+            position: fixed;
+            width: 3px; height: 3px;
+            background: rgba(255,160,0,0.4);
+            border-radius: 50%;
+            animation: float var(--dur, 10s) linear infinite;
+            animation-delay: var(--dly, 0s);
+            left: var(--x, 50%);
+            top: 110%;
+        }
+        @keyframes float { 0%{top:110%;opacity:0;} 20%{opacity:1;} 80%{opacity:1;} 100%{top:-10%;opacity:0;} }
+
+        /* ── Login card ── */
+        .login-wrap {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 2rem 1rem 6rem;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        .login-card-header {
+            background: var(--navy);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 4px solid var(--orange);
+        }
+        .login-card-header .bus-icon-wrap {
+            width: 64px; height: 64px;
+            background: var(--orange);
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #fff;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 16px rgba(230,81,0,0.5);
+            animation: iconPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%,100%{transform:scale(1);box-shadow:0 4px 16px rgba(230,81,0,0.5);}
+            50%{transform:scale(1.06);box-shadow:0 6px 24px rgba(230,81,0,0.7);}
+        }
+        .login-card-header h3 { color:#fff; font-weight:800; margin:0; font-size:1.3rem; }
+        .login-card-header p { color:rgba(255,200,0,0.8); font-size:0.75rem; margin:0.2rem 0 0; }
+        .login-card-body { padding: 1.75rem; }
+        .login-card-body .form-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--navy); }
+        .login-card-body .form-control { border:1.5px solid #dce3ec; font-size:0.88rem; padding:0.6rem 0.9rem; }
+        .login-card-body .form-control:focus { border-color:var(--orange); box-shadow:0 0 0 3px rgba(230,81,0,0.12); }
+        .btn-login {
+            width:100%; background:var(--orange); border:none;
+            color:#fff; font-weight:800; font-size:0.95rem;
+            padding:0.7rem; border-radius:6px;
+            transition:background 0.15s, transform 0.15s;
+        }
+        .btn-login:hover { background:#bf360c; transform:translateY(-1px); }
+        .login-card-footer { background:#F4F6F9; border-top:1px solid #e0e4ec; padding:0.75rem 1.75rem; text-align:center; font-size:0.7rem; color:#6c757d; }
+
+        /* ── Route badge on top ── */
+        .route-strip {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(90deg,
+                var(--orange) 0 60px,
+                var(--amber) 60px 120px,
+                var(--navy) 120px 180px);
+            z-index: 100;
+        }
+
+        /* ── KARE Badge ── */
+        .kare-badge {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.35);
+            color: rgba(255,200,0,0.85);
+            font-size: 0.68rem; font-weight:700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            z-index: 100;
+            white-space: nowrap;
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top stripe -->
+<div class="route-strip"></div>
+
+<!-- KARE badge -->
+<div class="kare-badge">🏛 KARE – Kalasalingam Academy of Research &amp; Education</div>
+
+<!-- Floating particles -->
+<div class="particle" style="--x:10%;--dur:9s;--dly:0s;"></div>
+<div class="particle" style="--x:25%;--dur:13s;--dly:2s;"></div>
+<div class="particle" style="--x:40%;--dur:11s;--dly:4s;"></div>
+<div class="particle" style="--x:60%;--dur:15s;--dly:1s;"></div>
+<div class="particle" style="--x:75%;--dur:10s;--dly:3s;"></div>
+<div class="particle" style="--x:90%;--dur:12s;--dly:5s;"></div>
+
+<!-- Skyline -->
+<div class="skyline">
+    <div class="sky-bld" style="width:70px;height:130px;"></div>
+    <div class="sky-bld" style="width:50px;height:90px;"></div>
+    <div class="sky-bld" style="width:90px;height:155px;"></div>
+    <div class="sky-bld" style="width:40px;height:75px;"></div>
+    <div class="sky-bld" style="width:110px;height:175px;"></div>
+    <div class="sky-bld" style="width:60px;height:110px;"></div>
+    <div class="sky-bld" style="width:80px;height:140px;"></div>
+    <div class="sky-bld" style="width:45px;height:80px;"></div>
+    <div class="sky-bld" style="width:95px;height:160px;"></div>
+    <div class="sky-bld" style="width:55px;height:100px;"></div>
+    <div class="sky-bld" style="width:75px;height:125px;"></div>
+    <div class="sky-bld" style="width:65px;height:115px;"></div>
+    <div class="sky-bld" style="width:100px;height:165px;"></div>
+    <div class="sky-bld" style="width:50px;height:88px;"></div>
+    <div class="sky-bld" style="width:85px;height:148px;"></div>
+</div>
+
+<!-- Moving buses -->
+<div class="bus-lane">
+    <div class="moving-bus" style="--speed:14s;--delay:0s;--color:#FFD700;">
+        <div class="mb-body"><div class="mb-w l"></div><div class="mb-w r"></div></div>
+    </div>
+    <div class="moving-bus" style="--speed:18s;--delay:5s;--color:#E65100;">
+        <div class="mb-body"><div class="mb-w l"></div><div class="mb-w r"></div></div>
+    </div>
+    <div class="moving-bus" style="--speed:22s;--delay:10s;--color:#4ECDC4;">
+        <div class="mb-body"><div class="mb-w l"></div><div class="mb-w r"></div></div>
+    </div>
+</div>
+
+<!-- Road -->
+<div class="road-bg"></div>
+
+<!-- Login card -->
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-card-header">
+            <div class="bus-icon-wrap"><i class="bi bi-bus-front-fill"></i></div>
+            <h3>Yatra Saarthi</h3>
+            <p>Transport Management System &mdash; Admin Panel</p>
+        </div>
+        <div class="login-card-body">
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background:var(--navy);border-color:#dce3ec;">
+                            <i class="bi bi-person-fill" style="color:var(--amber);"></i>
+                        </span>
+                        <input type="text" class="form-control" id="username" name="username"
+                               placeholder="Enter username" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background:var(--navy);border-color:#dce3ec;">
+                            <i class="bi bi-lock-fill" style="color:var(--amber);"></i>
+                        </span>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Enter password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Admin Panel
+                </button>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mt-3 mb-0" role="alert" style="font-size:0.8rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </form>
+        </div>
+        <div class="login-card-footer">
+            <i class="bi bi-person-walking me-1"></i>
+            Not an admin?
+            <a href="{{ url_for('passengers_home') }}" style="color:var(--orange);font-weight:700;text-decoration:none;">
+                Go to Passenger Portal →
+            </a>
+        </div>
+    </div>
+</div>
+
+<footer style="position:fixed;bottom:65px;left:0;right:0;text-align:center;z-index:5;">
+    <small style="color:rgba(255,200,0,0.5);font-size:0.68rem;">
+        Designed by <strong style="color:rgba(255,200,0,0.8);">Nextlinkers</strong> – Design Build Operate | KARE
+    </small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

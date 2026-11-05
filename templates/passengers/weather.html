@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Report – Yatra Saarthi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Translate -->
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit" async></script>
+    <style>
+        :root { --font-sans: Verdana, Tahoma, Geneva, sans-serif; }
+        body, * { font-family: var(--font-sans); }
+        h1,h2,h3,h4,h5,.fw-bold { font-family: var(--font-sans); }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+        }
+        /* Translate button */
+        #translate-fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+        #translate-fab .fab-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        #translate-fab .fab-btn:hover { transform: scale(1.1); }
+        #translate-panel {
+            display: none;
+            background: rgba(30,30,50,0.97);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.6rem;
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        #translate-panel .lang-opt {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.4rem 0.8rem;
+            margin-bottom: 0.3rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.15s;
+        }
+        #translate-panel .lang-opt:hover, #translate-panel .lang-opt.active {
+            background: rgba(66,133,244,0.4);
+        }
+        /* Hide Google Translate bar */
+        .goog-te-banner-frame, #goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+        .skiptranslate { display: none !important; }
+        .glass-card {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 20px;
+        }
+        .weather-hero {
+            background: linear-gradient(135deg, rgba(0,170,255,0.4), rgba(0,100,200,0.3));
+            border-radius: 24px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .temp-display { font-size: 5rem; font-weight: 700; line-height: 1; }
+        .forecast-card {
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 1.2rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .forecast-card:hover { transform: translateY(-4px); }
+        .stat-pill {
+            background: rgba(255,255,255,0.15);
+            border-radius: 30px;
+            padding: 0.5rem 1.2rem;
+            display: inline-block;
+            margin: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .condition-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+        .city-btn { 
+            background: rgba(255,255,255,0.12); 
+            border: 1px solid rgba(255,255,255,0.25); 
+            color: #fff; 
+            border-radius: 20px; 
+            padding: 0.3rem 0.9rem; 
+            margin: 0.2rem;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .city-btn:hover, .city-btn.active { background: rgba(0,170,255,0.5); color: #fff; }
+        .travel-tip { 
+            background: rgba(255,255,255,0.10); 
+            border-left: 4px solid #00aaff; 
+            border-radius: 8px; 
+            padding: 0.8rem 1rem; 
+            margin-bottom: 0.7rem; 
+        }
+        footer { background: rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+<style>
+.ys-nav { background: rgba(11,31,58,0.97); backdrop-filter: blur(12px); padding: 0 2rem; height: 64px; display: flex; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.ys-brand { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; flex-shrink: 0; }
+.ys-logo { width:38px;height:38px;background:linear-gradient(135deg,#FF5722,#FF8A65);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(255,87,34,0.4); }
+.ys-bt { display:flex;flex-direction:column;line-height:1.1; }
+.ys-bt .t1 { font-family: var(--font-sans); font-weight:800;font-size:1rem;color:#fff; }
+.ys-bt .t2 { font-size:0.58rem;color:#FFB300;font-weight:500;letter-spacing:0.08em;text-transform:uppercase; }
+.ys-links { display:flex;align-items:center;gap:0.15rem;margin-left:auto;flex-wrap:wrap; }
+.ys-links a { color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.78rem;font-weight:500;padding:6px 12px;border-radius:8px;transition:all 0.2s;display:flex;align-items:center;gap:0.35rem;white-space:nowrap; }
+.ys-links a:hover { background:rgba(255,255,255,0.1);color:#fff; }
+.ys-links a.ys-active { background:linear-gradient(135deg,#FF5722,#FF8A65);color:#fff;box-shadow:0 2px 8px rgba(255,87,34,0.35); }
+.ys-langs { display:flex;gap:4px;margin-left:0.75rem;border-left:1px solid rgba(255,255,255,0.15);padding-left:0.75rem; }
+.ys-langs button { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.75);border-radius:6px;padding:3px 9px;font-size:0.68rem;cursor:pointer;transition:all 0.2s; }
+.ys-langs button:hover,.ys-langs button.active { background:#FF5722;border-color:#FF5722;color:#fff; }
+</style>
+<nav class="ys-nav">
+    <a class="ys-brand" href="{{ url_for('passengers_home') }}">
+        <div class="ys-logo"><i class="bi bi-compass-fill" style="color:#fff;"></i></div>
+        <div class="ys-bt"><span class="t1">Yatra Saarthi</span><span class="t2">Smart Travel Portal</span></div>
+    </a>
+    <div class="ys-links">
+        <a href="{{ url_for('passengers_home') }}"><i class="bi bi-house-fill"></i> Home</a>
+        <a href="{{ url_for('passenger_timetables') }}"><i class="bi bi-map-fill"></i> Plan Trip</a>
+        <a href="{{ url_for('weather_page') }}" class="ys-active"><i class="bi bi-cloud-sun-fill"></i> Weather</a>
+        <a href="{{ url_for('train_map') }}"><i class="bi bi-train-front-fill"></i> Train Map</a>
+        <a href="{{ url_for('tourism_page') }}"><i class="bi bi-camera-fill"></i> Tourism</a>
+        <a href="{{ url_for('travel_guide') }}"><i class="bi bi-journal-richtext"></i> Guide</a>
+        <div class="ys-langs">
+            <button id="lang-en" onclick="switchLang('en')" class="active">EN</button>
+            <button id="lang-ta" onclick="switchLang('ta')">தமிழ்</button>
+            <button id="lang-te" onclick="switchLang('te')">తెలుగు</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <!-- City Selector -->
+    <div class="glass-card p-4 mb-4">
+        <h5 class="mb-3"><i class="bi bi-geo-alt-fill text-info"></i> Select City</h5>
+        <form method="GET" class="row g-2 align-items-end mb-3">
+            <div class="col-md-6">
+                <select name="city" class="form-select" style="background: rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.3);">
+                    {% for c in cities %}
+                    <option value="{{ c }}" {% if c == city %}selected{% endif %} style="background:#1a1a2e; color:#fff;">{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100"><i class="bi bi-search"></i> Check</button>
+            </div>
+        </form>
+        <div>
+            {% for c in cities %}
+            <a href="{{ url_for('weather_page', city=c) }}" class="city-btn {% if c == city %}active{% endif %}">{{ c }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if weather %}
+    <!-- Current Weather Hero -->
+    <div class="weather-hero">
+        <div class="condition-icon">
+            {% set cond = weather.condition|lower %}
+            {% if 'rain' in cond or 'drizzle' in cond %}🌧️
+            {% elif 'cloud' in cond %}⛅
+            {% elif 'thunder' in cond or 'storm' in cond %}⛈️
+            {% elif 'fog' in cond or 'mist' in cond or 'haze' in cond %}🌫️
+            {% elif 'snow' in cond %}❄️
+            {% else %}☀️
+            {% endif %}
+        </div>
+        <div class="temp-display">{{ weather.temperature }}°C</div>
+        <h2 class="mt-2 mb-1">{{ city }}</h2>
+        <p class="lead mb-3 opacity-75">{{ weather.description }}</p>
+        <div>
+            <span class="stat-pill">💧 Humidity {{ weather.humidity }}%</span>
+            <span class="stat-pill">💨 Wind {{ weather.wind_speed }} km/h</span>
+            <span class="stat-pill">🌡️ Feels like {{ weather.feels_like }}°C</span>
+        </div>
+    </div>
+
+    <!-- 3-Day Forecast -->
+    {% if forecast %}
+    <h4 class="mb-3"><i class="bi bi-calendar3 text-info"></i> 3-Day Forecast</h4>
+    <div class="row g-3 mb-4">
+        {% for day in forecast %}
+        <div class="col-md-4">
+            <div class="forecast-card">
+                <div class="mb-2 text-info small fw-bold">
+                    {% if loop.index == 1 %}Today
+                    {% elif loop.index == 2 %}Tomorrow
+                    {% else %}{{ day.date }}
+                    {% endif %}
+                </div>
+                <div style="font-size:2.5rem;">
+                    {% set desc = day.description|lower %}
+                    {% if 'rain' in desc or 'drizzle' in desc %}🌧️
+                    {% elif 'cloud' in desc %}⛅
+                    {% elif 'thunder' in desc %}⛈️
+                    {% elif 'fog' in desc or 'mist' in desc %}🌫️
+                    {% elif 'snow' in desc %}❄️
+                    {% else %}☀️
+                    {% endif %}
+                </div>
+                <div class="fw-bold mt-1">{{ day.description }}</div>
+                <div class="mt-2">
+                    <span class="text-warning fw-bold fs-5">{{ day.max_temp }}°</span>
+                    <span class="text-secondary ms-2">{{ day.min_temp }}°</span>
+                </div>
+                <div class="mt-2 small opacity-75">
+                    <span class="me-2">💧 {{ day.rain_chance }}%</span>
+                    <span class="me-2">💦 {{ day.humidity }}%</span>
+                    <span>💨 {{ day.wind_kmph }} km/h</span>
+                </div>
+                {% if day.uv_index|int >= 8 %}
+                <div class="mt-2 badge bg-danger">UV: {{ day.uv_index }} – Very High</div>
+                {% elif day.uv_index|int >= 6 %}
+                <div class="mt-2 badge bg-warning text-dark">UV: {{ day.uv_index }} – High</div>
+                {% else %}
+                <div class="mt-2 badge bg-success">UV: {{ day.uv_index }} – Moderate</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Travel Tips Based on Weather -->
+    <div class="glass-card p-4 mb-4">
+        <h5 class="mb-3"><i class="bi bi-lightbulb-fill text-warning"></i> Travel Tips for {{ city }}</h5>
+        {% set cond = weather.condition|lower %}
+        {% set temp = weather.temperature|int %}
+        {% if 'rain' in cond %}
+        <div class="travel-tip">☔ Carry an umbrella or raincoat – rain expected. Roads may be wet, allow extra travel time.</div>
+        <div class="travel-tip">🚌 Bus delays possible. Check real-time status before boarding.</div>
+        {% elif temp >= 38 %}
+        <div class="travel-tip">🌡️ Extreme heat alert ({{ temp }}°C). Travel during early morning or evening if possible.</div>
+        <div class="travel-tip">💧 Stay hydrated – carry at least 1 litre of water for every 2 hours of travel.</div>
+        <div class="travel-tip">🧢 Wear light, breathable clothing and sunscreen (SPF 50+).</div>
+        {% elif temp >= 32 %}
+        <div class="travel-tip">☀️ Hot day – carry water and wear light clothes.</div>
+        <div class="travel-tip">🕶️ Sunglasses recommended. Best travel time: before 10 AM or after 5 PM.</div>
+        {% elif 'cloud' in cond %}
+        <div class="travel-tip">⛅ Cloudy conditions – comfortable for travel and outdoor sightseeing.</div>
+        <div class="travel-tip">🌂 Light rain possible; carry a small umbrella as precaution.</div>
+        {% else %}
+        <div class="travel-tip">✅ Good weather conditions for travel and tourism today!</div>
+        <div class="travel-tip">📸 Clear skies – great for outdoor photography and sightseeing.</div>
+        {% endif %}
+        {% if weather.wind_speed|float > 30 %}
+        <div class="travel-tip">💨 Strong winds ({{ weather.wind_speed }} km/h). Be cautious on open highways.</div>
+        {% endif %}
+        <div class="travel-tip">🚍 Check <a href="{{ url_for('passenger_timetables') }}" class="text-info">Bus Timetables</a> and plan your departure accordingly.</div>
+        <div class="travel-tip">🗺️ Explore <a href="{{ url_for('tourism_page', destination=city) }}" class="text-info">tourism spots in {{ city }}</a> and nearby areas.</div>
+    </div>
+
+    {% else %}
+    <div class="glass-card p-5 text-center">
+        <i class="bi bi-cloud-question" style="font-size:4rem;"></i>
+        <h4 class="mt-3">Weather data unavailable for {{ city }}</h4>
+        <p class="opacity-75">Please try selecting another city or check back later.</p>
+    </div>
+    {% endif %}
+</div>
+
+<footer class="py-3 mt-4">
+    <div class="container text-center text-white-50 small">
+        Designed and developed by Nextlinkers | Design Build Operate | KARE
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Floating Translate Button -->
+<div id="translate-fab">
+    <div id="translate-panel">
+        <div style="font-size:0.75rem;color:#aaa;margin-bottom:0.5rem;">🌐 Select Language</div>
+        <button class="lang-opt active" onclick="doTranslate('en')">🇬🇧 English</button>
+        <button class="lang-opt" onclick="doTranslate('ta')">🇮🇳 தமிழ் (Tamil)</button>
+        <button class="lang-opt" onclick="doTranslate('te')">🇮🇳 తెలుగు (Telugu)</button>
+        <button class="lang-opt" onclick="doTranslate('hi')">🇮🇳 हिन्दी (Hindi)</button>
+        <button class="lang-opt" onclick="doTranslate('kn')">🇮🇳 ಕನ್ನಡ (Kannada)</button>
+        <button class="lang-opt" onclick="doTranslate('ml')">🇮🇳 മലയാളം (Malayalam)</button>
+        <div id="google_translate_element" style="display:none;"></div>
+    </div>
+    <button class="fab-btn" onclick="toggleTranslatePanel()" title="Translate page">
+        <i class="bi bi-translate"></i>
+    </button>
+</div>
+
+<script>
+function googleTranslateInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'ta,te,hi,kn,ml,en',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+    }, 'google_translate_element');
+}
+
+function switchLang(lang) {
+    // Update navbar button highlight
+    ['en','ta','te'].forEach(l => {
+        const btn = document.getElementById('lang-' + l);
+        if (!btn) return;
+        if (l === lang) {
+            btn.classList.remove('btn-outline-warning'); btn.classList.add('btn-warning','active');
+        } else {
+            btn.classList.remove('btn-warning','active'); btn.classList.add('btn-outline-warning');
+        }
+    });
+    // Trigger Google Translate
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
+    else {
+        const d = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${d}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        if (lang !== 'en') window.location.reload();
+    }
+    localStorage.setItem('preferredLang', lang);
+}
+// Restore language preference on load
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('preferredLang');
+    if (saved && saved !== 'en') setTimeout(() => switchLang(saved), 800);
+});
+
+function toggleTranslatePanel() {
+    const panel = document.getElementById('translate-panel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
+
+function doTranslate(lang) {
+    document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const select = document.querySelector('.goog-te-combo');
+    if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+    } else {
+        // Fallback: reload with Google Translate cookie
+        const domain = window.location.hostname;
+        document.cookie = `googtrans=/en/${lang}; domain=${domain}; path=/`;
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+        window.location.reload();
+    }
+    if (lang !== 'en') {
+        document.getElementById('translate-panel').style.display = 'none';
+    }
+}
+
+// Close panel on outside click
+document.addEventListener('click', function(e) {
+    const fab = document.getElementById('translate-fab');
+    if (!fab.contains(e.target)) {
+        document.getElementById('translate-panel').style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>

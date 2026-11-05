@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Bus Optimization System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bus-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 20px;
+    }
+    .bus-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .occupancy-high {
+        background-color: #f8d7da !important;
+    }
+    .occupancy-medium {
+        background-color: #fff3cd !important;
+    }
+    .occupancy-low {
+        background-color: #d1e7dd !important;
+    }
+    .status-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .bus-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .progress {
+        height: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Bus Management Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-calendar"></i> This week
+            </button>
+        </div>
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Bus
+            </button>
+        </div>
+        {% if current_user.is_admin %}
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear"></i> Admin
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                <li>
+                    <form action="{{ url_for('generate_sample_data') }}" method="POST" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item" onclick="return confirm('WARNING: This will delete all existing data. Are you sure?')">
+                            <i class="bi bi-database-add"></i> Generate Sample Data
+                        </button>
+                    </form>
+                </li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-people"></i> Manage Users</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings</a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Active Buses</h6>
+                        <h2 class="mb-0">{{ total_buses }}</h2>
+                    </div>
+                    <i class="bi bi-bus-front" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+                <p class="card-text mt-2 mb-0"><small>All operational buses</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Travel Plans Today</h6>
+                        <h2 class="mb-0">{{ "{:,}".format(today_passengers) }}</h2>
+                    </div>
+                    <i class="bi bi-journals" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+                <p class="card-text mt-2 mb-0"><small>Travel plans created today</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Avg. Occupancy</h6>
+                        <h2 class="mb-0">{{ avg_occupancy }}<span class="h6">%</span></h2>
+                    </div>
+                    <i class="bi bi-speedometer2" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+                <p class="card-text mt-2 mb-0"><small>Average bus occupancy rate</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="#active-bus-services" class="text-decoration-none" style="cursor: pointer;">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Buses Needing Attention</h6>
+                            <h2 class="mb-0">{{ buses_needing_attention|length }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    </div>
+                    <p class="card-text mt-2 mb-0"><small>High occupancy or maintenance</small></p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+
+<!-- Active Bus Services Section -->
+<div id="active-bus-services" class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Active Bus Services</h5>
+            </div>
+            <div class="card-body">
+                {% if active_services %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Service #</th>
+                                    <th>Bus #</th>
+                                    <th>Route</th>
+                                    <th>Timings</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for service in active_services %}
+                                <tr>
+                                    <td>{{ service.service_number }}</td>
+                                    <td>{{ service.bus_number }}</td>
+                                    <td>
+                                        {{ service.origin }} → {{ service.destination }}
+                                        {% if service.via_routes and service.via_routes|length > 0 %}
+                                            <small class="text-muted d-block">
+                                                Via: {{ service.via_routes|join(', ') }}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <div class="text-nowrap">
+                                                <i class="bi bi-arrow-right-circle text-success"></i>
+                                                {% if service.origin_departure_time %}
+                                                    {{ service.origin_departure_time.strftime('%I:%M %p') }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-nowrap">
+                                                <i class="bi bi-arrow-left-circle text-danger"></i>
+                                                {% if service.destination_arrival_time %}
+                                                    {{ service.destination_arrival_time.strftime('%I:%M %p') }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Active</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bus-front text-muted" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No active bus services found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Passenger Flow Chart
+const passengerCtx = document.getElementById('passengerFlowChart').getContext('2d');
+new Chart(passengerCtx, {
+    type: 'line',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Passengers',
+            data: [1200, 1900, 2100, 2500, 2200, 1800, 1500],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    display: true,
+                    drawBorder: false
+                },
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString();
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        },
+        interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+        }
+    }
+});
+
+// Occupancy Distribution Chart
+const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+new Chart(occupancyCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Low (0-50%)', 'Medium (51-80%)', 'High (81-100%)'],
+        datasets: [{
+            data: [15, 8, 4],
+            backgroundColor: [
+                '#198754',
+                '#ffc107',
+                '#dc3545'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value} buses (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+</script>
+{% endblock %}

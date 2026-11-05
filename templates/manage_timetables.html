@@ -1,0 +1,717 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-card { margin-bottom: 2rem; }
+    .form-section { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #dee2e6; }
+    .form-section h5 { margin-bottom: 1rem; }
+    .table th { font-size: 0.82rem; white-space: nowrap; }
+    .table td { font-size: 0.82rem; vertical-align: middle; }
+    .danger-zone { border: 2px solid #dc3545; border-radius: 8px; padding: 1rem; background: #fff5f5; }
+    .upload-zone { border: 2px dashed #0d6efd; border-radius: 8px; padding: 1.5rem; text-align: center; background: #f0f4ff; }
+    .badge-local { background-color: #198754; }
+    .badge-private { background-color: #ffc107; color: #000; }
+    .tabs-nav .nav-link { font-weight: 600; }
+    .csv-drop-area { border: 2px dashed #adb5bd; border-radius: 8px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .csv-drop-area.dragover { border-color: #0d6efd; background: #e8f0fe; }
+    .csv-drop-area .drop-icon { font-size: 2.5rem; color: #6c757d; }
+    .csv-drop-area.has-file { border-color: #198754; background: #f0fff4; }
+    .csv-drop-area.has-file .drop-icon { color: #198754; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-clock-history text-primary"></i> Timetable Management</h3>
+        <small class="text-muted">Add, remove, and upload bus timetables. Passengers see only entries added here.</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_download_csv_template') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download"></i> Download CSV Template
+        </a>
+        <a href="{{ url_for('passenger_timetables') }}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-eye"></i> Preview Passenger View
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-success text-center">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-success">{{ local_buses|length }}</div>
+                <div class="small text-muted">Government Bus Entries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning text-center">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-warning">{{ private_buses|length }}</div>
+                <div class="small text-muted">Private Bus Entries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-primary text-center">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-primary">{{ local_buses|length + private_buses|length }}</div>
+                <div class="small text-muted">Total Timetable Entries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="danger-zone d-flex flex-column justify-content-center align-items-center text-center">
+            <p class="mb-2 small fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Remove All Data</p>
+            <form method="POST" action="{{ url_for('admin_clear_timetables') }}"
+                  onsubmit="return confirm('This will delete ALL {{ local_buses|length + private_buses|length }} timetable entries. Are you sure?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-trash3-fill"></i> Clear All Entries
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs tabs-nav mb-3" id="ttTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-local-list">
+            <i class="bi bi-bus-front text-success"></i> Government Buses
+            <span class="badge bg-success ms-1">{{ local_buses|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-private-list">
+            <i class="bi bi-bus-front-fill text-warning"></i> Private Buses
+            <span class="badge bg-warning text-dark ms-1">{{ private_buses|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-add-local">
+            <i class="bi bi-plus-circle text-success"></i> Add Government Bus
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-add-private">
+            <i class="bi bi-plus-circle text-warning"></i> Add Private Bus
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-csv">
+            <i class="bi bi-file-earmark-spreadsheet text-primary"></i> Upload CSV
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="ttTabContent">
+
+    <!-- ── Government Buses List ── -->
+    <div class="tab-pane fade show active" id="tab-local-list">
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small">{{ local_buses|length }} government bus entr{{ 'ies' if local_buses|length != 1 else 'y' }}</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportLocal">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import from CSV
+                </button>
+                <button class="btn btn-outline-success btn-sm" onclick="document.querySelector('[data-bs-target=\'#tab-add-local\']').click()">
+                    <i class="bi bi-plus-circle"></i> Add Single Entry
+                </button>
+            </div>
+        </div>
+
+        {% if local_buses %}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Bus No.</th>
+                        <th>Operator</th>
+                        <th>Route No.</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Departs</th>
+                        <th>Arrives</th>
+                        <th>Type</th>
+                        <th>Fare ₹</th>
+                        <th>Status</th>
+                        <th>Via</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in local_buses %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td><strong>{{ b.bus_number }}</strong></td>
+                        <td><span class="badge bg-success">{{ b.operator }}</span></td>
+                        <td>{{ b.route_number }}</td>
+                        <td>{{ b.origin }}</td>
+                        <td>{{ b.destination }}</td>
+                        <td>{{ b.departure_time.strftime('%I:%M %p') if b.departure_time }}</td>
+                        <td>{{ b.arrival_time.strftime('%I:%M %p') if b.arrival_time }}</td>
+                        <td>{{ b.bus_type or '–' }}</td>
+                        <td>{{ b.fare }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if b.status == 'running' else 'warning text-dark' if b.status == 'delayed' else 'secondary' }}">
+                                {{ b.status|title }}
+                            </span>
+                        </td>
+                        <td><small>{{ (b.via_stops or [])|join(', ') or '–' }}</small></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_delete_local_bus', bus_id=b.id) }}"
+                                  onsubmit="return confirm('Delete bus {{ b.bus_number }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bus-front" style="font-size:3rem;"></i>
+            <p class="mt-2 mb-3">No government bus entries yet.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportLocal">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import from CSV
+                </button>
+                <button class="btn btn-outline-success" onclick="document.querySelector('[data-bs-target=\'#tab-add-local\']').click()">
+                    <i class="bi bi-plus-circle"></i> Add Manually
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Private Buses List ── -->
+    <div class="tab-pane fade" id="tab-private-list">
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small">{{ private_buses|length }} private bus entr{{ 'ies' if private_buses|length != 1 else 'y' }}</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportPrivate">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import from CSV
+                </button>
+                <button class="btn btn-outline-warning btn-sm" onclick="document.querySelector('[data-bs-target=\'#tab-add-private\']').click()">
+                    <i class="bi bi-plus-circle"></i> Add Single Entry
+                </button>
+            </div>
+        </div>
+
+        {% if private_buses %}
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle">
+                <thead class="table-warning">
+                    <tr>
+                        <th>#</th>
+                        <th>Bus No.</th>
+                        <th>Operator</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Departs</th>
+                        <th>Arrives</th>
+                        <th>Type</th>
+                        <th>Fare ₹</th>
+                        <th>Duration</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Live</th>
+                        <th>Via</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in private_buses %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td><strong>{{ b.bus_number }}</strong></td>
+                        <td><span class="badge bg-warning text-dark">{{ b.operator_name }}</span></td>
+                        <td>{{ b.origin }}</td>
+                        <td>{{ b.destination }}</td>
+                        <td>{{ b.departure_time.strftime('%I:%M %p') if b.departure_time }}</td>
+                        <td>{{ b.arrival_time.strftime('%I:%M %p') if b.arrival_time }}</td>
+                        <td>{{ b.bus_type or '–' }}</td>
+                        <td>{{ b.fare }}</td>
+                        <td>{{ b.duration or '–' }}</td>
+                        <td>
+                            {% if b.rating > 0 %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> {{ b.rating }}</span>
+                            {% else %}–{% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if b.status == 'available' else 'warning text-dark' if b.status == 'delayed' else 'secondary' }}">
+                                {{ b.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if b.live_tracking %}
+                            <span class="badge bg-success"><i class="bi bi-geo-alt-fill"></i></span>
+                            {% else %}<span class="text-muted">–</span>{% endif %}
+                        </td>
+                        <td><small>{{ (b.via_stops or [])|join(', ') or '–' }}</small></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_delete_private_bus', bus_id=b.id) }}"
+                                  onsubmit="return confirm('Delete bus {{ b.bus_number }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bus-front-fill" style="font-size:3rem;"></i>
+            <p class="mt-2 mb-3">No private bus entries yet.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalImportPrivate">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import from CSV
+                </button>
+                <button class="btn btn-outline-warning" onclick="document.querySelector('[data-bs-target=\'#tab-add-private\']').click()">
+                    <i class="bi bi-plus-circle"></i> Add Manually
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Add Government Bus Form ── -->
+    <div class="tab-pane fade" id="tab-add-local">
+        <div class="form-section">
+            <h5><i class="bi bi-plus-circle-fill text-success"></i> Add Government Bus (TNSTC / SETC / MTC)</h5>
+            <form method="POST" action="{{ url_for('admin_add_local_bus') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Bus Number <span class="text-danger">*</span></label>
+                        <input type="text" name="bus_number" class="form-control" placeholder="e.g. TN72A 0001" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Route Number</label>
+                        <input type="text" name="route_number" class="form-control" placeholder="e.g. SVP-001">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Operator <span class="text-danger">*</span></label>
+                        <select name="operator" class="form-select" required>
+                            <option value="TNSTC">TNSTC</option>
+                            <option value="SETC">SETC</option>
+                            <option value="MTC">MTC</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Bus Type</label>
+                        <select name="bus_type" class="form-select">
+                            <option value="Ordinary">Ordinary</option>
+                            <option value="Express">Express</option>
+                            <option value="Superfast">Superfast</option>
+                            <option value="Deluxe">Deluxe</option>
+                            <option value="Ultra Deluxe">Ultra Deluxe</option>
+                            <option value="AC Deluxe">AC Deluxe</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Origin <span class="text-danger">*</span></label>
+                        <input type="text" name="origin" class="form-control" placeholder="e.g. Srivilliputhur" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Destination <span class="text-danger">*</span></label>
+                        <input type="text" name="destination" class="form-control" placeholder="e.g. Madurai" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Departure <span class="text-danger">*</span></label>
+                        <input type="time" name="departure_time" class="form-control" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Arrival <span class="text-danger">*</span></label>
+                        <input type="time" name="arrival_time" class="form-control" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Fare (₹) <span class="text-danger">*</span></label>
+                        <input type="number" name="fare" class="form-control" placeholder="e.g. 80" min="0" step="0.5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Via Stops <small class="text-muted">(semicolon-separated)</small></label>
+                        <input type="text" name="via_stops" class="form-control" placeholder="e.g. Virudhunagar;Rajapalayam">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="scheduled">Scheduled</option>
+                            <option value="running">Running</option>
+                            <option value="delayed">Delayed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Total Seats</label>
+                        <input type="number" name="total_seats" class="form-control" value="50" min="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Available Seats</label>
+                        <input type="number" name="seat_availability" class="form-control" value="50" min="0">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle-fill"></i> Add Government Bus
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Add Private Bus Form ── -->
+    <div class="tab-pane fade" id="tab-add-private">
+        <div class="form-section">
+            <h5><i class="bi bi-plus-circle-fill text-warning"></i> Add Private Bus Operator</h5>
+            <form method="POST" action="{{ url_for('admin_add_private_bus') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Operator Name <span class="text-danger">*</span></label>
+                        <input type="text" name="operator_name" class="form-control" placeholder="e.g. KPN Travels" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Bus Number <span class="text-danger">*</span></label>
+                        <input type="text" name="bus_number" class="form-control" placeholder="e.g. TN72 AB 1234" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Bus Type</label>
+                        <select name="bus_type" class="form-select">
+                            <option value="AC Seater">AC Seater</option>
+                            <option value="Non-AC Seater">Non-AC Seater</option>
+                            <option value="AC Sleeper">AC Sleeper</option>
+                            <option value="Non-AC Sleeper">Non-AC Sleeper</option>
+                            <option value="Semi-Sleeper">Semi-Sleeper</option>
+                            <option value="Volvo AC">Volvo AC</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Rating (0–5)</label>
+                        <input type="number" name="rating" class="form-control" placeholder="e.g. 4.2" min="0" max="5" step="0.1" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Origin <span class="text-danger">*</span></label>
+                        <input type="text" name="origin" class="form-control" placeholder="e.g. Madurai" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Destination <span class="text-danger">*</span></label>
+                        <input type="text" name="destination" class="form-control" placeholder="e.g. Chennai" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Departure <span class="text-danger">*</span></label>
+                        <input type="time" name="departure_time" class="form-control" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Arrival <span class="text-danger">*</span></label>
+                        <input type="time" name="arrival_time" class="form-control" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Fare (₹) <span class="text-danger">*</span></label>
+                        <input type="number" name="fare" class="form-control" placeholder="e.g. 600" min="0" step="0.5" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Duration</label>
+                        <input type="text" name="duration" class="form-control" placeholder="e.g. 7h 30m">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Via Stops <small class="text-muted">(semicolon-separated)</small></label>
+                        <input type="text" name="via_stops" class="form-control" placeholder="e.g. Salem;Trichy">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Live Tracking</label>
+                        <select name="live_tracking" class="form-select">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="available">Available</option>
+                            <option value="running">Running</option>
+                            <option value="delayed">Delayed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Total Seats</label>
+                        <input type="number" name="total_seats" class="form-control" value="40" min="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Available Seats</label>
+                        <input type="number" name="seat_availability" class="form-control" value="40" min="0">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-plus-circle-fill"></i> Add Private Bus
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── CSV Upload ── -->
+    <div class="tab-pane fade" id="tab-csv">
+        <div class="upload-zone mb-4">
+            <i class="bi bi-file-earmark-spreadsheet" style="font-size:2.5rem; color:#0d6efd;"></i>
+            <h5 class="mt-2">Upload CSV Timetable</h5>
+            <p class="text-muted mb-3">Upload a CSV file to add many buses at once. Each row is one bus entry.</p>
+            <form method="POST" action="{{ url_for('admin_upload_timetable_csv') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap">
+                    <input type="file" name="csv_file" class="form-control" style="max-width:320px;" accept=".csv" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Import CSV
+                    </button>
+                    <a href="{{ url_for('admin_download_csv_template') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-download"></i> Download Template
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- CSV Format Guide -->
+        <div class="card">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-info-circle text-primary"></i> CSV Format Guide
+            </div>
+            <div class="card-body">
+                <p class="mb-2">The first row must be the header. Required columns:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered small">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Column</th>
+                                <th>Required</th>
+                                <th>Example</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>type</code></td><td>✅</td><td>local</td><td><code>local</code> = govt bus, <code>private</code> = private operator</td></tr>
+                            <tr><td><code>bus_number</code></td><td>✅</td><td>TN72A0001</td><td>Any unique identifier</td></tr>
+                            <tr><td><code>operator</code></td><td>✅</td><td>TNSTC</td><td>For private buses, this is the company name</td></tr>
+                            <tr><td><code>origin</code></td><td>✅</td><td>Srivilliputhur</td><td>Departure city</td></tr>
+                            <tr><td><code>destination</code></td><td>✅</td><td>Madurai</td><td>Arrival city</td></tr>
+                            <tr><td><code>departure_time</code></td><td>✅</td><td>06:00</td><td>24-hour format HH:MM</td></tr>
+                            <tr><td><code>arrival_time</code></td><td>✅</td><td>08:30</td><td>24-hour format HH:MM</td></tr>
+                            <tr><td><code>fare</code></td><td>✅</td><td>80</td><td>In Rupees</td></tr>
+                            <tr><td><code>bus_type</code></td><td></td><td>Express</td><td>Ordinary / Express / AC Sleeper etc.</td></tr>
+                            <tr><td><code>status</code></td><td></td><td>scheduled</td><td>scheduled / running / delayed / available</td></tr>
+                            <tr><td><code>via_stops</code></td><td></td><td>Salem;Trichy</td><td>Semicolon-separated stop names</td></tr>
+                            <tr><td><code>route_number</code></td><td></td><td>SVP-001</td><td>For govt buses only</td></tr>
+                            <tr><td><code>route_name</code></td><td></td><td>Madurai – Chennai</td><td>For private buses only</td></tr>
+                            <tr><td><code>rating</code></td><td></td><td>4.5</td><td>Private buses only (0–5)</td></tr>
+                            <tr><td><code>live_tracking</code></td><td></td><td>yes</td><td>yes / no – for private buses</td></tr>
+                            <tr><td><code>duration</code></td><td></td><td>7h 30m</td><td>Journey duration (text)</td></tr>
+                            <tr><td><code>seat_availability</code></td><td></td><td>40</td><td>Available seats</td></tr>
+                            <tr><td><code>total_seats</code></td><td></td><td>50</td><td>Total seat capacity</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-info mt-2 mb-0 small">
+                    <strong>Sample row (local):</strong><br>
+                    <code>local,TN72A0001,TNSTC,Srivilliputhur,Madurai,06:00,08:30,80,Express,scheduled,Virudhunagar,SVP-001,,0,no,,50,50</code><br><br>
+                    <strong>Sample row (private):</strong><br>
+                    <code>private,KA01P001,KPN Travels,Madurai,Chennai,21:00,07:00,600,AC Sleeper,available,Salem;Trichy,,Madurai - Chennai,4.5,yes,10h,40,40</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     Modal – Import Government Buses CSV
+═════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalImportLocal" tabindex="-1" aria-labelledby="modalImportLocalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalImportLocalLabel">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import Government Buses from CSV
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('admin_upload_local_csv') }}"
+                      enctype="multipart/form-data" id="formLocalCsv">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Drop zone -->
+                    <div class="csv-drop-area mb-3" id="localDropArea"
+                         onclick="document.getElementById('localFileInput').click()">
+                        <div class="drop-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+                        <p class="mb-1 fw-bold mt-2" id="localDropLabel">Click to choose a CSV file or drag &amp; drop here</p>
+                        <p class="text-muted small mb-0">Only .csv files are accepted</p>
+                        <input type="file" name="csv_file" id="localFileInput" accept=".csv" class="d-none" required>
+                    </div>
+
+                    <!-- Format reference (collapsed) -->
+                    <div class="accordion accordion-flush mb-3">
+                        <div class="accordion-item border rounded">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed py-2 small" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#localFormatBody">
+                                    <i class="bi bi-info-circle me-2 text-primary"></i> View required CSV columns &amp; sample
+                                </button>
+                            </h2>
+                            <div id="localFormatBody" class="accordion-collapse collapse">
+                                <div class="accordion-body p-2 small">
+                                    <strong>Required header:</strong>
+                                    <code class="d-block bg-light p-2 rounded my-1">bus_number, route_number, operator, origin, destination, departure_time, arrival_time, fare, bus_type, status, via_stops, seat_availability, total_seats</code>
+                                    <strong>Sample rows:</strong>
+                                    <code class="d-block bg-light p-2 rounded my-1">
+                                        TN72A0001,SVP-001,TNSTC,Srivilliputhur,Madurai,06:00,08:30,80,Express,scheduled,Virudhunagar,50,50<br>
+                                        TN72A0002,SVP-002,SETC,Madurai,Chennai,21:00,06:00,350,Ultra Deluxe,scheduled,Trichy;Salem,45,50
+                                    </code>
+                                    <span class="text-muted"><strong>via_stops:</strong> semicolon-separated &nbsp;|&nbsp; <strong>times:</strong> HH:MM 24-hour</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('admin_download_local_csv_template') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download"></i> Download Sample CSV
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="btnLocalImport" disabled>
+                                <i class="bi bi-upload"></i> Import Now
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     Modal – Import Private Buses CSV
+═════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalImportPrivate" tabindex="-1" aria-labelledby="modalImportPrivateLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalImportPrivateLabel">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import Private Buses from CSV
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('admin_upload_private_csv') }}"
+                      enctype="multipart/form-data" id="formPrivateCsv">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Drop zone -->
+                    <div class="csv-drop-area mb-3" id="privateDropArea"
+                         onclick="document.getElementById('privateFileInput').click()">
+                        <div class="drop-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+                        <p class="mb-1 fw-bold mt-2" id="privateDropLabel">Click to choose a CSV file or drag &amp; drop here</p>
+                        <p class="text-muted small mb-0">Only .csv files are accepted</p>
+                        <input type="file" name="csv_file" id="privateFileInput" accept=".csv" class="d-none" required>
+                    </div>
+
+                    <!-- Format reference (collapsed) -->
+                    <div class="accordion accordion-flush mb-3">
+                        <div class="accordion-item border rounded">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed py-2 small" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#privateFormatBody">
+                                    <i class="bi bi-info-circle me-2 text-primary"></i> View required CSV columns &amp; sample
+                                </button>
+                            </h2>
+                            <div id="privateFormatBody" class="accordion-collapse collapse">
+                                <div class="accordion-body p-2 small">
+                                    <strong>Required header:</strong>
+                                    <code class="d-block bg-light p-2 rounded my-1">bus_number, operator_name, origin, destination, departure_time, arrival_time, fare, bus_type, status, via_stops, route_name, rating, live_tracking, duration, seat_availability, total_seats</code>
+                                    <strong>Sample rows:</strong>
+                                    <code class="d-block bg-light p-2 rounded my-1">
+                                        KA01P001,KPN Travels,Madurai,Chennai,21:00,07:00,600,AC Sleeper,available,Salem;Trichy,Madurai - Chennai,4.5,yes,10h,40,40<br>
+                                        KA01P002,SRS Travels,Madurai,Bengaluru,20:00,06:00,800,Volvo AC,available,Dindigul;Salem,Madurai - Bengaluru,4.3,yes,10h,36,40
+                                    </code>
+                                    <span class="text-muted"><strong>via_stops:</strong> semicolon-separated &nbsp;|&nbsp; <strong>live_tracking:</strong> yes/no &nbsp;|&nbsp; <strong>times:</strong> HH:MM 24-hour</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('admin_download_private_csv_template') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download"></i> Download Sample CSV
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-warning" id="btnPrivateImport" disabled>
+                                <i class="bi bi-upload"></i> Import Now
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+/* Drag-and-drop + click-to-select for CSV modals */
+function initDropZone(dropAreaId, inputId, labelId, submitBtnId) {
+    const area  = document.getElementById(dropAreaId);
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    const btn   = document.getElementById(submitBtnId);
+    if (!area) return;
+
+    function setFile(file) {
+        if (!file || !file.name.toLowerCase().endsWith('.csv')) {
+            alert('Please choose a .csv file.');
+            return;
+        }
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        label.textContent = '\u2705 ' + file.name + '  (' + (file.size / 1024).toFixed(1) + ' KB)';
+        area.classList.add('has-file');
+        btn.disabled = false;
+    }
+
+    input.addEventListener('change', () => { if (input.files[0]) setFile(input.files[0]); });
+    area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('dragover'); });
+    area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+    area.addEventListener('drop', e => {
+        e.preventDefault();
+        area.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initDropZone('localDropArea',   'localFileInput',   'localDropLabel',   'btnLocalImport');
+    initDropZone('privateDropArea', 'privateFileInput', 'privateDropLabel', 'btnPrivateImport');
+});
+</script>
+{% endblock %}

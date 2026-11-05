@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="display-1 text-danger mb-5">500</div>
+    <h1 class="h2 mb-3">Internal Server Error</h1>
+    <p class="h4 text-muted fw-normal mb-5">Oops! Something went wrong on our end. We're working to fix it.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="bi bi-house-door me-2"></i> Back to Dashboard
+        </a>
+        <button onclick="window.location.reload()" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-clockwise me-2"></i> Try Again
+        </button>
+    </div>
+</div>
+{% endblock %}

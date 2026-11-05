@@ -1,0 +1,45 @@
+type,bus_number,route_number,operator,route_name,origin,destination,departure_time,arrival_time,via_stops,fare,bus_type,status,rating,live_tracking,duration,seat_availability,total_seats
+private,TN58 P001,KPN-101,KPN Travels,Krishnankovil – Bengaluru,Krishnankovil,Bengaluru,21:00,06:30,Virudhunagar;Madurai;Dindigul;Salem,650,AC Sleeper,available,4.3,yes,9h 30m,36,40
+private,TN58 P002,KPN-102,KPN Travels,Krishnankovil – Chennai,Krishnankovil,Chennai,20:30,06:00,Virudhunagar;Madurai;Trichy,700,AC Sleeper,available,4.2,yes,9h 30m,34,40
+private,KA01 P003,SRS-201,SRS Travels,Bengaluru – Krishnankovil,Bengaluru,Krishnankovil,21:30,07:00,Hosur;Salem;Madurai,650,AC Sleeper,available,4.4,yes,9h 30m,38,40
+private,TN58 P004,SRS-202,SRS Travels,Krishnankovil – Bengaluru,Krishnankovil,Bengaluru,22:00,07:30,Srivilliputhur;Virudhunagar;Madurai;Salem,680,AC Seater,available,4.1,yes,9h 30m,30,44
+private,TN58 P005,VRL-301,VRL Travels,Srivilliputhur – Bengaluru,Srivilliputhur,Bengaluru,20:00,06:00,Virudhunagar;Madurai;Dindigul;Salem;Hosur,700,Volvo AC,available,4.5,yes,10h,32,40
+private,KA01 P006,VRL-302,VRL Travels,Bengaluru – Srivilliputhur,Bengaluru,Srivilliputhur,21:00,07:00,Hosur;Salem;Dindigul;Madurai,700,Volvo AC,available,4.5,yes,10h,36,40
+private,TN58 P007,PKT-401,Parveen Travels,Krishnankovil – Chennai,Krishnankovil,Chennai,21:00,07:00,Madurai;Trichy;Vellore,720,AC Sleeper,available,4.0,yes,10h,28,36
+private,TN58 P008,PKT-402,Parveen Travels,Chennai – Krishnankovil,Chennai,Krishnankovil,20:30,06:30,Vellore;Trichy;Madurai,720,AC Sleeper,available,4.0,yes,10h,30,36
+private,TN58 P009,OTR-501,Orange Travels,Madurai – Bengaluru,Madurai,Bengaluru,21:00,06:30,Dindigul;Salem;Hosur,580,AC Sleeper,available,4.3,yes,9h 30m,34,40
+private,KA01 P010,OTR-502,Orange Travels,Bengaluru – Madurai,Bengaluru,Madurai,20:30,06:00,Hosur;Salem;Dindigul,580,AC Sleeper,available,4.3,yes,9h 30m,36,40
+private,TN58 P011,OTR-503,Orange Travels,Madurai – Chennai,Madurai,Chennai,21:30,07:00,Trichy;Villupuram,520,AC Seater,available,4.2,yes,9h 30m,32,44
+private,TN58 P012,KPN-103,KPN Travels,Virudhunagar – Bengaluru,Virudhunagar,Bengaluru,21:00,06:00,Madurai;Dindigul;Salem,620,AC Sleeper,available,4.3,yes,9h,38,40
+private,KA01 P013,KPN-104,KPN Travels,Bengaluru – Virudhunagar,Bengaluru,Virudhunagar,22:00,07:00,Hosur;Salem;Dindigul;Madurai,620,AC Sleeper,available,4.3,yes,9h,34,40
+private,TN58 P014,SRM-601,SRM Travels,Madurai – Bengaluru,Madurai,Bengaluru,22:30,07:30,Dindigul;Salem,560,Non-AC Sleeper,available,3.8,yes,9h,30,40
+private,KA01 P015,SRM-602,SRM Travels,Bengaluru – Madurai,Bengaluru,Madurai,21:30,06:30,Salem;Dindigul,560,Non-AC Sleeper,available,3.8,yes,9h,28,40
+private,TN58 P016,NBS-701,National Bus Service,Sivakasi – Chennai,Sivakasi,Chennai,20:30,06:00,Virudhunagar;Madurai;Trichy,690,AC Sleeper,available,4.0,yes,9h 30m,32,40
+private,TN58 P017,NBS-702,National Bus Service,Chennai – Sivakasi,Chennai,Sivakasi,21:30,07:00,Trichy;Madurai;Virudhunagar,690,AC Sleeper,available,4.0,yes,9h 30m,36,40
+private,TN58 P018,VRL-303,VRL Travels,Madurai – Bengaluru Express,Madurai,Bengaluru,20:00,05:30,Salem;Hosur,750,Volvo Multi-Axle,available,4.6,yes,9h 30m,28,40
+private,KA01 P019,VRL-304,VRL Travels,Bengaluru – Madurai Express,Bengaluru,Madurai,20:30,06:00,Hosur;Salem,750,Volvo Multi-Axle,available,4.6,yes,9h 30m,30,40
+private,TN58 P020,PKT-403,Parveen Travels,Krishnankovil – Coimbatore,Krishnankovil,Coimbatore,06:00,12:00,Virudhunagar;Madurai;Dindigul;Karur,350,Non-AC Seater,available,3.7,yes,6h,32,44
+private,TN58 P021,PKT-404,Parveen Travels,Coimbatore – Krishnankovil,Coimbatore,Krishnankovil,08:00,14:00,Karur;Dindigul;Madurai;Virudhunagar,350,Non-AC Seater,available,3.7,yes,6h,36,44
+private,TN58 P022,SRS-203,SRS Travels,Tirunelveli – Bengaluru,Tirunelveli,Bengaluru,21:00,07:30,Tenkasi;Madurai;Dindigul;Salem,680,AC Sleeper,available,4.2,yes,10h 30m,34,40
+private,KA01 P023,SRS-204,SRS Travels,Bengaluru – Tirunelveli,Bengaluru,Tirunelveli,20:00,06:30,Hosur;Salem;Dindigul;Madurai;Tenkasi,680,AC Sleeper,available,4.2,yes,10h 30m,30,40
+private,TN58 P024,GRT-801,GRT Travels,Rajapalayam – Chennai,Rajapalayam,Chennai,20:00,06:00,Virudhunagar;Madurai;Trichy,710,AC Sleeper,available,4.1,yes,10h,30,36
+private,TN58 P025,GRT-802,GRT Travels,Chennai – Rajapalayam,Chennai,Rajapalayam,21:30,07:30,Trichy;Madurai;Virudhunagar,710,AC Sleeper,available,4.1,yes,10h,28,36
+private,TN58 P026,KPN-105,KPN Travels,Madurai – Hyderabad,Madurai,Hyderabad,17:00,09:00,Trichy;Vijayawada,950,Volvo AC,available,4.3,yes,16h,30,40
+private,TN58 P027,VRL-305,VRL Travels,Chennai – Bengaluru,Chennai,Bengaluru,23:00,05:30,Vellore;Krishnagiri,580,Volvo Multi-Axle,available,4.7,yes,6h 30m,32,40
+private,KA01 P028,VRL-306,VRL Travels,Bengaluru – Chennai,Bengaluru,Chennai,22:30,05:00,Krishnagiri;Vellore,580,Volvo Multi-Axle,available,4.7,yes,6h 30m,28,40
+private,TN58 P029,OTR-504,Orange Travels,Coimbatore – Chennai,Coimbatore,Chennai,21:00,06:00,Erode;Salem;Vellore,550,AC Sleeper,available,4.2,yes,9h,34,40
+private,KA01 P030,OTR-505,Orange Travels,Chennai – Coimbatore,Chennai,Coimbatore,21:30,06:30,Vellore;Salem;Erode,550,AC Sleeper,available,4.2,yes,9h,36,40
+private,TN58 P031,SRM-603,SRM Travels,Tenkasi – Bengaluru,Tenkasi,Bengaluru,21:00,08:00,Tirunelveli;Madurai;Dindigul;Salem,650,AC Seater,available,3.9,yes,11h,28,44
+private,TN58 P032,NBS-703,National Bus Service,Krishnankovil – Madurai,Krishnankovil,Madurai,06:00,07:30,Srivilliputhur;Tirumangalam,55,Non-AC Seater,available,3.6,yes,1h 30m,38,44
+private,TN58 P033,NBS-704,National Bus Service,Madurai – Krishnankovil,Madurai,Krishnankovil,19:00,20:30,Tirumangalam;Srivilliputhur,55,Non-AC Seater,available,3.6,yes,1h 30m,40,44
+private,TN58 P034,KPN-106,KPN Travels,Srivilliputhur – Madurai,Srivilliputhur,Madurai,07:00,08:10,Tirumangalam,48,AC Seater,available,4.1,yes,1h 10m,34,40
+private,TN58 P035,KPN-107,KPN Travels,Madurai – Srivilliputhur,Madurai,Srivilliputhur,17:00,18:10,Tirumangalam,48,AC Seater,available,4.1,yes,1h 10m,36,40
+private,TN58 P036,KPN-120,KPN Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,07:30,09:00,Virudhunagar,120,AC Seater,available,4.3,yes,1h 30m,32,40
+private,TN58 P037,SRS-220,SRS Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,08:30,10:00,Virudhunagar,120,AC Seater,available,4.2,yes,1h 30m,36,40
+private,TN58 P038,VRL-301,VRL Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,09:30,11:00,Virudhunagar;Aruppukottai,130,Volvo AC,available,4.5,yes,1h 30m,28,36
+private,TN58 P039,GRT-401,GRT Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,14:00,15:30,Virudhunagar,120,AC Seater,available,4.1,yes,1h 30m,30,40
+private,TN58 P040,KPN-121,KPN Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,17:30,19:00,Virudhunagar,120,AC Seater,available,4.3,yes,1h 30m,26,40
+private,TN58 P041,SRS-221,SRS Travels,Krishnankovil – Madurai,Krishnankovil,Madurai,20:00,21:30,Virudhunagar,130,Volvo AC,available,4.4,yes,1h 30m,24,36
+private,TN58 P042,KPN-122,KPN Travels,Madurai – Krishnankovil,Madurai,Krishnankovil,08:00,09:30,Aruppukottai;Virudhunagar,120,AC Seater,available,4.2,yes,1h 30m,34,40
+private,TN58 P043,SRS-222,SRS Travels,Madurai – Krishnankovil,Madurai,Krishnankovil,16:00,17:30,Aruppukottai;Virudhunagar,120,AC Seater,available,4.3,yes,1h 30m,30,40
+private,TN58 P044,VRL-302,VRL Travels,Madurai – Krishnankovil,Madurai,Krishnankovil,20:30,22:00,Aruppukottai;Virudhunagar,130,Volvo AC,available,4.5,yes,1h 30m,22,36

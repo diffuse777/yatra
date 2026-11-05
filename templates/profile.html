@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        border-left: 4px solid #667eea;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .activity-item {
+        border-left: 3px solid #e9ecef;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+    }
+    .activity-item:hover {
+        border-left-color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                </h1>
+                <p class="mb-0">
+                    <i class="bi bi-shield-check"></i> 
+                    {% if current_user.is_admin %}
+                        <span class="badge bg-light text-dark">Administrator</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark">User</span>
+                    {% endif %}
+                </p>
+                <p class="mb-0 mt-2">
+                    <i class="bi bi-calendar"></i> Member since {{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-inline-block bg-white bg-opacity-25 p-3 rounded">
+                    <div class="h3 mb-0">{{ user_stats.account_age_days }}</div>
+                    <small>Days Active</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Buses Managed</h6>
+                            <h3 class="mb-0">{{ user_stats.total_buses }}</h3>
+                        </div>
+                        <div class="text-primary">
+                            <i class="bi bi-bus-front fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Events Created</h6>
+                            <h3 class="mb-0">{{ user_stats.total_events }}</h3>
+                        </div>
+                        <div class="text-info">
+                            <i class="bi bi-calendar-event fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Account Age</h6>
+                            <h3 class="mb-0">{{ user_stats.account_age_days }}</h3>
+                            <small class="text-muted">days</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="bi bi-clock-history fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Information -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Username:</strong></td>
+                            <td>{{ current_user.username }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User ID:</strong></td>
+                            <td>#{{ current_user.id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Role:</strong></td>
+                            <td>
+                                {% if current_user.is_admin %}
+                                    <span class="badge bg-danger">Administrator</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Created:</strong></td>
+                            <td>{{ current_user.created_at.strftime('%B %d, %Y at %I:%M %p') if current_user.created_at else 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_logs %}
+                        <div class="list-group list-group-flush">
+                            {% for log in recent_logs %}
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>{{ log.action_type.value }}</strong>
+                                        <p class="mb-0 text-muted small">{{ log.description }}</p>
+                                    </div>
+                                    <small class="text-muted">{{ log.timestamp.strftime('%H:%M') if log.timestamp else '' }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

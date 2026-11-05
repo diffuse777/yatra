@@ -1,0 +1,21 @@
+{
+  "lstm": {
+    "mae": 10.6462,
+    "rmse": 16.0695,
+    "mape": 29.4787,
+    "r2": 0.9385
+  },
+  "xgboost": {
+    "mae": 0.1714,
+    "rmse": 0.3404,
+    "mape": 0.5705,
+    "r2": 1.0
+  },
+  "hybrid": {
+    "mae": 0.1608,
+    "rmse": 0.3319,
+    "mape": 0.5104,
+    "r2": 1.0
+  },
+  "evaluated_on": "chronological held-out test period (same rows for all three models)"
+}

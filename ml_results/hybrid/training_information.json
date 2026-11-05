@@ -1,0 +1,198 @@
+{
+  "trained_at": "2026-09-03 09:49 IST",
+  "timezone": "Asia/Kolkata",
+  "model_name": "Hybrid LSTM + XGBoost Demand Forecasting",
+  "architecture": "Historical hourly demand \u2192 LSTM branch + XGBoost branch \u2192 stacking meta-model \u2192 hybrid prediction",
+  "hybrid_method": "stacking_meta_learning",
+  "meta_model": {
+    "type": "Ridge",
+    "inputs": [
+      "lstm_pred",
+      "xgb_pred",
+      "hour",
+      "day_of_week",
+      "is_holiday"
+    ],
+    "training_data": "Validation-period base-model predictions only",
+    "validation_strategy": "Chronological validation slice after train; meta never sees test targets",
+    "why_selected": "Ridge/LinearRegression is a transparent, low-complexity stacker that learns how to blend LSTM sequence forecasts with XGBoost structured forecasts plus light temporal context, without overfitting small validation sets."
+  },
+  "base_models": {
+    "lstm": {
+      "role": "Capture temporal / sequential demand patterns",
+      "architecture": "Input \u2192 LSTM \u2192 Dropout \u2192 LSTM \u2192 Dense \u2192 Demand",
+      "parameters": {
+        "sequence_length": 24,
+        "lstm_units_1": 64,
+        "lstm_units_2": 32,
+        "dropout": 0.2,
+        "epochs": 25
+      },
+      "input": "Scaled sliding windows of hourly demand + temporal features"
+    },
+    "xgboost": {
+      "role": "Capture structured relationships among temporal / lag features",
+      "parameters": {
+        "n_estimators": 200,
+        "max_depth": 5,
+        "learning_rate": 0.05
+      },
+      "features": [
+        "hour",
+        "day_of_week",
+        "month",
+        "is_weekend",
+        "is_holiday",
+        "lag_1",
+        "lag_24",
+        "rolling_mean_3"
+      ],
+      "input": "Tabular hourly features (calendar + past-only lags)"
+    }
+  },
+  "data": {
+    "dataset_name": "StopAnalytics_hourly_operational_demand",
+    "data_source": "stop_analytics",
+    "is_synthetic": false,
+    "is_operational": true,
+    "dataset_size": 2161,
+    "features": [
+      "passenger_demand",
+      "hour",
+      "day_of_week",
+      "month",
+      "is_holiday",
+      "weather_code"
+    ],
+    "target": "passenger_demand",
+    "data_range_start": "2026-06-05T09:00:00",
+    "data_range_end": "2026-09-03T09:00:00",
+    "preprocessing": [
+      "Operational source resolution (StopAnalytics / Bookings / bus schedule occupancy)",
+      "Chronological sort",
+      "Hourly reindexing",
+      "Linear interpolation for missing demand",
+      "Temporal feature engineering (hour, day_of_week, month, holiday)",
+      "MinMax scaling fit on training split only",
+      "Sliding window sequences (no shuffle)",
+      "Chronological train/test split"
+    ],
+    "dataset_type": "REAL / OPERATIONAL",
+    "alignment_key": "timestamp (hourly system-wide demand)",
+    "route_label": "System-wide",
+    "why_not_standalone_xgboost_artifact": "Standalone Admin\u2192XGBoost uses trip-level BusSchedule_structured_trip_demand (timestamp+route). Standalone LSTM uses hourly system demand. Those prediction spaces are incompatible. Hybrid therefore trains both branches on the same hourly operational series with identical chronological partitions.",
+    "periods": {
+      "train_start": "2026-06-05 10:00 IST",
+      "train_end": "2026-08-07 09:00 IST",
+      "validation_start": "2026-08-07 10:00 IST",
+      "validation_end": "2026-08-20 21:00 IST",
+      "test_start": "2026-08-20 22:00 IST",
+      "test_end": "2026-09-03 09:00 IST",
+      "train_rows": 1512,
+      "validation_rows": 324,
+      "test_rows": 324
+    },
+    "xgb_features": [
+      "hour",
+      "day_of_week",
+      "month",
+      "is_weekend",
+      "is_holiday",
+      "lag_1",
+      "lag_24",
+      "rolling_mean_3"
+    ],
+    "lstm_features": [
+      "passenger_demand",
+      "hour",
+      "day_of_week",
+      "month",
+      "is_holiday",
+      "weather_code"
+    ]
+  },
+  "split_method": "Chronological 70% train / 15% validation / 15% test; no shuffle",
+  "leakage_prevention": [
+    "No random shuffle of time series",
+    "MinMaxScaler fit on train period only",
+    "LSTM and XGBoost trained on train period only",
+    "Meta-model trained only on validation-period base predictions",
+    "Test targets never used to fit scaler, base models, or meta-model",
+    "Lag / rolling features use shift (past only)"
+  ],
+  "train_samples": 1512,
+  "validation_samples": 324,
+  "test_samples": 324,
+  "config": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "sequence_length": 24,
+    "lstm_units_1": 64,
+    "lstm_units_2": 32,
+    "dropout": 0.2,
+    "lstm_epochs": 25,
+    "lstm_batch_size": 32,
+    "lstm_learning_rate": 0.001,
+    "lstm_early_stopping_patience": 5,
+    "lstm_internal_val_ratio": 0.1,
+    "n_estimators": 200,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "min_child_weight": 3,
+    "reg_alpha": 0.05,
+    "reg_lambda": 1.0,
+    "xgb_early_stopping_rounds": 20,
+    "meta_model_type": "Ridge",
+    "meta_alpha": 1.0,
+    "meta_features": [
+      "lstm_pred",
+      "xgb_pred",
+      "hour",
+      "day_of_week",
+      "is_holiday"
+    ]
+  },
+  "artifacts": {
+    "lstm_branch": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\lstm_branch.pt",
+    "xgboost_branch": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\xgboost_branch.json",
+    "meta_model": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\meta_model.joblib",
+    "lstm_scaler": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\lstm_scaler.joblib",
+    "metrics": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\metrics.json",
+    "comparison": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\comparison.json",
+    "predictions": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\predictions.csv",
+    "dataset": "C:\\Users\\iamka\\Downloads\\yatrasaarthi-main\\yatrasaarthi-main\\ml_results\\hybrid\\aligned_hourly_dataset.csv"
+  },
+  "insights": [
+    "Hybrid stacking used operational hourly demand (StopAnalytics_hourly_operational_demand) labeled REAL / OPERATIONAL.",
+    "Chronological periods \u2014 train 2026-06-05 10:00 IST\u21922026-08-07 09:00 IST; validation 2026-08-07 10:00 IST\u21922026-08-20 21:00 IST; test 2026-08-20 22:00 IST\u21922026-09-03 09:00 IST.",
+    "On the shared test set: LSTM MAE=10.6462, XGBoost MAE=0.1714, Hybrid MAE=0.1608.",
+    "Best model by test MAE: Hybrid.",
+    "Hybrid reduced MAE vs LSTM by 10.4854.",
+    "Hybrid reduced MAE vs XGBoost by 0.0106.",
+    "Largest hybrid absolute error on test: 2.57 at 2026-08-21 21:00 IST (System-wide).",
+    "Meta-model was fit only on validation-period base predictions; test labels were never used for stacking weights."
+  ],
+  "best": {
+    "best_model": "Hybrid",
+    "best_key": "hybrid",
+    "criterion": "Lowest test MAE (then RMSE, then highest R2)"
+  },
+  "improvement": {
+    "vs_lstm": {
+      "mae": 10.4854,
+      "rmse": 15.7376,
+      "mape": 28.9683,
+      "r2": 0.0615
+    },
+    "vs_xgboost": {
+      "mae": 0.0106,
+      "rmse": 0.0085,
+      "mape": 0.0601,
+      "r2": 0.0
+    },
+    "note": "For MAE/RMSE/MAPE, positive delta means hybrid error is lower (improved). For R\u00b2, positive delta means hybrid R\u00b2 is higher (improved)."
+  },
+  "reusable_interface": "ml.demand_forecasting.predict_hybrid.get_hybrid_forecast_service"
+}

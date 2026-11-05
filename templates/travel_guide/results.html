@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Travel Guide - Step by Step Directions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-card {
+        border-left: 5px solid #007bff;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        transform: translateX(-30px);
+        animation: slideIn 0.6s ease-out forwards;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .step-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: linear-gradient(180deg, #007bff, #00d4ff);
+        animation: pulseLine 2s infinite;
+    }
+    
+    @keyframes slideIn {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes pulseLine {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        animation: bounce 1s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .mode-icon {
+        font-size: 2.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    .route-line {
+        height: 40px;
+        width: 3px;
+        background: linear-gradient(180deg, #007bff, #00d4ff);
+        margin: 0 auto;
+        position: relative;
+        animation: flow 2s infinite;
+    }
+    
+    @keyframes flow {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 0% 100%; }
+    }
+    
+    .route-line::after {
+        content: '↓';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5rem;
+        color: #007bff;
+        animation: bounceArrow 1s infinite;
+    }
+    
+    @keyframes bounceArrow {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50% { transform: translateX(-50%) translateY(5px); }
+    }
+    
+    .weather-alert {
+        animation: shake 0.5s;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+    
+    .landmark-badge {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .progress-bar-custom {
+        height: 8px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><i class="bi bi-signpost-split"></i> Official Travel Guide</h3>
+                            <p class="mb-1"><strong>For KARE Students:</strong> {{ route_data.from }} → {{ route_data.to }}</p>
+                            <small class="opacity-75">Step-by-step directions to reach your exam center</small>
+                        </div>
+                <div class="text-end">
+                    <div class="badge bg-light text-dark fs-6">
+                        <i class="bi bi-route"></i> {{ route_data.total_distance_km }} km
+                    </div>
+                    <div class="badge bg-light text-dark fs-6 ms-2">
+                        <i class="bi bi-clock"></i> ~{{ route_data.estimated_time_minutes }} min
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Weather Alert -->
+            {% if route_data.weather %}
+            <div class="alert alert-{{ 'warning' if route_data.weather.condition == 'rainy' else 'info' }} weather-alert mb-4">
+                <h5><i class="bi bi-cloud-rain"></i> Weather Alert</h5>
+                <p class="mb-2"><strong>{{ route_data.to }}:</strong> {{ route_data.weather.forecast or route_data.weather.condition|title }}</p>
+                {% if route_data.weather_recommendations %}
+                <div class="mt-3">
+                    <strong>Action Items:</strong>
+                    <ul class="mb-0">
+                        {% for rec in route_data.weather_recommendations %}
+                        <li>
+                            <strong>{{ rec.icon }} {{ rec.action }}:</strong> {{ rec.message }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Step by Step Guide -->
+            <h4 class="mb-4"><i class="bi bi-list-ol"></i> Step-by-Step Directions</h4>
+            
+            {% if route_data.steps %}
+            {% for step in route_data.steps %}
+            <div class="step-card" style="animation-delay: {{ loop.index0 * 0.2 }}s;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 text-center">
+                                <div class="step-number">{{ step.step_number }}</div>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <div class="mode-icon">
+                                    {% if step.mode == 'walk' %}
+                                        🚶
+                                    {% elif step.mode == 'bus' %}
+                                        🚌
+                                    {% elif step.mode == 'train' %}
+                                        🚂
+                                    {% elif step.mode == 'auto' %}
+                                        🛺
+                                    {% else %}
+                                        🚗
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h5 class="mb-2">{{ step.instruction }}</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1">
+                                            <i class="bi bi-route"></i> <strong>Distance:</strong> {{ step.distance_km }} km
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="bi bi-clock"></i> <strong>Duration:</strong> ~{{ step.approx_duration_min }} minutes
+                                        </p>
+                                        {% if step.bus_frequency %}
+                                        <p class="mb-1">
+                                            <i class="bi bi-arrow-repeat"></i> <strong>Frequency:</strong> {{ step.bus_frequency }}
+                                        </p>
+                                        {% endif %}
+                                        {% if step.first_bus and step.last_bus %}
+                                        <p class="mb-1">
+                                            <i class="bi bi-calendar-range"></i> <strong>Timings:</strong> {{ step.first_bus }} - {{ step.last_bus }}
+                                        </p>
+                                        {% endif %}
+                                        {% if step.fare %}
+                                        <p class="mb-1">
+                                            <i class="bi bi-currency-rupee"></i> <strong>Fare:</strong> {{ step.fare }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if step.important_note %}
+                                        <div class="alert alert-warning mb-2">
+                                            <i class="bi bi-exclamation-triangle"></i> <strong>Important:</strong> {{ step.important_note }}
+                                        </div>
+                                        {% endif %}
+                                        {% if step.landmarks %}
+                                        <div class="mb-2">
+                                            <i class="bi bi-geo-alt"></i> <strong>Landmarks:</strong>
+                                            {% for landmark in step.landmarks %}
+                                            <span class="badge bg-info landmark-badge me-1">{{ landmark }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if not loop.last %}
+            <div class="text-center my-2">
+                <div class="route-line"></div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            
+            <!-- Alternate Transport -->
+            {% if route_data.alternate_transport %}
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-arrow-left-right"></i> Alternate Transport Options</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for alt in route_data.alternate_transport %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>
+                                        {% if alt.mode == 'auto' %}
+                                            🛺 Auto-rickshaw
+                                        {% elif alt.mode == 'share_van' %}
+                                            🚐 Share Van
+                                        {% else %}
+                                            🚗 {{ alt.mode|title }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="mb-1">{{ alt.description }}</p>
+                                    <p class="mb-0">
+                                        <i class="bi bi-currency-rupee"></i> <strong>Fare:</strong> {{ alt.fare }} | 
+                                        <i class="bi bi-clock"></i> <strong>Duration:</strong> ~{{ alt.duration_min }} min
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Landmarks -->
+            {% if route_data.landmarks %}
+            <div class="card mt-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Nearby Landmarks & Rest Points</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for landmark in route_data.landmarks %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>
+                                        {% if landmark.type == 'tea_stall' %}
+                                            ☕ {{ landmark.name }}
+                                        {% elif landmark.type == 'atm' %}
+                                            🏦 {{ landmark.name }}
+                                        {% elif landmark.type == 'petrol_bunk' %}
+                                            ⛽ {{ landmark.name }}
+                                        {% else %}
+                                            📍 {{ landmark.name }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="mb-0 text-muted">
+                                        <i class="bi bi-geo-alt"></i> {{ landmark.location }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Safety Tips -->
+            {% if route_data.safety_tips %}
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-shield-check"></i> Safety Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        {% for tip in route_data.safety_tips %}
+                        <li class="mb-2">{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Progress Indicator -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span><strong>Route Progress</strong></span>
+                    <span><strong>100%</strong></span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar-custom" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-4">
+        <a href="{{ url_for('travel_guide_plan') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-arrow-left"></i> Plan Another Route
+        </a>
+    </div>
+</div>
+
+<script>
+// Add voice guidance (text-to-speech)
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-IN';
+        utterance.rate = 0.9;
+        speechSynthesis.speak(utterance);
+    }
+}
+
+// Auto-scroll to steps with animation
+document.addEventListener('DOMContentLoaded', function() {
+    const steps = document.querySelectorAll('.step-card');
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            step.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, index * 300);
+    });
+});
+
+// Add click to hear instructions
+document.querySelectorAll('.step-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const instruction = this.querySelector('h5').textContent;
+        speakText(instruction);
+    });
+});
+</script>
+{% endblock %}
+

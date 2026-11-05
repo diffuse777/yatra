@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Bus Services - Yatra Saarthi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Manage Bus Services</h1>
+        <a href="{{ url_for('add_bus_service') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Service
+        </a>
+    </div>
+
+    <!-- Active Services Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Active Bus Services</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="activeServicesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Service #</th>
+                            <th>Bus #</th>
+                            <th>Route</th>
+                            <th>Timings</th>
+                            <th>Stops</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in active_services %}
+                        <tr>
+                            <td>{{ service.service_number }}</td>
+                            <td>{{ service.bus_number }}</td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <div class="route-main mb-1">
+                                        <strong>{{ service.origin }} → {{ service.destination }}</strong>
+                                    </div>
+                                    {% if service.via_routes %}
+                                    <div class="via-routes mt-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-route"></i>
+                                            {% for route in service.via_routes %}
+                                                {{ route.name }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    {% if service.route_description %}
+                                    <div class="route-desc mt-1">
+                                        <small class="text-muted">{{ service.route_description|truncate(50) }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <div class="departure mb-1">
+                                        <i class="fas fa-arrow-right text-success"></i> {{ service.departure_time.strftime('%I:%M %p') }}
+                                    </div>
+                                    <div class="arrival">
+                                        <i class="fas fa-arrow-left text-danger"></i> {{ service.arrival_time.strftime('%I:%M %p') }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if service.stops %}
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#stops-{{ service.id }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="stops-{{ service.id }}">
+                                        {{ service.stops|length }} Stops
+                                    </button>
+                                    <div class="collapse mt-2" id="stops-{{ service.id }}">
+                                        <div class="card card-body p-2">
+                                            {% for stop in service.stops %}
+                                                <div class="stop-item small py-1{% if not loop.last %} border-bottom{% endif %}">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="fw-bold">{{ stop.name }}</span>
+                                                        <span class="text-muted">
+                                                            {{ stop.arrival }} - {{ stop.departure }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">No stops</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-success">Active</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('edit_bus_service', service_id=service.id) }}" class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-danger" onclick="confirmDeactivate({{ service.id }})" title="Deactivate">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No active bus services found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inactive Services Card -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-secondary">Inactive Bus Services</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="inactiveServicesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Service #</th>
+                            <th>Bus #</th>
+                            <th>Route</th>
+                            <th>Timings</th>
+                            <th>Stops</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in inactive_services %}
+                        <tr>
+                            <td>{{ service.service_number }}</td>
+                            <td>{{ service.bus_number }}</td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <div class="route-main mb-1">
+                                        <strong>{{ service.origin }} → {{ service.destination }}</strong>
+                                    </div>
+                                    {% if service.via_routes %}
+                                    <div class="via-routes mt-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-route"></i>
+                                            {% for route in service.via_routes %}
+                                                {{ route.name }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    {% if service.route_description %}
+                                    <div class="route-desc mt-1">
+                                        <small class="text-muted">{{ service.route_description|truncate(50) }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <div class="departure mb-1">
+                                        <i class="fas fa-arrow-right text-success"></i> {{ service.departure_time.strftime('%I:%M %p') }}
+                                    </div>
+                                    <div class="arrival">
+                                        <i class="fas fa-arrow-left text-danger"></i> {{ service.arrival_time.strftime('%I:%M %p') }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if service.stops %}
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#stops-{{ service.id }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="stops-{{ service.id }}">
+                                        {{ service.stops|length }} Stops
+                                    </button>
+                                    <div class="collapse mt-2" id="stops-{{ service.id }}">
+                                        <div class="card card-body p-2">
+                                            {% for stop in service.stops %}
+                                                <div class="stop-item small py-1{% if not loop.last %} border-bottom{% endif %}">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="fw-bold">{{ stop.name }}</span>
+                                                        <span class="text-muted">
+                                                            {{ stop.arrival }} - {{ stop.departure }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">No stops</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">Inactive</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('edit_bus_service', service_id=service.id) }}" class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-success" onclick="confirmActivate({{ service.id }})" title="Activate">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No inactive bus services found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to <span id="actionText"></span> this bus service?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" id="confirmButton" href="#">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+    // Initialize DataTables when document is ready
+    $(document).ready(function() {
+        if ($.fn.DataTable.isDataTable('#activeServicesTable')) {
+            $('#activeServicesTable').DataTable().destroy();
+        }
+        if ($.fn.DataTable.isDataTable('#inactiveServicesTable')) {
+            $('#inactiveServicesTable').DataTable().destroy();
+        }
+        
+        $('#activeServicesTable').DataTable({
+            "order": [[0, "asc"]],
+            "pageLength": 10,
+            "responsive": true
+        });
+        
+        $('#inactiveServicesTable').DataTable({
+            "order": [[0, "asc"]],
+            "pageLength": 10,
+            "responsive": true
+        });
+    });
+
+    // Confirmation dialogs
+    function confirmDeactivate(serviceId) {
+        $('#actionText').text('deactivate');
+        const confirmButton = $('#confirmButton')
+            .removeClass('btn-success')
+            .addClass('btn-danger')
+            .text('Deactivate')
+            .off('click')
+            .on('click', function() {
+                // Show loading state
+                const originalText = $(this).html();
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deactivating...');
+                $(this).prop('disabled', true);
+                
+                // Send AJAX request to deactivate the service
+                fetch(`/admin/bus-service/deactivate/${serviceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        showAlert('Service deactivated successfully!', 'success');
+                        // Close the modal
+                        $('#confirmModal').modal('hide');
+                        // Reload the page after a short delay
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        throw new Error(data.message || 'Failed to deactivate service');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'An error occurred while deactivating the service', 'danger');
+                    $('#confirmModal').modal('hide');
+                })
+                .finally(() => {
+                    // Reset button state
+                    $(this).html(originalText).prop('disabled', false);
+                });
+            });
+            
+        $('#confirmModal').modal('show');
+    }
+
+    function confirmActivate(serviceId) {
+        $('#actionText').text('activate');
+        const confirmButton = $('#confirmButton')
+            .removeClass('btn-danger')
+            .addClass('btn-success')
+            .text('Activate')
+            .off('click')
+            .on('click', function() {
+                // Show loading state
+                const originalText = $(this).html();
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Activating...');
+                $(this).prop('disabled', true);
+                
+                // Send AJAX request to activate the service
+                fetch(`/admin/bus-service/activate/${serviceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'  // Important for sending cookies
+                })
+                .then(response => {
+                    // First check if the response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        // If not JSON, we might have been redirected to login
+                        if (response.redirected) {
+                            window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                            return Promise.reject('Please log in to continue');
+                        }
+                        return response.text().then(text => {
+                            throw new Error('Expected JSON response but got: ' + text.substring(0, 100));
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        // Show success message
+                        showAlert('Service activated successfully!', 'success');
+                        // Close the modal
+                        $('#confirmModal').modal('hide');
+                        // Reload the page after a short delay
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        throw new Error(data ? (data.message || 'Failed to activate service') : 'Invalid response from server');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'An error occurred while activating the service. Please try again or check your login status.', 'danger');
+                    $('#confirmModal').modal('hide');
+                })
+                .finally(() => {
+                    // Reset button state
+                    $(this).html(originalText).prop('disabled', false);
+                });
+            });
+            
+        $('#confirmModal').modal('show');
+    }
+    
+    // Function to show alert messages
+    function showAlert(message, type = 'info') {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Add the alert before the first card
+        $('.container-fluid > .card:first').before(alertHtml);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            $('.alert').alert('close');
+        }, 5000);
+    }
+</script>
+{% endblock %}

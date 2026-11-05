@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Yatra Saarthi Admin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --font-sans: Verdana, Tahoma, Geneva, sans-serif;
+            --transport-navy:   #0B1F3A;
+            --transport-blue:   #1A3A5C;
+            --transport-orange: #E65100;
+            --transport-amber:  #FFA000;
+            --transport-light:  #F4F6F9;
+            --transport-border: #2A4A6B;
+            --sidebar-width:    230px;
+        }
+        * { font-family: var(--font-sans) !important; }
+
+        body {
+            background: var(--transport-light);
+            min-height: 100vh;
+        }
+
+        /* ── Top Bar ── */
+        .top-bar {
+            background: var(--transport-navy);
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1040;
+            border-bottom: 3px solid var(--transport-orange);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .top-bar .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+        }
+        .top-bar .brand .bus-icon {
+            background: var(--transport-orange);
+            color: #fff;
+            width: 34px; height: 34px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+        .top-bar .brand span { color: var(--transport-amber); }
+
+        /* Scrolling ticker */
+        .top-ticker {
+            flex: 1;
+            overflow: hidden;
+            color: rgba(255,255,255,0.75);
+            font-size: 0.75rem;
+            letter-spacing: 0.03em;
+        }
+        .ticker-inner {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 28s linear infinite;
+        }
+        @keyframes ticker {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-sep { color: var(--transport-amber); margin: 0 1rem; }
+
+        .top-bar .top-right {
+            display: flex; align-items: center; gap: 0.75rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .top-bar .ip-badge {
+            background: var(--transport-border);
+            color: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.72rem;
+        }
+        .top-bar .passenger-btn {
+            background: var(--transport-orange);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .top-bar .passenger-btn:hover { background: #bf360c; color: #fff; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 56px; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--transport-navy);
+            overflow-y: auto;
+            z-index: 1030;
+            padding: 0.75rem 0;
+            border-right: 1px solid var(--transport-border);
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--transport-border); border-radius: 2px; }
+
+        .sidebar-section-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            padding: 0.85rem 1rem 0.25rem;
+            font-weight: 700;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: rgba(255,255,255,0.7);
+            padding: 0.55rem 1rem;
+            border-radius: 0;
+            font-size: 0.82rem;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .sidebar .nav-link:hover {
+            background: var(--transport-blue);
+            color: #fff;
+            border-left-color: var(--transport-amber);
+        }
+        .sidebar .nav-link.active {
+            background: var(--transport-blue);
+            color: #fff;
+            border-left-color: var(--transport-orange);
+            font-weight: 700;
+        }
+        .sidebar .nav-link i { font-size: 1rem; width: 18px; text-align: center; }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--transport-border);
+            margin: 0.5rem 0;
+        }
+
+        /* User section at bottom of sidebar */
+        .sidebar-user {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--transport-border);
+            margin-top: 0.5rem;
+        }
+        .sidebar-user .avatar {
+            width: 30px; height: 30px;
+            background: var(--transport-orange);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: #fff; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .sidebar-user .user-info { flex: 1; overflow: hidden; }
+        .sidebar-user .user-info .name { font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-user .user-info .role { font-size: 0.68rem; color: var(--transport-amber); }
+        .sidebar-user .logout-btn {
+            color: rgba(255,255,255,0.5);
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .sidebar-user .logout-btn:hover { color: #ff6b6b; }
+
+        /* ── Main content ── */
+        .main-content {
+            margin-top: 56px;
+            margin-left: var(--sidebar-width);
+            min-height: calc(100vh - 56px);
+            padding: 1.5rem;
+        }
+
+        /* ── Page header strip ── */
+        .page-header-strip {
+            background: var(--transport-navy);
+            color: #fff;
+            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 5px solid var(--transport-orange);
+        }
+        .page-header-strip h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+
+        /* ── Cards ── */
+        .card {
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .card-header {
+            font-weight: 700;
+            font-size: 0.88rem;
+            border-bottom: 2px solid var(--transport-orange);
+        }
+
+        /* Stat cards */
+        .stat-card {
+            background: #fff;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--transport-orange);
+        }
+        .stat-card .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .stat-card .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--transport-navy); line-height: 1; }
+        .stat-card .stat-label { font-size: 0.72rem; color: #6c757d; margin-top: 2px; }
+
+        /* Table styling */
+        .table thead th {
+            background: var(--transport-navy);
+            color: #fff;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            padding: 0.65rem 0.75rem;
+        }
+        .table tbody tr:hover { background: #EEF2F7; }
+        .table td { font-size: 0.83rem; vertical-align: middle; }
+
+        /* Route badge */
+        .route-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--transport-navy);
+            color: var(--transport-amber);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        /* Flash alerts */
+        .alert { border-radius: 4px; font-size: 0.85rem; }
+
+        /* Departure board style time */
+        .dep-time {
+            font-family: 'Courier New', monospace !important;
+            font-weight: 700;
+            background: var(--transport-navy);
+            color: var(--transport-amber);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.88rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ── Top Bar ── -->
+    <div class="top-bar">
+        <a class="brand" href="{{ url_for('dashboard') }}">
+            <div class="bus-icon"><i class="bi bi-bus-front-fill"></i></div>
+            Yatra <span>Saarthi</span>
+        </a>
+        <div class="top-ticker">
+            <span class="ticker-inner">
+                <i class="bi bi-circle-fill" style="font-size:0.4rem;color:var(--transport-orange);"></i>
+                &nbsp;Admin Control Panel &nbsp;
+                <span class="ticker-sep">|</span>
+                Yatra Saarthi – Intelligent Transport Management System
+                <span class="ticker-sep">|</span>
+                KARE – Kalasalingam Academy of Research &amp; Education
+                <span class="ticker-sep">|</span>
+                Manage bus timetables, crowd data, routes &amp; analytics
+                <span class="ticker-sep">|</span>
+                Designed by Nextlinkers – Design Build Operate | KARE
+                <span class="ticker-sep">|</span>
+            </span>
+        </div>
+        <div class="top-right">
+            <span class="ip-badge"><i class="bi bi-pc-display me-1"></i>{{ request.remote_addr }}</span>
+            <a href="{{ url_for('passengers_home') }}" class="passenger-btn">
+                <i class="bi bi-person-walking"></i> Passenger View
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Sidebar ── -->
+    <nav class="sidebar">
+        <div class="sidebar-section-label">Main</div>
+        <a href="{{ url_for('dashboard') }}"
+           class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+
+        <div class="sidebar-section-label">Bus Operations</div>
+        <a href="{{ url_for('admin_timetables') }}"
+           class="nav-link {% if request.endpoint == 'admin_timetables' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> Timetable Management
+        </a>
+        <a href="{{ url_for('manage_bus_services') }}"
+           class="nav-link {% if request.endpoint in ['manage_bus_services','add_bus_service','edit_bus_service'] %}active{% endif %}">
+            <i class="bi bi-bus-front"></i> Bus Services
+        </a>
+        <a href="{{ url_for('manage_routes') }}"
+           class="nav-link {% if request.endpoint in ['manage_routes','add_route','edit_route'] %}active{% endif %}">
+            <i class="bi bi-sign-turn-right"></i> Routes
+        </a>
+
+        <div class="sidebar-section-label">Passengers</div>
+        <a href="{{ url_for('manage_passengers') }}"
+           class="nav-link {% if request.endpoint == 'manage_passengers' %}active{% endif %}">
+            <i class="bi bi-people-fill"></i> Passengers
+        </a>
+
+        <div class="sidebar-section-label">Intelligence</div>
+        <a href="{{ url_for('crowd_management') }}"
+           class="nav-link {% if request.endpoint in ['crowd_management','add_special_event'] %}active{% endif %}">
+            <i class="bi bi-calendar-event-fill"></i> Crowd Management
+        </a>
+        <a href="{{ url_for('ai_crowd_management') }}"
+           class="nav-link {% if request.endpoint == 'ai_crowd_management' %}active{% endif %}">
+            <i class="bi bi-cpu-fill"></i> AI Crowd Intelligence
+        </a>
+        <a href="{{ url_for('multi_modal_coordination') }}"
+           class="nav-link {% if request.endpoint == 'multi_modal_coordination' %}active{% endif %}">
+            <i class="bi bi-diagram-3-fill"></i> Multi-Modal Hub
+        </a>
+        <a href="{{ url_for('admin_models') }}"
+           class="nav-link {% if request.endpoint and request.endpoint.startswith('admin_model') %}active{% endif %}">
+            <i class="bi bi-cpu"></i> Models
+        </a>
+
+        <div class="sidebar-section-label">Insights</div>
+        <a href="{{ url_for('analytics') }}"
+           class="nav-link {% if request.endpoint == 'analytics' %}active{% endif %}">
+            <i class="bi bi-graph-up-arrow"></i> Analytics
+        </a>
+        <a href="{{ url_for('logs') }}"
+           class="nav-link {% if request.endpoint == 'logs' %}active{% endif %}">
+            <i class="bi bi-journal-code"></i> System Logs
+        </a>
+
+        <hr class="sidebar-divider">
+
+        <!-- User (anonymous users hit this on error pages — guard username access) -->
+        {% if current_user.is_authenticated %}
+        <div class="sidebar-user">
+            <div class="avatar">{{ current_user.username[0]|upper }}</div>
+            <div class="user-info">
+                <div class="name">{{ current_user.username }}</div>
+                <div class="role">{% if current_user.is_admin %}Administrator{% else %}Operator{% endif %}</div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" title="Sign out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+        {% else %}
+        <div class="sidebar-user" style="padding:0.75rem 1rem;font-size:0.78rem;color:rgba(255,255,255,0.75);">
+            <a href="{{ url_for('login') }}" class="nav-link py-1" style="color:var(--transport-amber);"><i class="bi bi-box-arrow-in-right me-1"></i> Admin sign in</a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <!-- ── Main Content ── -->
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="modal fade" id="flashResultModal" tabindex="-1" aria-labelledby="flashResultModalLabel" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border:none; border-radius:8px; overflow:hidden;">
+                        {% set first_cat = messages[0][0] %}
+                        <div class="modal-header" style="background:{% if first_cat == 'success' %}var(--transport-navy){% elif first_cat == 'danger' %}#8B1E1E{% else %}var(--transport-blue){% endif %}; color:#fff; border-bottom:3px solid var(--transport-orange);">
+                            <h5 class="modal-title" id="flashResultModalLabel" style="font-weight:800;">
+                                <i class="bi bi-{% if first_cat == 'success' %}check-circle-fill{% elif first_cat == 'danger' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %} me-2"></i>
+                                {% if first_cat == 'success' %}Success{% elif first_cat == 'danger' %}Error{% else %}Notice{% endif %}
+                            </h5>
+                        </div>
+                        <div class="modal-body" style="font-size:0.92rem; color:#223; white-space:pre-line;">
+                            {% for category, message in messages %}
+                            <div class="{% if not loop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer" style="border-top:1px solid #eef1f5;">
+                            <button type="button" class="btn"
+                                    style="background:var(--transport-orange); color:#fff; font-weight:700; min-width:96px; border-radius:4px;"
+                                    data-bs-dismiss="modal">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+    (function () {
+        var el = document.getElementById('flashResultModal');
+        if (!el || typeof bootstrap === 'undefined') return;
+        var modal = new bootstrap.Modal(el);
+        modal.show();
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

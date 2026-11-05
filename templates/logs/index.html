@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}System Logs{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.35em 0.65em;
+    }
+    .nav-tabs .nav-link {
+        font-weight: 500;
+        color: #6c757d;
+    }
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    .log-type-icon {
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <div>
+        <h1 class="h2">System Logs</h1>
+        <p class="lead mb-0">Monitor and track all system activities and interactions</p>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-2" disabled>
+            <i class="bi bi-download me-1"></i> Export
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+            <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="logsTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="passenger-tab" data-bs-toggle="tab" data-bs-target="#passenger-logs" type="button" role="tab" aria-controls="passenger-logs" aria-selected="true">
+            <i class="bi bi-people-fill log-type-icon"></i>Passenger Logs
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-logs" type="button" role="tab" aria-controls="admin-logs" aria-selected="false">
+            <i class="bi bi-shield-lock log-type-icon"></i>Admin Logs
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="logsTabContent">
+    <!-- Passenger Logs Tab -->
+    <div class="tab-pane fade show active" id="passenger-logs" role="tabpanel" aria-labelledby="passenger-tab">
+
+<div class="alert alert-info d-flex align-items-center">
+    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+    <div>
+        <h4 class="alert-heading">Passenger Activity Logs</h4>
+        <p class="mb-0">View all passenger-related activities including logins, registrations, and booking actions.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Passenger Portal</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+            <div>
+                <h4 class="alert-heading">Passenger Portal Under Development</h4>
+                <p class="mb-0">The passenger portal is currently under active development. This section will display comprehensive logs of all passenger activities once the passenger portal is launched.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Planned Features</h6>
+                        <h3 class="mb-0">12+</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-list-check text-primary fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Estimated Launch</h6>
+                        <h3 class="mb-0">Q4 2025</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-calendar-check text-success fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Development Progress</h6>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">65%</h3>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 65%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-speedometer2 text-warning fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Feature Roadmap</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Real-time Activity Tracking</h6>
+                                <small class="text-muted">Monitor live passenger actions</small>
+                            </div>
+                            <span class="badge bg-success status-badge">Completed</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Booking History</h6>
+                                <small class="text-muted">View complete booking records</small>
+                            </div>
+                            <span class="badge bg-warning status-badge">In Progress</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Authentication Logs</h6>
+                                <small class="text-muted">Track user sign-ins and security</small>
+                            </div>
+                            <span class="badge bg-warning status-badge">In Progress</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Search & Filters</h6>
+                                <small class="text-muted">Advanced log filtering options</small>
+                            </div>
+                            <span class="badge bg-secondary status-badge">Planned</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="bi bi-info-circle-fill"></i>
+                            </div>
+                            <div>
+                                <p class="mb-1">System initialized logs module</p>
+                                <small class="text-muted">Just now</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="me-3 text-success">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div>
+                                <p class="mb-1">Analytics dashboard updated</p>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="me-3 text-warning">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                            <div>
+                                <p class="mb-1">Passenger portal development started</p>
+                                <small class="text-muted">1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="me-3 text-info">
+                                <i class="bi bi-lightbulb-fill"></i>
+                            </div>
+                            <div>
+                                <p class="mb-1">New logging requirements gathered</p>
+                                <small class="text-muted">3 days ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Upcoming Features</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
+                            <i class="bi bi-graph-up-arrow text-primary fs-1"></i>
+                        </div>
+                        <h5>Advanced Analytics</h5>
+                        <p class="text-muted">Detailed insights and visualizations of passenger behavior patterns.</p>
+                        <span class="badge bg-light text-dark">Q1 2026</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+
+<div class="tab-content" id="logsTabContent">
+    <div class="tab-pane fade show active" id="passenger-logs" role="tabpanel" aria-labelledby="passenger-tab">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div>
+                        <h4 class="alert-heading">Passenger Portal Under Development</h4>
+                        <p class="mb-0">The passenger portal is currently under active development. This section will display comprehensive logs of all passenger activities once the passenger portal is launched.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="admin-logs" role="tabpanel" aria-labelledby="admin-tab">
+        {% if admin_logs %}
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Admin Activities</h5>
+                <small class="text-muted">Showing last 50 entries</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for log in admin_logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    {% if log.action_type == 'Login' %}
+                                    <i class="bi bi-box-arrow-in-right text-primary"></i>
+                                    {% elif log.action_type == 'Logout' %}
+                                    <i class="bi bi-box-arrow-right text-secondary"></i>
+                                    {% elif log.action_type == 'Create' %}
+                                    <i class="bi bi-plus-circle-fill text-success"></i>
+                                    {% elif log.action_type == 'Update' %}
+                                    <i class="bi bi-pencil-fill text-warning"></i>
+                                    {% elif log.action_type == 'Delete' %}
+                                    <i class="bi bi-trash-fill text-danger"></i>
+                                    {% elif log.action_type == 'Error' %}
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                    {% else %}
+                                    <i class="bi bi-activity text-info"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="mb-1">{{ log.description }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                        {% if log.user %}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-person me-1"></i>{{ log.user.username }}
+                                        {% endif %}
+                                        {% if log.ip_address %}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-pc-display me-1"></i>{{ log.ip_address }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark">{{ log.action_type }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            No admin activity logs found.
+        </div>
+        {% endif %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-3">Admin Actions (Last 7 Days)</h6>
+                                <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
+                                    <div class="text-center">
+                                        <h2>24</h2>
+                                        <p class="text-muted mb-0">Total Actions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-3">Active Admin Sessions</h6>
+                                <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
+                                    <div class="text-center">
+                                        <h2>3</h2>
+                                        <p class="text-muted mb-0">Active Now</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Tab state persistence
+    const activeTab = localStorage.getItem('activeLogsTab');
+    if (activeTab) {
+        const tabTrigger = new bootstrap.Tab(document.querySelector(activeTab));
+        tabTrigger.show();
+    }
+    
+    // Save tab state when changing tabs
+    const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(tabEl => {
+        tabEl.addEventListener('shown.bs.tab', function (event) {
+            const activeTab = event.target.getAttribute('data-bs-target');
+            localStorage.setItem('activeLogsTab', activeTab);
+        });
+    });
+    
+    console.log('Logs page initialized');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Add Special Event{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Add Special Event</h1>
+    <a href="{{ url_for('crowd_management') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Events
+    </a>
+</div>
+
+<div class="form-card">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Event Information</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('add_special_event') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="event_name" class="form-label">Event Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="event_name" name="event_name" 
+                               placeholder="e.g., Krishna's Temple Festival" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="location" class="form-label">Event Location <span class="text-danger">*</span></label>
+                        <select class="form-select" id="location" name="location" required>
+                            <option value="">Select location...</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="event_description" class="form-label">Event Description</label>
+                    <textarea class="form-control" id="event_description" name="event_description" rows="3"
+                              placeholder="Describe the event and why it will increase travel demand..."></textarea>
+                    <div class="form-text">Example: "Annual temple festival. Expected 500+ visitors from nearby villages traveling to Krishna's Temple."</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="event_date" class="form-label">Event Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="event_date" name="event_date" required>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="mb-3"><i class="bi bi-bus-front text-primary"></i> Expected Travel Pattern</h6>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="route_origin" class="form-label">Traveling From <span class="text-danger">*</span></label>
+                        <select class="form-select" id="route_origin" name="route_origin" required>
+                            <option value="">Select origin...</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Where people are coming from</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="route_destination" class="form-label">Traveling To <span class="text-danger">*</span></label>
+                        <select class="form-select" id="route_destination" name="route_destination" required>
+                            <option value="">Select destination...</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Where they're going</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="expected_demand" class="form-label">Expected Passenger Demand <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="expected_demand" name="expected_demand" 
+                               value="100" min="1" required>
+                        <div class="form-text">Estimated number of passengers</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="additional_buses" class="form-label">Additional Buses Needed</label>
+                        <input type="number" class="form-control" id="additional_buses" name="additional_buses" 
+                               value="0" min="0">
+                        <div class="form-text">
+                            <button type="button" class="btn btn-sm btn-outline-info mt-1" onclick="autoSuggest()">
+                                <i class="bi bi-calculator"></i> Auto-Calculate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                    </select>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('crowd_management') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Create Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function autoSuggest() {
+    const expectedDemand = document.getElementById('expected_demand').value;
+    const busCapacity = 50; // Average bus capacity
+    
+    if (!expectedDemand || expectedDemand < 1) {
+        alert('Please enter expected passenger demand first');
+        return;
+    }
+    
+    fetch('{{ url_for("auto_suggest_buses") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            expected_demand: parseInt(expectedDemand),
+            bus_capacity: busCapacity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('additional_buses').value = data.buses_needed;
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Bad Gateway - Bus Optimization System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-8 text-center">
+            <div class="mb-4">
+                <i class="bi bi-hdd-network text-danger" style="font-size: 5rem;"></i>
+            </div>
+            <h1 class="display-4 mb-4">502 - Bad Gateway</h1>
+            <p class="lead mb-4">The server received an invalid response from the upstream server while trying to fulfill the request.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <button onclick="window.location.reload()" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Try Again
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house-door me-2"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
